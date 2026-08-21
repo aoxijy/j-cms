@@ -78,17 +78,20 @@ jobs:
           SQL
           docker compose restart app
 
-          timeout 180 bash -c 'until curl -fsS http://localhost/healthz | grep -q '"'"'"status":"UP"'"'"'; do echo "waiting for restarted app..."; sleep 3; done'
+          timeout 180 bash -c 'until [ "$(curl -fsS http://localhost/healthz 2>/dev/null)" = '"'"'{"status":"UP"}'"'"' ]; do echo "waiting for restarted app..."; sleep 3; done'
 
           # Readiness proves startup, DB connectivity, and writable file storage. The page request
           # additionally exercises WebRequestFilter, page routing, widgets, JSP rendering, and the
           # response body. The API request exercises app-key auth, REST routing, DB querying, and
           # JSON serialization rather than merely checking that /api/* returns some HTTP status.
-          curl -fsS http://localhost/healthz | grep -q '"status":"UP"'
-          curl -fsS http://localhost/ | grep -qi '<html'
-          curl -fsS -H 'X-API-Key: jcms-ci-smoke-key' \
-            'http://localhost/api/pages?page=1&size=5' \
-            | python3 -c 'import json,sys; body=json.load(sys.stdin); assert body["meta"]["type"] == "page"; assert isinstance(body["data"], list)'
+          health_body=$(curl -fsS http://localhost/healthz)
+          page_body=$(curl -fsS http://localhost/)
+          api_body=$(curl -fsS -H 'X-API-Key: jcms-ci-smoke-key' \
+            'http://localhost/api/pages?page=1&size=5')
+
+          grep -q '"status":"UP"' <<< "$health_body"
+          grep -qi '<html' <<< "$page_body"
+          python3 -c 'import json,sys; body=json.load(sys.stdin); assert body["meta"]["type"] == "page"; assert isinstance(body["data"], list)' <<< "$api_body"
 
       - name: Dump container logs on failure
         if: failure()
