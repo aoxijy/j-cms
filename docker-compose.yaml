@@ -24,7 +24,7 @@ services:
       context: ./
       dockerfile: ./docker/app/Dockerfile
     ports:
-      - 80:8080
+      - "${CMS_HTTP_PORT:-80}:8080"
     # [STIG] Read-only root filesystem. The image pre-extracts the WAR (unpackWARs=false) and
     # routes the App Insights self-diagnostics to the console, so the only writable surfaces at
     # runtime are these tmpfs mounts -- Tomcat's scratch/log dirs -- and the /opt/jcms volume
@@ -44,6 +44,7 @@ services:
     environment:
       CMS_ADMIN_USERNAME: "${CMS_ADMIN_USERNAME:?err}"
       CMS_ADMIN_PASSWORD: "${CMS_ADMIN_PASSWORD:?err}"
+      CMS_SECRET_KEY: "${CMS_SECRET_KEY:-}"
       CMS_FORCE_SSL: "${CMS_FORCE_SSL:-true}"
       CMS_NODE_TYPE: "${CMS_NODE_TYPE:-standalone}"
       DB_SERVER_NAME: "${DB_SERVER_NAME:-db}"
