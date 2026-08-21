@@ -5,7 +5,7 @@
 Please do **not** open a public issue for security vulnerabilities.
 
 Report privately using GitHub's **"Report a vulnerability"** button under this repository's **Security** tab (Security → Advisories → Report a vulnerability).
-You can also send us a message at https://github.com/aoxijy/j-cms/contact-us
+You can also open a private report at https://github.com/aoxijy/j-cms/security/advisories/new
 
 Please include: affected version/commit, a description and steps to reproduce.
 

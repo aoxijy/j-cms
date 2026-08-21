@@ -1,7 +1,7 @@
 # J-CMS database image
 
 PostgreSQL 17 with PostGIS, used by `docker-compose` and published as
-`ghcr.io/j-cms-db`. Built from [`Dockerfile`](Dockerfile).
+`ghcr.io/aoxijy/j-cms-db`. Built from [`Dockerfile`](Dockerfile).
 
 ## Container CVE posture
 
@@ -42,7 +42,7 @@ Use it to suppress the findings we have justified, while still surfacing anythin
 
 ```sh
 trivy image --vex docker/db/vex/j-cms-db.openvex.json \
-  --scanners vuln --severity HIGH,CRITICAL ghcr.io/j-cms-db
+  --scanners vuln --severity HIGH,CRITICAL ghcr.io/aoxijy/j-cms-db
 ```
 
 **What it claims, and what it deliberately does not.** Statements are `not_affected` only

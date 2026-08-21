@@ -11,8 +11,8 @@
 
 <p align="center">
   <a href="https://github.com/aoxijy/j-cms/actions/workflows/ant.yml"><img alt="Java CI" src="https://github.com/aoxijy/j-cms/actions/workflows/ant.yml/badge.svg"></a>
-  <a href="https://github.com/aoxijy/j-cms/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/J-CMS?display_name=tag&label=release"></a>
-  <a href="LICENSE.txt"><img alt="License: Apache-2.0" src="https://img.shields.io/github/license/J-CMS"></a>
+  <a href="https://github.com/aoxijy/j-cms/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/aoxijy/j-cms?display_name=tag&label=release"></a>
+  <a href="LICENSE.txt"><img alt="License: Apache-2.0" src="https://img.shields.io/github/license/aoxijy/j-cms"></a>
   <img alt="Java 21" src="https://img.shields.io/badge/Java-21-orange">
 </p>
 

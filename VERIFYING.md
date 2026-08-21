@@ -11,23 +11,23 @@ Both images publish **build provenance** (who built it, from which commit) and a
 **CycloneDX SBOM attestation** (what is inside it), bound to the image digest:
 
 ```
-gh attestation verify oci://ghcr.io/j-cms:latest --owner J-CMS
-gh attestation verify oci://ghcr.io/j-cms-db:latest --owner J-CMS
+gh attestation verify oci://ghcr.io/aoxijy/j-cms:latest --owner aoxijy
+gh attestation verify oci://ghcr.io/aoxijy/j-cms-db:latest --owner aoxijy
 ```
 
 That verifies every attestation on the digest. To select one kind:
 
 ```
 # provenance only
-gh attestation verify oci://ghcr.io/j-cms:latest --owner J-CMS \
+gh attestation verify oci://ghcr.io/aoxijy/j-cms:latest --owner aoxijy \
   --predicate-type https://slsa.dev/provenance/v1
 # SBOM only
-gh attestation verify oci://ghcr.io/j-cms:latest --owner J-CMS \
+gh attestation verify oci://ghcr.io/aoxijy/j-cms:latest --owner aoxijy \
   --predicate-type https://cyclonedx.org/bom
 ```
 
 Pin to a digest rather than a tag when verifying what you actually deployed:
-`oci://ghcr.io/j-cms@sha256:<digest>`.
+`oci://ghcr.io/aoxijy/j-cms@sha256:<digest>`.
 
 ## The WAR (release asset)
 
@@ -35,8 +35,8 @@ Each release attaches the built `j-cms.war` with its own build-provenance
 attestation. Download the asset, then:
 
 ```
-gh release download <tag> --repo J-CMS --pattern 'j-cms.war'
-gh attestation verify j-cms.war --owner J-CMS
+gh release download <tag> --repo aoxijy/j-cms --pattern 'j-cms.war'
+gh attestation verify j-cms.war --owner aoxijy
 ```
 
 The attestation binds the file's SHA-256, so any modification — or a locally
@@ -62,10 +62,10 @@ Fetch the attestation bundle online, verify offline:
 
 ```
 # online side
-gh attestation download oci://ghcr.io/j-cms:latest --owner J-CMS
+gh attestation download oci://ghcr.io/aoxijy/j-cms:latest --owner aoxijy
 gh attestation trusted-root > trusted_root.jsonl
 # offline side (bundle + trusted root + artifact travel together)
-gh attestation verify oci://... --owner J-CMS \
+gh attestation verify oci://... --owner aoxijy \
   --bundle <digest>.jsonl --custom-trusted-root trusted_root.jsonl
 ```
 
