@@ -8,7 +8,7 @@
             "type": "java",
             "name": "ApplicationInfo",
             "request": "launch",
-            "mainClass": "com.simisinc.platform.ApplicationInfo",
+            "mainClass": "com.jcms.platform.ApplicationInfo",
             "projectName": "j-cms"
         }
     ]

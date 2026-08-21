@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<jsp:useBean id="pageRenderInfo" class="com.simisinc.platform.presentation.controller.PageRenderInfo" scope="request"/>
+<jsp:useBean id="pageRenderInfo" class="com.jcms.platform.presentation.controller.PageRenderInfo" scope="request"/>
 <!doctype html>
 <html class="no-js" lang="en">
 <head>

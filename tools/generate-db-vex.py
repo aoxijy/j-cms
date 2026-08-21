@@ -33,7 +33,7 @@ from collections import OrderedDict
 
 REPO = "J-CMS"
 PRODUCT_PURL = "pkg:oci/j-cms-db"
-VEX_ID = "https://github.com/J-CMS/docker/db/vex/j-cms-db"
+VEX_ID = "https://github.com/aoxijy/j-cms/docker/db/vex/j-cms-db"
 AUTHOR = "J-CMS Maintainers"
 
 NOT_IN_PATH = "vulnerable_code_not_in_execute_path"

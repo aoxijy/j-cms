@@ -6,7 +6,7 @@ TOOL = "check-duplicate-migration-versions.py"
 
 UPGRADE_DIR = "src/main/resources/database/upgrade/2026"
 INSTALL_DIR = "src/main/resources/database/install"
-UPGRADE_JAVA_DIR = "src/main/java/com/simisinc/platform/infrastructure/database/upgrade"
+UPGRADE_JAVA_DIR = "src/main/java/com/jcms/platform/infrastructure/database/upgrade"
 
 
 def test_distinct_versions_pass_strict(repo):

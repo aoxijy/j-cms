@@ -22,7 +22,7 @@
     <predefined_log_file id="Tomcat Localhost Access" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="com.simisinc.*" />
+        <option name="PATTERN" value="com.jcms.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2026 SimIS Inc.
+  ~ Copyright 2026 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
-<jsp:useBean id="tag" class="com.simisinc.platform.domain.model.items.Tag" scope="request"/>
-<jsp:useBean id="collection" class="com.simisinc.platform.domain.model.items.Collection" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="tag" class="com.jcms.platform.domain.model.items.Tag" scope="request"/>
+<jsp:useBean id="collection" class="com.jcms.platform.domain.model.items.Collection" scope="request"/>
 <form method="post">
   <%-- Required by controller --%>
   <input type="hidden" name="widget" value="${widgetContext.uniqueId}" />

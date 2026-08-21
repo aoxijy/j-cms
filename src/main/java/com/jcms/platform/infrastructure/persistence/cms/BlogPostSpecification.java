@@ -1,0 +1,182 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.infrastructure.persistence.cms;
+
+import com.jcms.platform.presentation.controller.DataConstants;
+
+import java.sql.Timestamp;
+
+/**
+ * Properties for querying objects from the blog post repository
+ *
+ * @author matt rajkowski
+ * @created 8/7/18 9:16 AM
+ */
+public class BlogPostSpecification {
+
+  private long id = -1L;
+  private long blogId = -1L;
+  private String uniqueId = null;
+  private int publishedOnly = DataConstants.UNDEFINED;
+  // issue #427: mirrors CalendarEventSpecification's archivedOnly exactly -- UNDEFINED includes
+  // archived rows (the default, unchanged for any caller that never sets this), TRUE returns only
+  // archived rows, FALSE excludes them.
+  private int archivedOnly = DataConstants.UNDEFINED;
+  private int startDateIsBeforeNow = DataConstants.UNDEFINED;
+  private int isWithinEndDate = DataConstants.UNDEFINED;
+  // issue #426 (editorial calendar): matches a post whose startDate OR endDate falls within
+  // [startingDateRange, endingDateRange) -- BlogPost has no publishAt/expiresAt columns (unlike
+  // WebPage); startDate/endDate are this entity's real scheduling-equivalent fields (startDate
+  // gates public visibility via startDateIsBeforeNow above, endDate via isWithinEndDate), so those
+  // are the columns this range targets. Mirrors CalendarEventSpecification's
+  // startingDateRange/endingDateRange naming exactly.
+  private Timestamp startingDateRange = null;
+  private Timestamp endingDateRange = null;
+  // issue #996 (editorial calendar "Drafts with no dates" feed): when true, matches a post with
+  // NEITHER scheduling field set (start_date IS NULL AND end_date IS NULL) instead of applying
+  // the startingDateRange/endingDateRange filter above. Mirrors WebPageSpecification's identical
+  // undatedOnly field. Defaults to false so every pre-#996 caller is unaffected.
+  private boolean undatedOnly = false;
+  // issue #426: the editorial calendar's author filter. -1 (unset) matches every post, mirroring
+  // every other *Specification's -1-means-unset long field.
+  private long createdBy = -1L;
+  private String searchTerm = null;
+
+  public BlogPostSpecification() {
+  }
+
+  public BlogPostSpecification(long id) {
+    this.id = id;
+  }
+
+  public BlogPostSpecification(String uniqueId) {
+    this.uniqueId = uniqueId;
+  }
+
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  public long getBlogId() {
+    return blogId;
+  }
+
+  public void setBlogId(long blogId) {
+    this.blogId = blogId;
+  }
+
+  public String getUniqueId() {
+    return uniqueId;
+  }
+
+  public void setUniqueId(String uniqueId) {
+    this.uniqueId = uniqueId;
+  }
+
+  public int getPublishedOnly() {
+    return publishedOnly;
+  }
+
+  public void setPublishedOnly(boolean publishedOnly) {
+    this.publishedOnly = (publishedOnly ? DataConstants.TRUE : DataConstants.FALSE);
+  }
+
+  public void setPublishedOnly(int publishedOnly) {
+    this.publishedOnly = publishedOnly;
+  }
+
+  public int getArchivedOnly() {
+    return archivedOnly;
+  }
+
+  public void setArchivedOnly(boolean archivedOnly) {
+    this.archivedOnly = (archivedOnly ? DataConstants.TRUE : DataConstants.FALSE);
+  }
+
+  public void setArchivedOnly(int archivedOnly) {
+    this.archivedOnly = archivedOnly;
+  }
+
+  public int getStartDateIsBeforeNow() {
+    return startDateIsBeforeNow;
+  }
+
+  public void setStartDateIsBeforeNow(int startDateIsBeforeNow) {
+    this.startDateIsBeforeNow = startDateIsBeforeNow;
+  }
+
+  public void setStartDateIsBeforeNow(boolean startDateIsBeforeNow) {
+    this.startDateIsBeforeNow = (startDateIsBeforeNow ? DataConstants.TRUE : DataConstants.FALSE);
+  }
+
+  public int getIsWithinEndDate() {
+    return isWithinEndDate;
+  }
+
+  public void setIsWithinEndDate(int isWithinEndDate) {
+    this.isWithinEndDate = isWithinEndDate;
+  }
+
+  public void setIsWithinEndDate(boolean isWithinEndDate) {
+    this.isWithinEndDate = (isWithinEndDate ? DataConstants.TRUE : DataConstants.FALSE);
+  }
+
+  public String getSearchTerm() {
+    return searchTerm;
+  }
+
+  public void setSearchTerm(String searchTerm) {
+    this.searchTerm = searchTerm;
+  }
+
+  public Timestamp getStartingDateRange() {
+    return startingDateRange;
+  }
+
+  public void setStartingDateRange(Timestamp startingDateRange) {
+    this.startingDateRange = startingDateRange;
+  }
+
+  public Timestamp getEndingDateRange() {
+    return endingDateRange;
+  }
+
+  public void setEndingDateRange(Timestamp endingDateRange) {
+    this.endingDateRange = endingDateRange;
+  }
+
+  public long getCreatedBy() {
+    return createdBy;
+  }
+
+  public void setCreatedBy(long createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  public boolean isUndatedOnly() {
+    return undatedOnly;
+  }
+
+  public void setUndatedOnly(boolean undatedOnly) {
+    this.undatedOnly = undatedOnly;
+  }
+
+}

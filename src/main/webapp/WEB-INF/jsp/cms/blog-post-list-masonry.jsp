@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@
 <%@ taglib prefix="image" uri="/WEB-INF/tlds/image-functions.tld" %>
 <%@ taglib prefix="user" uri="/WEB-INF/tlds/user-functions.tld" %>
 <%@ taglib prefix="url" uri="/WEB-INF/tlds/url-functions.tld" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
-<jsp:useBean id="blog" class="com.simisinc.platform.domain.model.cms.Blog" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="blog" class="com.jcms.platform.domain.model.cms.Blog" scope="request"/>
 <jsp:useBean id="blogPostList" class="java.util.ArrayList" scope="request"/>
-<jsp:useBean id="recordPaging" class="com.simisinc.platform.infrastructure.database.DataConstraints" scope="request"/>
+<jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
 <jsp:useBean id="recordPagingUri" class="java.lang.String" scope="request"/>
 <jsp:useBean id="showAuthor" class="java.lang.String" scope="request"/>
 <jsp:useBean id="showDate" class="java.lang.String" scope="request"/>

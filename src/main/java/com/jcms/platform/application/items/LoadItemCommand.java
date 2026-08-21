@@ -1,0 +1,103 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.application.items;
+
+import com.jcms.platform.domain.model.User;
+import com.jcms.platform.domain.model.items.Collection;
+import com.jcms.platform.domain.model.items.Item;
+import com.jcms.platform.infrastructure.persistence.items.ItemRepository;
+import com.jcms.platform.infrastructure.persistence.items.ItemSpecification;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.util.List;
+
+/**
+ * Loads an item object from cache or storage
+ *
+ * @author matt rajkowski
+ * @created 4/23/18 3:39 PM
+ */
+public class LoadItemCommand {
+
+  private static Log LOG = LogFactory.getLog(LoadItemCommand.class);
+
+  public static Item loadItemByUniqueId(String uniqueId) {
+    // @todo use a cache
+    return ItemRepository.findByUniqueId(uniqueId);
+  }
+
+  public static Item loadItemById(long itemId) {
+    // @todo use a cache
+    return ItemRepository.findById(itemId);
+  }
+
+  public static Item loadItemByIdWithinCollection(long itemId, Collection collection) {
+    return ItemRepository.findByIdWithinCollection(itemId, collection.getId());
+  }
+
+  public static Item loadItemByUniqueIdWithinCollection(String uniqueId, Collection collection) {
+    return ItemRepository.findByUniqueIdWithinCollection(uniqueId, collection.getId());
+  }
+
+  public static Item loadItemByUniqueIdForAuthorizedUser(String uniqueId, long userId) {
+    // Default preserves the historical behavior for every existing call site (admin edit forms,
+    // widgets rendered within an already-resolved item page, etc.): a deactivated item must still
+    // be reachable here -- issue #814 only hides archived items from listing/search results, not
+    // from direct access by a known id/uniqueId. See ItemSpecification#includeArchived javadoc.
+    return loadItemByUniqueIdForAuthorizedUser(uniqueId, userId, false);
+  }
+
+  /**
+   * @param excludeArchived when true, a deactivated item resolves to null just like a
+   *        non-existent one. Issue #827: PageServlet uses this for item routes that have no
+   *        role/group/capability restriction (genuinely public pages) and ItemService's REST GET
+   *        uses it unconditionally, so a deactivated item stops being reachable by uniqueId alone
+   *        for those callers. Admin-gated routes keep passing false (via the 2-arg overload) so
+   *        management UIs can still reach a deactivated item.
+   */
+  public static Item loadItemByUniqueIdForAuthorizedUser(String uniqueId, long userId, boolean excludeArchived) {
+    if (StringUtils.isBlank(uniqueId) || userId == -1) {
+      return null;
+    }
+    ItemSpecification specification = new ItemSpecification();
+    specification.setUniqueId(uniqueId);
+    specification.setForUserId(userId);
+    specification.setIncludeArchived(!excludeArchived);
+    List<Item> itemList = ItemRepository.findAll(specification, null);
+    if (itemList.size() == 1) {
+      return itemList.get(0);
+    }
+    return null;
+  }
+
+  public static Item loadItemForAuthorizedUser(Item item, User user) {
+    ItemSpecification specification = new ItemSpecification();
+    specification.setId(item.getId());
+    specification.setForUserId(user.getId());
+    // See loadItemByUniqueIdForAuthorizedUser above: a known item must remain reachable here even
+    // once archived (issue #814).
+    specification.setIncludeArchived(true);
+    List<Item> itemList = ItemRepository.findAll(specification, null);
+    if (itemList.size() == 1) {
+      return itemList.get(0);
+    }
+    return null;
+  }
+
+}

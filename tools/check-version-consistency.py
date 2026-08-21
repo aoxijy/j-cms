@@ -5,7 +5,7 @@ Background
 ----------
 Three places carry the project version, and only one of them is authoritative:
 
-  * ``src/main/java/com/simisinc/platform/ApplicationInfo.java`` -- the ``VERSION``
+  * ``src/main/java/com/jcms/platform/ApplicationInfo.java`` -- the ``VERSION``
     constant. ``build.xml`` loads it in the ``version`` target to stamp the build,
     so this is the version that actually ships.
   * the git release tag, ``v<VERSION>``, cut at release time.
@@ -47,7 +47,7 @@ import xml.etree.ElementTree as ET
 
 POM_NS = "{http://maven.apache.org/POM/4.0.0}"
 
-APPLICATION_INFO = "src/main/java/com/simisinc/platform/ApplicationInfo.java"
+APPLICATION_INFO = "src/main/java/com/jcms/platform/ApplicationInfo.java"
 VERSION_RE = re.compile(r'\bString\s+VERSION\s*=\s*"([^"]+)"')
 
 SNAPSHOT_SUFFIX = "-SNAPSHOT"

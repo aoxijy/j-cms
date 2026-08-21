@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 <%@ taglib prefix="font" uri="/WEB-INF/tlds/font-functions.tld" %>
 <%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
 <%@ taglib prefix="group" uri="/WEB-INF/tlds/group-functions.tld" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
-<jsp:useBean id="collection" class="com.simisinc.platform.domain.model.items.Collection" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="collection" class="com.jcms.platform.domain.model.items.Collection" scope="request"/>
 <%@include file="../page_messages.jspf" %>
 <a class="button small radius primary float-left" href="${ctx}/admin/collection-form?collectionId=${collection.id}&returnPage=${widgetContext.uri}?collectionId=${collection.id}"><i class="${font:fas()} fa-edit"></i> Modify</a>
 <%--

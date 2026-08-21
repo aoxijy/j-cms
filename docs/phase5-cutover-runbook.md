@@ -358,7 +358,7 @@ If critical issues appear after DNS cutover:
 
 **Recovery:**
 1. SSH to app container
-2. Check mount: `df -h | grep simis`
+2. Check mount: `df -h | grep jcms`
 3. If unmounted, restart app container (often remounts automatically)
 4. If still unmounted, check Azure Files status
 5. Verify storage account connectivity

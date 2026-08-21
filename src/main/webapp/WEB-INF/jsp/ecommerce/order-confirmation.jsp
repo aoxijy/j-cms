@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@
 <%@ taglib prefix="order" uri="/WEB-INF/tlds/order-functions.tld" %>
 <%@ taglib prefix="product" uri="/WEB-INF/tlds/product-functions.tld" %>
 <%@ taglib prefix="image" uri="/WEB-INF/tlds/image-functions.tld" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="title" class="java.lang.String" scope="request"/>
 <jsp:useBean id="calloutHtml" class="java.lang.String" scope="request"/>
 <jsp:useBean id="introHtml" class="java.lang.String" scope="request"/>
-<jsp:useBean id="order" class="com.simisinc.platform.domain.model.ecommerce.Order" scope="request"/>
+<jsp:useBean id="order" class="com.jcms.platform.domain.model.ecommerce.Order" scope="request"/>
 <jsp:useBean id="orderEntryList" class="java.util.ArrayList" scope="request"/>
-<jsp:useBean id="shippingMethod" class="com.simisinc.platform.domain.model.ecommerce.ShippingMethod" scope="request"/>
+<jsp:useBean id="shippingMethod" class="com.jcms.platform.domain.model.ecommerce.ShippingMethod" scope="request"/>
 <jsp:useBean id="trackingNumberList" class="java.util.ArrayList" scope="request"/>
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}"/></h4>

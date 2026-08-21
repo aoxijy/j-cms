@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+  ~ Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
             Returns text value of an itemId
         </description>
         <name>name</name>
-        <function-class>com.simisinc.platform.application.items.ItemCommand</function-class>
+        <function-class>com.jcms.platform.application.items.ItemCommand</function-class>
         <function-signature>java.lang.String name(java.lang.Long)</function-signature>
     </function>
     <function>
@@ -33,15 +33,15 @@
             Returns the item object of an itemId
         </description>
         <name>itemById</name>
-        <function-class>com.simisinc.platform.application.items.ItemCommand</function-class>
-        <function-signature>com.simisinc.platform.domain.model.items.Item findById(java.lang.Long)</function-signature>
+        <function-class>com.jcms.platform.application.items.ItemCommand</function-class>
+        <function-signature>com.jcms.platform.domain.model.items.Item findById(java.lang.Long)</function-signature>
     </function>
     <function>
         <description>
             Returns whether the user has access to the item
         </description>
         <name>hasViewPermission</name>
-        <function-class>com.simisinc.platform.application.items.ItemCommand</function-class>
-        <function-signature>boolean hasViewPermission(com.simisinc.platform.domain.model.items.Item,com.simisinc.platform.domain.model.User)</function-signature>
+        <function-class>com.jcms.platform.application.items.ItemCommand</function-class>
+        <function-signature>boolean hasViewPermission(com.jcms.platform.domain.model.items.Item,com.jcms.platform.domain.model.User)</function-signature>
     </function>
 </taglib>

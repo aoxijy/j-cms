@@ -2,7 +2,7 @@
 
 Thanks for your interest in J-CMS. This page covers how to build the project, how changes are organized, and what a pull request needs before it can merge.
 
-Questions and ideas are welcome in [Discussions](https://github.com/J-CMS/discussions); bug reports and feature requests go through the [New issue](https://github.com/J-CMS/issues/new/choose) chooser, which has a template for each. Please report security vulnerabilities privately — see [SECURITY.md](SECURITY.md), and never open a public issue for one.
+Questions and ideas are welcome in [Discussions](https://github.com/aoxijy/j-cms/discussions); bug reports and feature requests go through the [New issue](https://github.com/aoxijy/j-cms/issues/new/choose) chooser, which has a template for each. Please report security vulnerabilities privately — see [SECURITY.md](SECURITY.md), and never open a public issue for one.
 
 ## Security and auditability
 

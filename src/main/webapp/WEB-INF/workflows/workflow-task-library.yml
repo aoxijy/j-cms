@@ -4,10 +4,10 @@
 ---
 - id: history
   name: Saves a history record to the repository
-  class: com.simisinc.platform.infrastructure.workflow.HistoryTask
+  class: com.jcms.platform.infrastructure.workflow.HistoryTask
 - id: email
   name: Sends an email using a template
-  class: com.simisinc.platform.infrastructure.workflow.EmailTask
+  class: com.jcms.platform.infrastructure.workflow.EmailTask
 - id: webhook
   name: Dispatches the event to matching webhook subscriptions
-  class: com.simisinc.platform.infrastructure.workflow.WebhookTask
+  class: com.jcms.platform.infrastructure.workflow.WebhookTask

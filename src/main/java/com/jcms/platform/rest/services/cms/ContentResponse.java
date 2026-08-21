@@ -1,0 +1,55 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.rest.services.cms;
+
+import com.jcms.platform.application.cms.ContentHtmlCommand;
+import com.jcms.platform.domain.model.cms.Content;
+
+/**
+ * Description
+ *
+ * @author matt rajkowski
+ * @created 1/22/19 12:12 PM
+ */
+public class ContentResponse {
+
+  String uniqueId;
+  String content;
+
+  public ContentResponse(Content thisContent) {
+    uniqueId = thisContent.getUniqueId();
+    // Return displayable HTML: legacy content passes through, Delta is rendered server-side so API
+    // consumers never receive raw editor JSON.
+    content = ContentHtmlCommand.toHtml(thisContent.getContent(), thisContent.getContentFormat());
+  }
+
+  public String getUniqueId() {
+    return uniqueId;
+  }
+
+  public void setUniqueId(String uniqueId) {
+    this.uniqueId = uniqueId;
+  }
+
+  public String getContent() {
+    return content;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
+  }
+}

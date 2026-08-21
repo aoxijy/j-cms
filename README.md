@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/J-CMS/actions/workflows/ant.yml"><img alt="Java CI" src="https://github.com/J-CMS/actions/workflows/ant.yml/badge.svg"></a>
-  <a href="https://github.com/J-CMS/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/J-CMS?display_name=tag&label=release"></a>
+  <a href="https://github.com/aoxijy/j-cms/actions/workflows/ant.yml"><img alt="Java CI" src="https://github.com/aoxijy/j-cms/actions/workflows/ant.yml/badge.svg"></a>
+  <a href="https://github.com/aoxijy/j-cms/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/J-CMS?display_name=tag&label=release"></a>
   <a href="LICENSE.txt"><img alt="License: Apache-2.0" src="https://img.shields.io/github/license/J-CMS"></a>
   <img alt="Java 21" src="https://img.shields.io/badge/Java-21-orange">
 </p>
@@ -22,11 +22,11 @@
 
 ---
 
-J-CMS is an open-source content management system and web portal, written in Java and **run in production by J-CMS Maintainers** — it's the same platform behind [github.com/J-CMS](https://github.com/J-CMS). This isn't a starter kit; it's a complete product you download, deploy, and own.
+J-CMS is an open-source content management system and web portal, written in Java and **run in production by J-CMS Maintainers** — it's the same platform behind [github.com/aoxijy/j-cms](https://github.com/aoxijy/j-cms). This isn't a starter kit; it's a complete product you download, deploy, and own.
 
 Everything ships in one platform — pages, blogs, calendars, datasets, e-commerce, CRM, and analytics — with **security built into the core, not bolted on through plug-ins.** Use and configure what's there, and customize what's not.
 
-**Questions and ideas:** [Discussions](https://github.com/J-CMS/discussions) · **Bugs and feature requests:** [Issues](https://github.com/J-CMS/issues/new/choose)
+**Questions and ideas:** [Discussions](https://github.com/aoxijy/j-cms/discussions) · **Bugs and feature requests:** [Issues](https://github.com/aoxijy/j-cms/issues/new/choose)
 
 ## Why J-CMS
 
@@ -38,12 +38,12 @@ Everything ships in one platform — pages, blogs, calendars, datasets, e-commer
 
 ## Quick start
 
-1. **Download** the latest production `.war` from [Releases](https://github.com/J-CMS/releases/latest).
+1. **Download** the latest production `.war` from [Releases](https://github.com/aoxijy/j-cms/releases/latest).
 2. **Start a database** — bring your own PostgreSQL (with PostGIS), or build the bundled one: `docker build -f docker/db/Dockerfile .`
 3. **Deploy** the `.war` to a Java 21 servlet container (Tomcat). It runs its own schema migrations on startup — always back up your database first.
 4. **Sign in** by adding `/login` to your site URL, then turn on the login setting to reveal a login button.
 
-New releases automatically upgrade a previous install. Full deployment options are in the [documentation](https://github.com/J-CMS/blob/main/docs/index.md).
+New releases automatically upgrade a previous install. Full deployment options are in the [documentation](https://github.com/aoxijy/j-cms/blob/main/docs/index.md).
 
 ## Built for every role
 
@@ -72,11 +72,11 @@ Larger teams can hand off further: built-in Community, Data, and E-commerce Mana
 
 ## Documentation
 
-The documentation is written for [MkDocs](https://www.mkdocs.org/) and lives in [`docs/`](https://github.com/J-CMS/blob/main/docs/index.md).
+The documentation is written for [MkDocs](https://www.mkdocs.org/) and lives in [`docs/`](https://github.com/aoxijy/j-cms/blob/main/docs/index.md).
 
 ## Contributing
 
-Pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for how to build the project and what a PR needs. Please report security vulnerabilities privately via a [security advisory](https://github.com/J-CMS/security/advisories/new); never open a public issue for one.
+Pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for how to build the project and what a PR needs. Please report security vulnerabilities privately via a [security advisory](https://github.com/aoxijy/j-cms/security/advisories/new); never open a public issue for one.
 
 ## License
 

@@ -80,16 +80,16 @@ set -euo pipefail
 # non-admin must be able to neither grant Admin nor strip it from another user;
 # the floor exists to fail the gate if that authorization coverage is removed.
 TARGETS='
-com.simisinc.platform.application.IpAddressCommand,0.50
-com.simisinc.platform.application.SecretCryptoCommand,0.50
-com.simisinc.platform.application.UserPasswordCommand,0.50
-com.simisinc.platform.application.admin.AnalyticsTrackingIdCommand,0.50
-com.simisinc.platform.application.cms.UrlCommand,0.50
-com.simisinc.platform.application.cms.NumberCommand,0.30
-com.simisinc.platform.application.DoNotTrackCommand,0.50
-com.simisinc.platform.application.cms.ValidateUserAccessToWebPageCommand,0.50
-com.simisinc.platform.application.http.RemoteUrlValidationCommand,0.50
-com.simisinc.platform.application.register.SaveUserCommand,0.50
+com.jcms.platform.application.IpAddressCommand,0.50
+com.jcms.platform.application.SecretCryptoCommand,0.50
+com.jcms.platform.application.UserPasswordCommand,0.50
+com.jcms.platform.application.admin.AnalyticsTrackingIdCommand,0.50
+com.jcms.platform.application.cms.UrlCommand,0.50
+com.jcms.platform.application.cms.NumberCommand,0.30
+com.jcms.platform.application.DoNotTrackCommand,0.50
+com.jcms.platform.application.cms.ValidateUserAccessToWebPageCommand,0.50
+com.jcms.platform.application.http.RemoteUrlValidationCommand,0.50
+com.jcms.platform.application.register.SaveUserCommand,0.50
 '
 
 CSV="${1:-${JACOCO_CSV:-target/coverage-reports/jacoco.csv}}"

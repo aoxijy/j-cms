@@ -1,4 +1,4 @@
--- Copyright 2026 SimIS Inc. (https://www.simiscms.com), Licensed under the Apache License, Version 2.0 (the "License").
+-- Copyright 2026 J-CMS Maintainers (https://github.com/aoxijy/j-cms), Licensed under the Apache License, Version 2.0 (the "License").
 -- Issue #497: web_page_hits.web_page_id has never had its own index -- findTopWebPages/
 -- findTrafficBySolutionType/findEngagementBySolutionType already JOIN on it (unindexed), and the
 -- new countViewsByWebPageId bulk query (WHERE web_page_id IN (...) GROUP BY web_page_id) makes

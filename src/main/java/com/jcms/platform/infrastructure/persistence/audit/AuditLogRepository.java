@@ -1,0 +1,579 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.infrastructure.persistence.audit;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.jcms.platform.application.audit.AuditLogIntegrityCommand;
+import com.jcms.platform.application.json.JsonCommand;
+import com.jcms.platform.domain.model.audit.AuditLog;
+import com.jcms.platform.infrastructure.database.DB;
+import com.jcms.platform.infrastructure.database.DataConstraints;
+import com.jcms.platform.infrastructure.database.DataResult;
+import com.jcms.platform.infrastructure.database.SqlUtils;
+
+/**
+ * Persists and retrieves security audit records. Records are append-only (insert, never update) so the
+ * trail cannot be silently rewritten; there is no foreign key on actor_user_id so a record survives the
+ * deletion of the user it references.
+ *
+ * <p>Each insert extends a tamper-evident SHA-256 hash chain (see {@link AuditLogIntegrityCommand}). To keep
+ * the chain linear, appends are serialized with a Postgres transaction-level advisory lock: within one
+ * transaction the writer takes the lock, reads the current tail's hash, computes this record's hash, and
+ * inserts -- so two concurrent writers cannot both chain off the same tail. The lock is held only for that
+ * read-then-insert (sub-millisecond) and is released on commit; audit volume is low enough that the
+ * serialization is not a bottleneck.
+ *
+ * @author J-CMS Maintainers
+ */
+public class AuditLogRepository {
+
+  private static Log LOG = LogFactory.getLog(AuditLogRepository.class);
+
+  private static String TABLE_NAME = "audit_log";
+  private static String[] PRIMARY_KEY = new String[]{"audit_id"};
+  private static String WATERMARK_TABLE = "audit_log_watermark";
+  private static String ARCHIVE_TABLE_NAME = "audit_log_archive";
+
+  // A fixed key so every audit append contends on the same advisory lock (and nothing else does).
+  private static final long AUDIT_CHAIN_LOCK_KEY = 872025601L;
+  // Cap the wait for the advisory lock (milliseconds) so a stalled holder cannot block request threads
+  // unboundedly. A constant, never user input, so it is safe to inline into the SET statement.
+  private static final int LOCK_TIMEOUT_MS = 2000;
+
+  // Column widths, applied before hashing so the value that is hashed is exactly the value that is stored.
+  private static final int MAX_EVENT_CATEGORY = 50;
+  private static final int MAX_EVENT_TYPE = 100;
+  private static final int MAX_OUTCOME = 20;
+  private static final int MAX_ACTOR_USERNAME = 255;
+  private static final int MAX_SOURCE_IP = 200;
+  private static final int MAX_TARGET_TYPE = 50;
+  private static final int MAX_TARGET_ID = 255;
+  private static final int MAX_TARGET_LABEL = 255;
+  private static final int MAX_SESSION_ID = 255;
+  private static final int HASH_LENGTH = 64;
+
+  private static final int DEFAULT_RETENTION_DAYS = 2555; // ~7 years
+  private static final int MIN_RETENTION_DAYS = 90;       // a floor so retention cannot erase recent evidence
+  private static final int MAX_RETENTION_DAYS = 3650;     // ~10 years, to avoid an unbounded interval
+
+  // The default trailing window for findRecentActivity's two callers (the /admin/activity feed and the
+  // admin dashboard's "Recent Admin Activity" tile) -- kept here, rather than duplicated as a constant on
+  // each widget, so the two stay in sync by construction rather than by convention.
+  public static final int DEFAULT_TRAILING_WINDOW_DAYS = 7;
+
+  public static AuditLog save(AuditLog record) {
+    return add(record);
+  }
+
+  /**
+   * Appends a record to the tamper-evident chain inside a single serialized transaction. Never throws --
+   * on any failure it rolls back and returns null (the caller, SaveAuditEventCommand, still emits the event
+   * to the JSON sink, so the event is not lost). Returning null signals only that the database row was not
+   * written.
+   */
+  private static AuditLog add(AuditLog record) {
+    Connection connection = null;
+    boolean priorAutoCommit = true;
+    try {
+      normalizeForStorage(record);
+      connection = DB.getConnection();
+      priorAutoCommit = connection.getAutoCommit();
+      connection.setAutoCommit(false);
+
+      // Bound the wait for the advisory lock so a stalled holder cannot pile up request threads
+      // indefinitely; a timeout surfaces as SQLException and is handled as a fail-safe rollback below.
+      try (Statement timeout = connection.createStatement()) {
+        timeout.execute("SET LOCAL lock_timeout = " + LOCK_TIMEOUT_MS);
+      }
+      // Serialize appenders so concurrent audit writes extend one linear chain rather than forking it.
+      try (PreparedStatement lock = connection.prepareStatement("SELECT pg_advisory_xact_lock(?)")) {
+        lock.setLong(1, AUDIT_CHAIN_LOCK_KEY);
+        lock.execute();
+      }
+
+      String previousHash = selectTailRecordHash(connection);
+      String recordHash = AuditLogIntegrityCommand.computeRecordHash(record, previousHash);
+      record.setPreviousHash(previousHash);
+      record.setRecordHash(recordHash);
+
+      long id = DB.insertInto(connection, TABLE_NAME, buildInsertValues(record), PRIMARY_KEY);
+      if (id != -1) {
+        // Record the lowest hashed audit_id that has ever been written on this server.
+        // ON CONFLICT DO NOTHING is a no-op for all subsequent inserts — the watermark never regresses.
+        try (PreparedStatement wm = connection.prepareStatement(
+            "INSERT INTO " + WATERMARK_TABLE + "(id, lowest_hashed_audit_id) VALUES(1, ?) ON CONFLICT (id) DO NOTHING")) {
+          wm.setLong(1, id);
+          wm.executeUpdate();
+        }
+      }
+      connection.commit();
+
+      record.setId(id);
+      if (id == -1) {
+        LOG.error("An id was not set!");
+        return null;
+      }
+      return record;
+    } catch (Exception e) {
+      // Never throw to the caller (auditing must not break the action it observes) -- catch everything,
+      // including an unchecked exception from acquiring a connection before the DataSource is ready.
+      rollbackQuietly(connection);
+      LOG.error("Audit chain append failed: " + e.getMessage(), e);
+      return null;
+    } finally {
+      closeQuietly(connection, priorAutoCommit);
+    }
+  }
+
+  private static SqlUtils buildInsertValues(AuditLog record) {
+    return new SqlUtils()
+        .add("occurred", record.getOccurred())
+        .add("event_category", record.getEventCategory(), MAX_EVENT_CATEGORY)
+        .add("event_type", record.getEventType(), MAX_EVENT_TYPE)
+        .add("outcome", record.getOutcome(), MAX_OUTCOME)
+        .add("actor_user_id", record.getActorUserId(), -1)
+        .add("actor_username", record.getActorUsername(), MAX_ACTOR_USERNAME)
+        .add("source_ip", record.getSourceIp(), MAX_SOURCE_IP)
+        .add("target_type", record.getTargetType(), MAX_TARGET_TYPE)
+        .add("target_id", record.getTargetId(), MAX_TARGET_ID)
+        .add("target_label", record.getTargetLabel(), MAX_TARGET_LABEL)
+        .add("details", record.getDetails())
+        .add("session_id", record.getSessionId(), MAX_SESSION_ID)
+        .add("schema_version", record.getSchemaVersion())
+        .add("previous_hash", record.getPreviousHash(), HASH_LENGTH)
+        .add("record_hash", record.getRecordHash(), HASH_LENGTH);
+  }
+
+  /**
+   * Truncates the record's fields to their column widths and rounds occurred to millisecond precision (the
+   * column is TIMESTAMP(3)). This is done before the hash is computed so that the hash covers exactly the
+   * bytes that are stored and read back -- otherwise database truncation or rounding would break the chain.
+   */
+  private static void normalizeForStorage(AuditLog record) {
+    Timestamp occurred = record.getOccurred();
+    if (occurred != null) {
+      record.setOccurred(Timestamp.from(occurred.toInstant().truncatedTo(ChronoUnit.MILLIS)));
+    }
+    record.setEventCategory(truncate(record.getEventCategory(), MAX_EVENT_CATEGORY));
+    record.setEventType(truncate(record.getEventType(), MAX_EVENT_TYPE));
+    record.setOutcome(truncate(record.getOutcome(), MAX_OUTCOME));
+    record.setActorUsername(truncate(record.getActorUsername(), MAX_ACTOR_USERNAME));
+    record.setSourceIp(truncate(record.getSourceIp(), MAX_SOURCE_IP));
+    record.setTargetType(truncate(record.getTargetType(), MAX_TARGET_TYPE));
+    record.setTargetId(truncate(record.getTargetId(), MAX_TARGET_ID));
+    record.setTargetLabel(truncate(record.getTargetLabel(), MAX_TARGET_LABEL));
+    record.setSessionId(truncate(record.getSessionId(), MAX_SESSION_ID));
+  }
+
+  private static String truncate(String value, int maxLength) {
+    if (value == null || value.length() <= maxLength) {
+      return value;
+    }
+    // Do not split a UTF-16 surrogate pair: a lone surrogate is not encodable as UTF-8, so the driver would
+    // store a replacement character while the hash was computed over the lone surrogate -- a false mismatch.
+    int end = maxLength;
+    if (Character.isHighSurrogate(value.charAt(end - 1))) {
+      end--;
+    }
+    return value.substring(0, end);
+  }
+
+  /** The record_hash of the newest record, or the genesis hash when the table is empty or unhashed. */
+  private static String selectTailRecordHash(Connection connection) throws SQLException {
+    try (PreparedStatement pst = connection.prepareStatement(
+        "SELECT record_hash FROM " + TABLE_NAME + " ORDER BY audit_id DESC LIMIT 1");
+        ResultSet rs = pst.executeQuery()) {
+      if (rs.next()) {
+        String hash = rs.getString(1);
+        if (hash != null) {
+          return hash;
+        }
+      }
+      return AuditLogIntegrityCommand.GENESIS_HASH;
+    }
+  }
+
+  private static void rollbackQuietly(Connection connection) {
+    if (connection != null) {
+      try {
+        connection.rollback();
+      } catch (SQLException e) {
+        LOG.error("Audit append rollback failed: " + e.getMessage());
+      }
+    }
+  }
+
+  private static void closeQuietly(Connection connection, boolean priorAutoCommit) {
+    if (connection == null) {
+      return;
+    }
+    try {
+      connection.setAutoCommit(priorAutoCommit);
+    } catch (SQLException e) {
+      LOG.debug("Could not restore autoCommit on the pooled connection");
+    }
+    try {
+      connection.close();
+    } catch (SQLException e) {
+      LOG.debug("Could not close the pooled connection");
+    }
+  }
+
+  /**
+   * Returns the stored watermark: the lowest audit_id that has ever held a {@code record_hash} on this
+   * server. Returns 0 if the watermark row is absent (migration not yet applied or no hashed records
+   * written yet). Any exception (e.g. table not found on a pre-migration schema) is suppressed and
+   * returns 0 so that {@link AuditLogIntegrityCommand#verify()} degrades gracefully.
+   */
+  public static long loadWatermarkLowestId() {
+    try (Connection conn = DB.getConnection();
+         PreparedStatement pst = conn.prepareStatement(
+             "SELECT lowest_hashed_audit_id FROM " + WATERMARK_TABLE + " WHERE id = 1");
+         ResultSet rs = pst.executeQuery()) {
+      return rs.next() ? rs.getLong(1) : 0L;
+    } catch (Exception e) {
+      LOG.warn("Could not load audit watermark (schema may be pre-migration): " + e.getMessage());
+      return 0L;
+    }
+  }
+
+  /** Returns the audit_id of the oldest hashed record, or 0 if none exist. */
+  public static long findFirstHashedAuditId() {
+    DataConstraints constraints = new DataConstraints();
+    constraints.setPageSize(1);
+    constraints.setUseCount(false);
+    constraints.setColumnToSortBy("audit_id", "asc");
+    SqlUtils where = new SqlUtils().add("record_hash IS NOT NULL");
+    DataResult result = DB.selectAllFrom(TABLE_NAME, where, constraints, AuditLogRepository::buildRecord);
+    List<AuditLog> rows = (List<AuditLog>) result.getRecords();
+    return rows.isEmpty() ? 0L : rows.get(0).getId();
+  }
+
+  /**
+   * Returns the single most recent record for a given category/event type pair, or null if none exists.
+   * Used by the admin audit review page to surface the latest outcome of the tamper-evidence chain check
+   * (see AuditLogIntegrityJob / AuditLogIntegrityCommand) without scanning the full trail.
+   */
+  public static AuditLog findMostRecentByEventType(String category, String eventType) {
+    DataConstraints constraints = new DataConstraints();
+    constraints.setPageSize(1);
+    constraints.setUseCount(false);
+    constraints.setColumnToSortBy("audit_id", "desc");
+    SqlUtils where = new SqlUtils()
+        .add("event_category = ?", category)
+        .add("event_type = ?", eventType);
+    DataResult result = DB.selectAllFrom(TABLE_NAME, where, constraints, AuditLogRepository::buildRecord);
+    List<AuditLog> rows = (List<AuditLog>) result.getRecords();
+    return rows.isEmpty() ? null : rows.get(0);
+  }
+
+  public static List<AuditLog> findAll(DataConstraints constraints) {
+    if (constraints == null) {
+      constraints = new DataConstraints();
+    }
+    constraints.setDefaultColumnToSortBy("audit_id desc");
+    DataResult result = DB.selectAllFrom(
+        TABLE_NAME, new SqlUtils(), new SqlUtils(), new SqlUtils(), constraints, AuditLogRepository::buildRecord);
+    return (List<AuditLog>) result.getRecords();
+  }
+
+  private static SqlUtils createWhereStatement(AuditLogSpecification specification) {
+    SqlUtils where = null;
+    if (specification != null) {
+      where = new SqlUtils()
+          .addIfExists("event_category = ?", specification.getEventCategory())
+          .addIfExists("event_type = ?", specification.getEventType())
+          .addIfExists("outcome = ?", specification.getOutcome())
+          .addIfExists("actor_user_id = ?", specification.getActorUserId(), -1)
+          .addIfExists("LOWER(actor_username) LIKE ?", specification.getActorUsername() != null
+              ? "%" + specification.getActorUsername().toLowerCase() + "%" : null)
+          .addIfExists("source_ip = ?", specification.getSourceIp())
+          .addIfExists("target_type = ?", specification.getTargetType())
+          .addIfExists("target_label = ?", specification.getTargetLabel())
+          .addIfExists("occurred >= ?", specification.getOccurredAfter())
+          .addIfExists("occurred < ?", specification.getOccurredBefore());
+      // Multi-category filter (issue #1006): a single IN (...) clause rather than the "one query per
+      // category, merge in Java" pattern SiteStatsWidget.findRecentAdminActions used to use for its
+      // 3-category dashboard tile -- this is a clean extension of the existing addIfExists chain (same
+      // ? placeholders, single round trip, real DB-side pagination/count), and the activity feed this
+      // backs is visited far more often, by more roles, than that one dashboard tile ever was.
+      Set<String> categories = specification.getEventCategories();
+      if (categories != null && !categories.isEmpty()) {
+        where.add(inClause("event_category", categories.size()), categories.toArray(new String[0]));
+      }
+    }
+    return where;
+  }
+
+  /** {@code "column IN (?,?,?)"} with {@code count} placeholders (count must be >= 1). */
+  private static String inClause(String column, int count) {
+    StringBuilder sb = new StringBuilder(column).append(" IN (");
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        sb.append(",");
+      }
+      sb.append("?");
+    }
+    return sb.append(")").toString();
+  }
+
+  public static List<AuditLog> findAll(AuditLogSpecification specification, DataConstraints constraints) {
+    if (constraints == null) {
+      constraints = new DataConstraints();
+    }
+    constraints.setDefaultColumnToSortBy("audit_id desc");
+    SqlUtils where = createWhereStatement(specification);
+    DataResult result = DB.selectAllFrom(TABLE_NAME, where, constraints, AuditLogRepository::buildRecord);
+    return (List<AuditLog>) result.getRecords();
+  }
+
+  /**
+   * The general-purpose "what's been happening lately" query behind the admin activity feed (issue #1006)
+   * and, since it strictly generalizes the old logic, the admin dashboard's "Recent Admin Activity" tile
+   * (see SiteStatsWidget#findRecentAdminActions). A single DB-side query: {@code categories} become an
+   * {@code event_category IN (...)} clause (null/empty means all categories -- there is no need to spell
+   * out the 6-value CATEGORY_LIST here, omitting the IN-clause already means "unconstrained"), {@code after}
+   * is typically "now minus the feed's trailing window" and {@code before} is usually null (no upper bound;
+   * pass one only for a bounded historical window). Real pagination/limiting is the caller's
+   * {@code constraints}, same as every other findAll-style method here.
+   */
+  public static List<AuditLog> findRecentActivity(Set<String> categories, Timestamp after, Timestamp before,
+      DataConstraints constraints) {
+    AuditLogSpecification specification = new AuditLogSpecification();
+    if (categories != null && !categories.isEmpty()) {
+      specification.setEventCategories(categories);
+    }
+    if (after != null) {
+      specification.setOccurredAfter(after);
+    }
+    if (before != null) {
+      specification.setOccurredBefore(before);
+    }
+    return findAll(specification, constraints);
+  }
+
+  /** Exports every record matching the filter (unpaginated -- a fresh DataConstraints has no page size). */
+  public static void exportCsv(AuditLogSpecification specification, File file) {
+    SqlUtils selectFields = new SqlUtils()
+        .addNames(
+            "occurred AS \"Timestamp\"",
+            "event_category AS \"Category\"",
+            "event_type AS \"Event Type\"",
+            "outcome AS \"Outcome\"",
+            "actor_username AS \"Actor\"",
+            "source_ip AS \"Source IP\"",
+            "target_type AS \"Target Type\"",
+            "target_id AS \"Target ID\"",
+            "target_label AS \"Target Label\"",
+            "session_id AS \"Session ID\"",
+            "details AS \"Details\"");
+    SqlUtils where = createWhereStatement(specification);
+    DataConstraints constraints = new DataConstraints();
+    constraints.setDefaultColumnToSortBy("occurred desc");
+    DB.exportToCsvAllFrom(TABLE_NAME, selectFields, null, where, null, constraints, file);
+  }
+
+  /** Same filter and record set as {@link #exportCsv}, written as a JSON array instead. */
+  public static void exportJson(AuditLogSpecification specification, File file) throws IOException {
+    List<AuditLog> records = findAll(specification, new DataConstraints());
+    StringBuilder sb = new StringBuilder("[");
+    boolean isFirst = true;
+    for (AuditLog record : records) {
+      if (!isFirst) {
+        sb.append(",");
+      }
+      isFirst = false;
+      sb.append(toExportJson(record));
+    }
+    sb.append("]");
+    try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+      writer.write(sb.toString());
+    }
+  }
+
+  /** One export record's JSON, built with the same escaping helper the SIEM sink uses (see SaveAuditEventCommand). */
+  private static String toExportJson(AuditLog record) {
+    Map<String, Object> map = new LinkedHashMap<>();
+    map.put("occurred", record.getOccurred() != null ? record.getOccurred().toInstant().toString() : null);
+    map.put("eventCategory", record.getEventCategory());
+    map.put("eventType", record.getEventType());
+    map.put("outcome", record.getOutcome());
+    if (record.getActorUserId() > -1L) {
+      map.put("actorUserId", record.getActorUserId());
+    }
+    map.put("actorUsername", record.getActorUsername());
+    map.put("sourceIp", record.getSourceIp());
+    map.put("targetType", record.getTargetType());
+    map.put("targetId", record.getTargetId());
+    map.put("targetLabel", record.getTargetLabel());
+    map.put("sessionId", record.getSessionId());
+    map.put("details", record.getDetails());
+    return JsonCommand.createJsonNode(map).toString();
+  }
+
+  /**
+   * Returns up to {@code limit} records with an audit_id greater than {@code afterAuditId}, in ascending
+   * order -- keyset pagination for a full chain walk (see AuditLogIntegrityCommand.verify). Pass 0 to start.
+   */
+  public static List<AuditLog> findChainPage(long afterAuditId, int limit) {
+    DataConstraints constraints = new DataConstraints();
+    constraints.setPageSize(limit);
+    constraints.setUseCount(false);
+    constraints.setColumnToSortBy("audit_id", "asc");
+    SqlUtils where = new SqlUtils().add("audit_id > ?", afterAuditId);
+    DataResult result = DB.selectAllFrom(TABLE_NAME, where, constraints, AuditLogRepository::buildRecord);
+    return (List<AuditLog>) result.getRecords();
+  }
+
+  /**
+   * Deletes aged records and returns the count removed (NIST AU-11). Only a contiguous oldest-first prefix
+   * (by audit_id) is ever removed: it deletes records whose audit_id is below the FIRST record still inside
+   * the retention window. This keeps the chain verifiable -- the oldest survivor becomes a clean anchor and
+   * no mid-chain gap can open -- even if occurred is not perfectly monotonic with audit_id (a backward clock
+   * step or a concurrent-append inversion). The trade-off is that an aged record sitting behind a younger one
+   * is retained a little longer rather than deleted out of order; over-retention is the safe direction.
+   *
+   * <p>Before deleting, the purged rows are copied verbatim (including previous_hash/record_hash -- no
+   * re-hashing or re-anchoring) into {@code audit_log_archive} in the same transaction as the delete, so a
+   * failed archive copy cannot lose rows (issue #558). The archive is strictly cold storage: it is never
+   * read by {@link com.jcms.platform.application.audit.AuditLogIntegrityCommand} or the audit log viewer.
+   */
+  public static int deleteOlderThan(int days) {
+    if (days < 1) {
+      // A non-positive window would place the cutoff at or in the future and delete recent evidence.
+      return 0;
+    }
+    String threshold = "NOW() - INTERVAL '" + days + " days'";
+    // The first audit_id still inside the window; if every record is aged, one past the last id so the whole
+    // (contiguous) table is purged.
+    String firstInWindow = "COALESCE("
+        + "(SELECT MIN(audit_id) FROM " + TABLE_NAME + " WHERE occurred >= " + threshold + "), "
+        + "(SELECT COALESCE(MAX(audit_id), 0) + 1 FROM " + TABLE_NAME + "))";
+
+    Connection connection = null;
+    boolean priorAutoCommit = true;
+    try {
+      connection = DB.getConnection();
+      priorAutoCommit = connection.getAutoCommit();
+      connection.setAutoCommit(false);
+
+      try (PreparedStatement archive = connection.prepareStatement(
+          "INSERT INTO " + ARCHIVE_TABLE_NAME
+              + " (audit_id, occurred, event_category, event_type, outcome, actor_user_id, actor_username,"
+              + " source_ip, target_type, target_id, target_label, details, session_id, schema_version,"
+              + " previous_hash, record_hash)"
+              + " SELECT audit_id, occurred, event_category, event_type, outcome, actor_user_id, actor_username,"
+              + " source_ip, target_type, target_id, target_label, details, session_id, schema_version,"
+              + " previous_hash, record_hash"
+              + " FROM " + TABLE_NAME + " WHERE audit_id < " + firstInWindow
+              + " ON CONFLICT (audit_id) DO NOTHING")) {
+        archive.executeUpdate();
+      }
+
+      int deleted = DB.deleteFrom(connection, TABLE_NAME, new SqlUtils().add("audit_id < " + firstInWindow));
+      if (deleted > 0) {
+        // Advance the watermark so verify() knows the lower bound moved due to a legitimate purge.
+        try (PreparedStatement wm = connection.prepareStatement(
+            "UPDATE " + WATERMARK_TABLE + " SET lowest_hashed_audit_id = "
+                + "(SELECT COALESCE(MIN(audit_id), 0) FROM " + TABLE_NAME + " WHERE record_hash IS NOT NULL) "
+                + "WHERE id = 1")) {
+          wm.executeUpdate();
+        }
+      }
+      connection.commit();
+      return deleted;
+    } catch (SQLException se) {
+      rollbackQuietly(connection);
+      LOG.error("Archive-then-delete failed: " + se.getMessage(), se);
+      return 0;
+    } finally {
+      closeQuietly(connection, priorAutoCommit);
+    }
+  }
+
+  /**
+   * Parses the configured audit retention window to a bounded integer. Unlike analytics retention, the floor
+   * is high (90 days) so a misconfigured or hostile value cannot turn the retention job into a tool for
+   * erasing recent evidence.
+   */
+  public static int resolveRetentionDays(String value) {
+    if (StringUtils.isBlank(value)) {
+      return DEFAULT_RETENTION_DAYS;
+    }
+    int days;
+    try {
+      days = Integer.parseInt(value.trim());
+    } catch (NumberFormatException e) {
+      return DEFAULT_RETENTION_DAYS;
+    }
+    if (days < MIN_RETENTION_DAYS) {
+      return MIN_RETENTION_DAYS;
+    }
+    if (days > MAX_RETENTION_DAYS) {
+      return MAX_RETENTION_DAYS;
+    }
+    return days;
+  }
+
+  private static AuditLog buildRecord(ResultSet rs) {
+    try {
+      AuditLog record = new AuditLog();
+      record.setId(rs.getLong("audit_id"));
+      record.setOccurred(rs.getTimestamp("occurred"));
+      record.setEventCategory(rs.getString("event_category"));
+      record.setEventType(rs.getString("event_type"));
+      record.setOutcome(rs.getString("outcome"));
+      long actorUserId = rs.getLong("actor_user_id");
+      record.setActorUserId(rs.wasNull() ? -1L : actorUserId);
+      record.setActorUsername(rs.getString("actor_username"));
+      record.setSourceIp(rs.getString("source_ip"));
+      record.setTargetType(rs.getString("target_type"));
+      record.setTargetId(rs.getString("target_id"));
+      record.setTargetLabel(rs.getString("target_label"));
+      record.setDetails(rs.getString("details"));
+      record.setSessionId(rs.getString("session_id"));
+      record.setSchemaVersion(rs.getInt("schema_version"));
+      record.setPreviousHash(rs.getString("previous_hash"));
+      record.setRecordHash(rs.getString("record_hash"));
+      return record;
+    } catch (SQLException se) {
+      LOG.error("buildRecord", se);
+      return null;
+    }
+  }
+}

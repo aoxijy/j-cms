@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2026 SimIS Inc.
+  ~ Copyright 2026 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
-<jsp:useBean id="webhookSubscription" class="com.simisinc.platform.domain.model.webhooks.WebhookSubscription" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="webhookSubscription" class="com.jcms.platform.domain.model.webhooks.WebhookSubscription" scope="request"/>
 <jsp:useBean id="eventTypeList" class="java.util.ArrayList" scope="request"/>
 <c:choose>
   <c:when test="${webhookSubscription.id eq -1}"><h4>New Webhook Subscription</h4></c:when>
@@ -60,7 +60,7 @@
   <div class="grid-x grid-margin-x">
     <div class="small-12 medium-10 large-8 cell">
       <label for="url">URL <span class="required">*</span>
-        <input type="url" id="url" name="url" maxlength="2000" placeholder="https://example.com/hooks/simis" value="<c:out value="${webhookSubscription.url}" />" <c:if test="${webhookSubscription.id eq -1}">autofocus="autofocus"</c:if> required>
+        <input type="url" id="url" name="url" maxlength="2000" placeholder="https://example.com/hooks/jcms" value="<c:out value="${webhookSubscription.url}" />" <c:if test="${webhookSubscription.id eq -1}">autofocus="autofocus"</c:if> required>
       </label>
       <p class="help-text" id="urlHelpText">This application sends a signed HTTP POST here whenever a subscribed event happens.</p>
     </div>

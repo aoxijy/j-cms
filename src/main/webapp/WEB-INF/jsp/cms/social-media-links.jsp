@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="url" uri="/WEB-INF/tlds/url-functions.tld" %>
 <%@ taglib prefix="text" uri="/WEB-INF/tlds/text-functions.tld" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <%-- issue #516: any admin-configured platform, not a fixed per-platform <c:if> chain --%>
 <c:forEach items="${socialMediaLinkList}" var="link" varStatus="linkStatus">
   <a <c:if test="${!linkStatus.first}">class="<c:out value="${iconClass}"/>" </c:if>target="_blank" rel="noopener noreferrer" aria-label="<c:out value="${link.platformName}"/>" href="<c:out value="${link.url}"/>"><i class="fa fa-2x ${fn:escapeXml(link.iconClass)}" aria-hidden="true"></i></a>

@@ -1,0 +1,211 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.infrastructure.persistence;
+
+import com.jcms.platform.application.SecretCryptoCommand;
+import com.jcms.platform.application.admin.SecretSitePropertiesCommand;
+import com.jcms.platform.domain.model.SiteProperty;
+import com.jcms.platform.infrastructure.cache.CacheManager;
+import com.jcms.platform.infrastructure.database.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+/**
+ * Persists and retrieves site property objects
+ *
+ * @author matt rajkowski
+ * @created 4/18/18 4:26 PM
+ */
+public class SitePropertyRepository {
+
+  private static Log LOG = LogFactory.getLog(SitePropertyRepository.class);
+
+  private static String TABLE_NAME = "site_properties";
+  private static String[] PRIMARY_KEY = new String[]{"property_id"};
+
+
+  public static SiteProperty findByName(String name) {
+    if (StringUtils.isBlank(name)) {
+      return null;
+    }
+    return (SiteProperty) DB.selectRecordFrom(
+        TABLE_NAME,
+        new SqlUtils().add("property_name = ?", name),
+        SitePropertyRepository::buildRecord);
+  }
+
+  public static List<SiteProperty> findAllByPrefix(String prefix) {
+    DataResult result = DB.selectAllFrom(
+        TABLE_NAME,
+        new SqlUtils().add("property_name LIKE ?", prefix + ".%"),
+        new DataConstraints().setDefaultColumnToSortBy("property_order, property_name").setUseCount(false),
+        SitePropertyRepository::buildRecord);
+    if (result.hasRecords()) {
+      return (List<SiteProperty>) result.getRecords();
+    }
+    return null;
+  }
+
+  public static List<SiteProperty> findAll() {
+    DataResult result = DB.selectAllFrom(
+        TABLE_NAME,
+        null,
+        new DataConstraints().setDefaultColumnToSortBy("property_id"),
+        SitePropertyRepository::buildRecord);
+    if (result.hasRecords()) {
+      return (List<SiteProperty>) result.getRecords();
+    }
+    return null;
+  }
+
+  private static PreparedStatement createPreparedStatementForUpdate(Connection connection, SiteProperty record,
+      long modifiedBy, boolean valueChanged) throws SQLException {
+    // issue #454 review: modified/modified_by must reflect an actual value change, not just "this
+    // row was present on a page that got saved" -- a settings page save re-submits every property
+    // on it, including secrets left blank (masked-field-blank means unchanged), so unconditionally
+    // stamping here made the Integrations hub's "Last Rotated" false for untouched secrets.
+    // expires_at is intentionally NOT gated on valueChanged: it's independently settable without
+    // rotating the value.
+    String SQL_QUERY = valueChanged
+        ? "UPDATE site_properties SET property_value = ?, modified = CURRENT_TIMESTAMP, modified_by = ?, "
+            + "expires_at = ? WHERE property_id = ?"
+        : "UPDATE site_properties SET property_value = ?, expires_at = ? WHERE property_id = ?";
+    int i = 0;
+    PreparedStatement pst = connection.prepareStatement(SQL_QUERY);
+    // Encrypt secret property values at rest (payment/integration keys, passwords, tokens). encrypt() is a
+    // no-op for non-secret names, blank values, already-encrypted values, and when no key is configured.
+    String value = StringUtils.trimToEmpty(record.getValue());
+    if (SecretSitePropertiesCommand.isSecret(record.getName())) {
+      value = SecretCryptoCommand.encrypt(value);
+    }
+    pst.setString(++i, value);
+    if (valueChanged) {
+      if (modifiedBy > -1) {
+        pst.setLong(++i, modifiedBy);
+      } else {
+        pst.setNull(++i, java.sql.Types.BIGINT);
+      }
+    }
+    if (record.getExpiresAt() != null) {
+      pst.setTimestamp(++i, record.getExpiresAt());
+    } else {
+      pst.setNull(++i, java.sql.Types.TIMESTAMP);
+    }
+    pst.setInt(++i, record.getId());
+    return pst;
+  }
+
+  public static SiteProperty save(SiteProperty record) {
+    return save(record, -1, true);
+  }
+
+  /** @param modifiedBy the acting user's id, or -1 for a system/unattended save (e.g. a Flyway migration) */
+  public static SiteProperty save(SiteProperty record, long modifiedBy) {
+    return save(record, modifiedBy, true);
+  }
+
+  /**
+   * @param modifiedBy the acting user's id, or -1 for a system/unattended save (e.g. a Flyway migration)
+   * @param valueChanged whether the property's value was actually changed by this save -- when false,
+   *     {@code modified}/{@code modified_by} are left untouched (see issue #454 review)
+   */
+  public static SiteProperty save(SiteProperty record, long modifiedBy, boolean valueChanged) {
+    try {
+      try (Connection connection = DB.getConnection();
+           PreparedStatement pst = createPreparedStatementForUpdate(connection, record, modifiedBy, valueChanged)) {
+        if (pst.executeUpdate() > 0) {
+          return record;
+        }
+      }
+    } catch (SQLException se) {
+      LOG.error("SQLException: " + se.getMessage());
+    }
+    return null;
+  }
+
+  public static boolean saveAll(String prefix, List<SiteProperty> sitePropertyList) {
+    return saveAll(prefix, sitePropertyList, -1, null);
+  }
+
+  /** @param modifiedBy the acting user's id, or -1 for a system/unattended save */
+  public static boolean saveAll(String prefix, List<SiteProperty> sitePropertyList, long modifiedBy) {
+    return saveAll(prefix, sitePropertyList, modifiedBy, null);
+  }
+
+  /**
+   * @param modifiedBy the acting user's id, or -1 for a system/unattended save
+   * @param changedPropertyNames the names of properties whose value actually changed in this
+   *     save, so only those get modified/modified_by stamped -- or null to stamp all of them
+   *     (matching the pre-#454 behavior, for callers that don't track per-property changes)
+   */
+  public static boolean saveAll(String prefix, List<SiteProperty> sitePropertyList, long modifiedBy,
+      java.util.Set<String> changedPropertyNames) {
+    // Save the validated entries
+    for (SiteProperty siteProperty : sitePropertyList) {
+      // Check the property type
+      if ("disabled".equals(siteProperty.getType())) {
+        // The system rule is to skip disabled properties
+        continue;
+      }
+      boolean valueChanged = changedPropertyNames == null || changedPropertyNames.contains(siteProperty.getName());
+      // Update the property
+      SiteProperty updated = SitePropertyRepository.save(siteProperty, modifiedBy, valueChanged);
+      if (updated == null) {
+        return false;
+      }
+    }
+    // Expire the cache for the prefixes
+    String[] prefixList = prefix.split(",");
+    for (String thisPrefix : prefixList) {
+      // The cache is at the root level of the prefix
+      if (thisPrefix.contains(".")) {
+        thisPrefix = thisPrefix.substring(0, thisPrefix.indexOf("."));
+      }
+      LOG.debug("Resetting prefix: " + thisPrefix);
+      CacheManager.invalidateKey(CacheManager.SYSTEM_PROPERTY_PREFIX_CACHE, thisPrefix);
+    }
+    return true;
+  }
+
+  private static SiteProperty buildRecord(ResultSet rs) {
+    try {
+      SiteProperty record = new SiteProperty();
+      record.setId(rs.getInt("property_id"));
+      record.setLabel(rs.getString("property_label"));
+      record.setName(rs.getString("property_name"));
+      // Decrypt at-rest secret values. decrypt() returns legacy plaintext unchanged, so this is safe for
+      // every property; a secret that cannot be decrypted (wrong/absent key) fails safe to null.
+      record.setValue(SecretCryptoCommand.decrypt(rs.getString("property_value")));
+      record.setType(rs.getString("property_type"));
+      record.setModified(rs.getTimestamp("modified"));
+      long modifiedBy = rs.getLong("modified_by");
+      record.setModifiedBy(rs.wasNull() ? -1 : modifiedBy);
+      record.setExpiresAt(rs.getTimestamp("expires_at"));
+      return record;
+    } catch (SQLException se) {
+      LOG.error("buildRecord", se);
+      return null;
+    }
+  }
+}

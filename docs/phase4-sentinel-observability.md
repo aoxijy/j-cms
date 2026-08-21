@@ -53,8 +53,8 @@ The parser transforms raw log lines into structured fields. Create in Sentinel:
 // Parses j-cms application logs from stdout
 // 
 // Log format examples:
-//   [INFO] 12:34:56.789 com.simisinc.platform.presentation.controller.ContextListener - Starting up...
-//   [ERROR] 12:34:57.890 com.simisinc.platform.application.HealthCommand - Database unreachable
+//   [INFO] 12:34:56.789 com.jcms.platform.presentation.controller.ContextListener - Starting up...
+//   [ERROR] 12:34:57.890 com.jcms.platform.application.HealthCommand - Database unreachable
 //   26-Jul-2026 16:48:05.776 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name: Tomcat/11
 
 let LogData = ContainerAppConsoleLogs
@@ -509,7 +509,7 @@ When alerts fire, on-call should follow these runbooks:
 ```
 1. SSH to app container (see above)
 2. Check mount:
-   df -h | grep simis
+   df -h | grep jcms
    ls -la /opt/jcms
 3. Check logs for mount errors:
    dmesg | grep -i azure

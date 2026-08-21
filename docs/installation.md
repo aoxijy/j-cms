@@ -18,7 +18,7 @@ An optimized web application archive (.war), with production settings, is releas
 
 ## Typical Steps
 
-1. Download the latest release from <https://github.com/J-CMS/releases>.
+1. Download the latest release from <https://github.com/aoxijy/j-cms/releases>.
 2. Review the release notes for any unusual upgrade notices.
 3. It's recommended to copy the .war into a container image for deployment and to set several environment variables for database connectivity and for the initial Administrator user account.
 4. To log into a new site, add "/login" to the URL. Later, turn on the login setting to reveal a login button for your website.

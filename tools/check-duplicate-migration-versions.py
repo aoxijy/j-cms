@@ -69,11 +69,11 @@ from collections import defaultdict
 LOCATION_SETS = [
     ("install", "NEW_", [
         "src/main/resources/database/install",
-        "src/main/java/com/simisinc/platform/infrastructure/database/install",
+        "src/main/java/com/jcms/platform/infrastructure/database/install",
     ]),
     ("upgrade", "UPGRADE_", [
         "src/main/resources/database/upgrade",
-        "src/main/java/com/simisinc/platform/infrastructure/database/upgrade",
+        "src/main/java/com/jcms/platform/infrastructure/database/upgrade",
     ]),
 ]
 

@@ -1,4 +1,4 @@
-# Publishes J-CMS-owned container images to the SimIS container registry, so
+# Publishes J-CMS-owned container images to the J-CMS container registry, so
 # deployments no longer depend on any individual's personal registry. Runs on
 # the built-in GITHUB_TOKEN -- no personal credentials are stored or used.
 #
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read          # read the source to build from
-      packages: write         # publish to the SimIS container registry
+      packages: write         # publish to the J-CMS container registry
       security-events: write  # send image scan results to the Security tab
       id-token: write         # keyless OIDC identity for build provenance
       attestations: write     # record the signed provenance + SBOM attestations

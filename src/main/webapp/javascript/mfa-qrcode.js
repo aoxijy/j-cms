@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 SimIS Inc. (https://www.simiscms.com)
+ * Copyright 2026 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
     link.href = url;
-    link.download = 'simis-cms-recovery-codes.txt';
+    link.download = 'j-cms-recovery-codes.txt';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

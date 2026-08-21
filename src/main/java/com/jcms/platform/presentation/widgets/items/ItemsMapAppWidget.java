@@ -1,0 +1,133 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.presentation.widgets.items;
+
+import com.jcms.platform.application.gis.GISCommand;
+import com.jcms.platform.application.items.LoadCollectionCommand;
+import com.jcms.platform.application.maps.FindMapTilesCredentialsCommand;
+import com.jcms.platform.domain.model.Session;
+import com.jcms.platform.domain.model.items.Collection;
+import com.jcms.platform.domain.model.items.Item;
+import com.jcms.platform.domain.model.maps.MapCredentials;
+import com.jcms.platform.infrastructure.persistence.items.ItemRepository;
+import com.jcms.platform.infrastructure.persistence.items.ItemSpecification;
+import com.jcms.platform.presentation.controller.WidgetContext;
+import com.jcms.platform.presentation.widgets.GenericWidget;
+import com.jcms.platform.application.cms.NumberCommand;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+
+/**
+ * Description
+ *
+ * @author matt rajkowski
+ * @created 3/25/20 8:45 PM
+ */
+public class ItemsMapAppWidget extends GenericWidget {
+
+  static final long serialVersionUID = -8484048371911908893L;
+
+  static String MAP_APP_JSP = "/maps/items-map-app.jsp";
+
+  public WidgetContext execute(WidgetContext context) {
+
+    // Standard request items
+    context.getRequest().setAttribute("icon", context.getPreferences().get("icon"));
+    context.getRequest().setAttribute("title", context.getPreferences().get("title"));
+
+    // Determine the mapping service
+    MapCredentials mapCredentials = FindMapTilesCredentialsCommand.getCredentials();
+    if (mapCredentials == null) {
+      LOG.debug("Skipping - map service not defined");
+      return context;
+    }
+    context.getRequest().setAttribute("mapCredentials", mapCredentials);
+
+    // Determine the collection
+    String collectionUniqueId = context.getPreferences().get("collectionUniqueId");
+    Collection collection = LoadCollectionCommand.loadCollectionByUniqueIdForAuthorizedUser(collectionUniqueId, context.getUserId());
+    if (collection == null) {
+      LOG.warn("Set a collection or collectionUniqueId preference");
+      return null;
+    }
+    context.getRequest().setAttribute("collection", collection);
+
+    // Determine criteria
+    ItemSpecification specification = new ItemSpecification();
+    specification.setCollectionId(collection.getId());
+    specification.setForUserId(context.getUserId());
+    if (!context.hasRole("admin") && !context.hasRole("data-manager")) {
+      specification.setApprovedOnly(true);
+    }
+    specification.setHasCoordinates(true);
+
+//    long categoryId = context.getParameterAsLong("categoryId");
+//    if (categoryId > -1) {
+//      Category category = CategoryRepository.findById(categoryId);
+//      if (category != null && category.getCollectionId() == collection.getId()) {
+//        specification.setCategoryId(categoryId);
+//        context.getRequest().setAttribute("category", category);
+//      }
+//    }
+
+    // Query the data
+    List<Item> itemList = ItemRepository.findAll(specification, null);
+    if (itemList == null || itemList.isEmpty()) {
+      if (!"true".equals(context.getPreferences().getOrDefault("showWhenEmpty", "false"))) {
+        LOG.debug("Skipping, no items found for collection: " + collection.getUniqueId());
+        return context;
+      }
+    }
+    context.getRequest().setAttribute("itemList", itemList);
+
+    // Determine the center geo point from data, or use a preset
+    String latitude = NumberCommand.filterCoordinate(context.getPreferences().get("latitude"));
+    String longitude = NumberCommand.filterCoordinate(context.getPreferences().get("longitude"));
+    if (StringUtils.isBlank(latitude) || StringUtils.isBlank(longitude)) {
+      Session center = GISCommand.centerFromItems(itemList);
+      if (center != null) {
+        latitude = String.valueOf(center.getLatitude());
+        longitude = String.valueOf(center.getLongitude());
+      }
+    }
+    // Validate
+    if (StringUtils.isBlank(latitude) || StringUtils.isBlank(longitude) ||
+        "-1".equals(latitude) || "-1".equals(longitude) ||
+        "0.0".equals(latitude) || "0.0".equals(longitude) ||
+        "0".equals(latitude) || "0".equals(longitude)) {
+      LOG.debug("Skipping - no geo point");
+      return context;
+    }
+    context.getRequest().setAttribute("latitude", latitude);
+    context.getRequest().setAttribute("longitude", longitude);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Using center: " + latitude + " / " + longitude);
+      LOG.debug("Items found: " + itemList.size());
+    }
+
+    // Determine optional map info (mapHeight is rendered into a style attribute, so require a CSS length)
+    String mapHeight = NumberCommand.filterCssLength(context.getPreferences().getOrDefault("mapHeight", "290px"), "290px");
+    context.getRequest().setAttribute("mapHeight", mapHeight);
+    int mapZoomLevelValue = Integer.parseInt(context.getPreferences().getOrDefault("mapZoomLevel", "13"));
+    context.getRequest().setAttribute("mapZoomLevel", String.valueOf(mapZoomLevelValue));
+
+    // Show the JSP
+    context.setJsp(MAP_APP_JSP);
+    return context;
+  }
+}

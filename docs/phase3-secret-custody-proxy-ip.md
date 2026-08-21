@@ -142,7 +142,7 @@ This breaks:
 ### Solution: TrustedProxyIpFilter
 
 **File:** `TrustedProxyIpFilter.java`  
-**Location:** `src/main/java/com/simisinc/platform/presentation/controller/`  
+**Location:** `src/main/java/com/jcms/platform/presentation/controller/`  
 **Status:** ✅ Already implemented
 
 ### How It Works

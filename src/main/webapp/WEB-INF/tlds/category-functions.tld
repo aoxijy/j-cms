@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+  ~ Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
             Returns text value of a categoryId
         </description>
         <name>name</name>
-        <function-class>com.simisinc.platform.application.items.CategoryCommand</function-class>
+        <function-class>com.jcms.platform.application.items.CategoryCommand</function-class>
         <function-signature>java.lang.String text(java.lang.Long)</function-signature>
     </function>
     <function>
@@ -33,7 +33,7 @@
             Returns icon value of a categoryId
         </description>
         <name>icon</name>
-        <function-class>com.simisinc.platform.application.items.CategoryCommand</function-class>
+        <function-class>com.jcms.platform.application.items.CategoryCommand</function-class>
         <function-signature>java.lang.String icon(java.lang.Long)</function-signature>
     </function>
     <function>
@@ -41,7 +41,7 @@
             Returns icon value of a categoryId
         </description>
         <name>headerColorCSS</name>
-        <function-class>com.simisinc.platform.application.items.CategoryCommand</function-class>
+        <function-class>com.jcms.platform.application.items.CategoryCommand</function-class>
         <function-signature>java.lang.String headerColorCSS(java.lang.Long)</function-signature>
     </function>
 </taglib>

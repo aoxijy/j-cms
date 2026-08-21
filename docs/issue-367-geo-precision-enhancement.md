@@ -6,7 +6,7 @@
 
 ---
 
-> **Correction (2026-07-28):** The code as originally merged had a real compliance bug: `isAnonymous` was computed *inside* the `if (getGeoIP() != null)` block in `SaveSessionCommand.java`, so it was never set when GeoIP data was unavailable -- exactly the ambiguous case this issue exists to handle safely. Fixed by [PR #538](https://github.com/J-CMS/pull/538), merged; the code snippet in section 3 below has been updated to match what actually shipped. Separately, `SaveSessionCommandTest` (section 5) is currently `@Disabled` in CI due to a real, undiagnosed JaCoCo-instrumentation-only failure -- it passes locally and its assertions are accurate, but it is not currently providing CI regression coverage.
+> **Correction (2026-07-28):** The code as originally merged had a real compliance bug: `isAnonymous` was computed *inside* the `if (getGeoIP() != null)` block in `SaveSessionCommand.java`, so it was never set when GeoIP data was unavailable -- exactly the ambiguous case this issue exists to handle safely. Fixed by [PR #538](https://github.com/aoxijy/j-cms/pull/538), merged; the code snippet in section 3 below has been updated to match what actually shipped. Separately, `SaveSessionCommandTest` (section 5) is currently `@Disabled` in CI due to a real, undiagnosed JaCoCo-instrumentation-only failure -- it passes locally and its assertions are accurate, but it is not currently providing CI regression coverage.
 
 ---
 

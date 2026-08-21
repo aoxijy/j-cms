@@ -492,6 +492,6 @@ requests).
 ## [20240106.10000] - 2024-01-06
 Earlier releases predate this changelog; see the GitHub releases page for history.
 
-[20260804.10000]: https://github.com/J-CMS/releases/tag/v20260804.10000
-[20260719.10000]: https://github.com/J-CMS/releases/tag/v20260719.10000
-[20240106.10000]: https://github.com/J-CMS/releases/tag/v20240106.10000
+[20260804.10000]: https://github.com/aoxijy/j-cms/releases/tag/v20260804.10000
+[20260719.10000]: https://github.com/aoxijy/j-cms/releases/tag/v20260719.10000
+[20240106.10000]: https://github.com/aoxijy/j-cms/releases/tag/v20240106.10000

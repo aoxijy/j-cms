@@ -19,10 +19,10 @@ from conftest import run_tool, write
 TOOL = "detect_unsafe_migrations.py"
 
 MIGRATION_DIR = "src/main/resources/database/upgrade"
-JAVA_FILE = "src/main/java/com/simisinc/platform/domain/model/Order.java"
+JAVA_FILE = "src/main/java/com/jcms/platform/domain/model/Order.java"
 
 JAVA_BEFORE = (
-    "package com.simisinc.platform.domain.model;\n\n"
+    "package com.jcms.platform.domain.model;\n\n"
     "public class Order {\n"
     "  private String statusFlag;\n\n"
     "  public String getStatusFlag() {\n"
@@ -35,7 +35,7 @@ JAVA_BEFORE = (
 )
 
 JAVA_AFTER = (
-    "package com.simisinc.platform.domain.model;\n\n"
+    "package com.jcms.platform.domain.model;\n\n"
     "public class Order {\n"
     "}\n"
 )

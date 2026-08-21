@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 <%@ taglib prefix="date" uri="/WEB-INF/tlds/date-functions.tld" %>
 <%@ taglib prefix="font" uri="/WEB-INF/tlds/font-functions.tld" %>
 <%@ taglib prefix="user" uri="/WEB-INF/tlds/user-functions.tld" %>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="contentHtml" class="java.lang.String" scope="request"/>
-<jsp:useBean id="wiki" class="com.simisinc.platform.domain.model.cms.Wiki" scope="request"/>
-<jsp:useBean id="wikiPage" class="com.simisinc.platform.domain.model.cms.WikiPage" scope="request"/>
+<jsp:useBean id="wiki" class="com.jcms.platform.domain.model.cms.Wiki" scope="request"/>
+<jsp:useBean id="wikiPage" class="com.jcms.platform.domain.model.cms.WikiPage" scope="request"/>
 <jsp:useBean id="wikiLinkPrefix" class="java.lang.String" scope="request"/>
 <jsp:useBean id="mermaid" class="java.lang.String" scope="request"/>
 <link rel="stylesheet" href="${ctx}/javascript/prism-1.29.0/prism.css">

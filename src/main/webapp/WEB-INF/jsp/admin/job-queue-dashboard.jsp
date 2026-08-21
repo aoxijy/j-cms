@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2026 SimIS Inc.
+  ~ Copyright 2026 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 <%@ taglib prefix="date" uri="/WEB-INF/tlds/date-functions.tld" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -34,7 +34,7 @@
   <c:otherwise>
     <jsp:useBean id="stateCounts" class="java.util.LinkedHashMap" scope="request"/>
     <jsp:useBean id="jobList" class="java.util.ArrayList" scope="request"/>
-    <jsp:useBean id="recordPaging" class="com.simisinc.platform.infrastructure.database.DataConstraints" scope="request"/>
+    <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
     <%-- State tiles double as the filter: each shows the current count for that state and links to
          show that state's job list. Only the 5 states an admin would monitor day-to-day are shown --
          see JobQueueDashboardWidget's FILTERABLE_STATES javadoc for AWAITING/DELETED being left out

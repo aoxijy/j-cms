@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+  ~ Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
             Returns the status of an order statusId
         </description>
         <name>status</name>
-        <function-class>com.simisinc.platform.application.ecommerce.OrderStatusCommand</function-class>
+        <function-class>com.jcms.platform.application.ecommerce.OrderStatusCommand</function-class>
         <function-signature>java.lang.String status(int)</function-signature>
     </function>
     <function>
@@ -33,7 +33,7 @@
             Returns the generated status of an order statusId
         </description>
         <name>currentStatus</name>
-        <function-class>com.simisinc.platform.application.ecommerce.OrderStatusCommand</function-class>
+        <function-class>com.jcms.platform.application.ecommerce.OrderStatusCommand</function-class>
         <function-signature>java.lang.String currentStatus(int)</function-signature>
     </function>
     <function>
@@ -41,15 +41,15 @@
             Returns the tracking link(s) for a string of tracking numbers
         </description>
         <name>trackingNumberLinkMap</name>
-        <function-class>com.simisinc.platform.application.ecommerce.TrackingServiceCommand</function-class>
-        <function-signature>java.util.Map trackingNumberLinkMap(java.lang.String,com.simisinc.platform.domain.model.ecommerce.ShippingMethod)</function-signature>
+        <function-class>com.jcms.platform.application.ecommerce.TrackingServiceCommand</function-class>
+        <function-signature>java.util.Map trackingNumberLinkMap(java.lang.String,com.jcms.platform.domain.model.ecommerce.ShippingMethod)</function-signature>
     </function>
     <function>
         <description>
             Returns the tracking link for a tracking number
         </description>
         <name>trackingNumberLink</name>
-        <function-class>com.simisinc.platform.application.ecommerce.TrackingServiceCommand</function-class>
-        <function-signature>java.lang.String determineTrackingNumberWebLink(com.simisinc.platform.domain.model.ecommerce.TrackingNumber)</function-signature>
+        <function-class>com.jcms.platform.application.ecommerce.TrackingServiceCommand</function-class>
+        <function-signature>java.lang.String determineTrackingNumberWebLink(com.jcms.platform.domain.model.ecommerce.TrackingNumber)</function-signature>
     </function>
 </taglib>

@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   --%>
-<%@ page import="static com.simisinc.platform.ApplicationInfo.PRODUCT_NAME" %>
-<%@ page import="static com.simisinc.platform.ApplicationInfo.VERSION" %>
+<%@ page import="static com.jcms.platform.ApplicationInfo.PRODUCT_NAME" %>
+<%@ page import="static com.jcms.platform.ApplicationInfo.VERSION" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -22,9 +22,9 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="image" uri="/WEB-INF/tlds/image-functions.tld" %>
 <%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="masterWebPage" class="com.simisinc.platform.domain.model.cms.WebPage" scope="request"/>
-<jsp:useBean id="pageRenderInfo" class="com.simisinc.platform.presentation.controller.PageRenderInfo" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="masterWebPage" class="com.jcms.platform.domain.model.cms.WebPage" scope="request"/>
+<jsp:useBean id="pageRenderInfo" class="com.jcms.platform.presentation.controller.PageRenderInfo" scope="request"/>
 <jsp:useBean id="PageBody" class="java.lang.String" scope="request"/>
 <jsp:useBean id="systemPropertyMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="sitePropertyMap" class="java.util.HashMap" scope="request"/>
@@ -62,7 +62,7 @@
   <!--
   ========================================================================
   J-CMS
-  https://www.jcms.com
+  https://github.com/aoxijy/j-cms
   ========================================================================
   -->
 <c:choose>

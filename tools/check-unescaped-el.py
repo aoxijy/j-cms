@@ -263,9 +263,9 @@ ALLOWLIST: dict[str, str] = {
     "${recordPaging.totalRecordCount - activityList.size()}":
         "This is EL arithmetic, not a string: totalRecordCount is a long field (DataConstraints.java:35, setter at :88) and List.size() is an int, so the subtraction yields a numeric result",
     "${recordPagingParams}":
-        "Per producer: (1) src/main/java/com/simisinc/platform/presentation/widgets/admin/audit/AuditLogListWidget.java:112-120 builds the string via appendParam(), which applies `URLEncode",
+        "Per producer: (1) src/main/java/com/jcms/platform/presentation/widgets/admin/audit/AuditLogListWidget.java:112-120 builds the string via appendParam(), which applies `URLEncode",
     "${returnPage}":
-        "UrlCommand.getValidReturnPage() at src/main/java/com/simisinc/platform/application/cms/UrlCommand.java:86-98, backed by the allow-list regex SAFE_RETURN_PAGE at UrlCommand.java:84:",
+        "UrlCommand.getValidReturnPage() at src/main/java/com/jcms/platform/application/cms/UrlCommand.java:86-98, backed by the allow-list regex SAFE_RETURN_PAGE at UrlCommand.java:84:",
     "${searchResult.htmlExcerpt}":
         "HtmlCommand.toHtml() == org.apache.commons.text.StringEscapeUtils.escapeHtml4() applied at BlogPostSearchResultsWidget.java:88, immediately before the value is stored on the bean.",
     "${section.labelsList[cardStatus.index]}":
@@ -287,7 +287,7 @@ ALLOWLIST: dict[str, str] = {
     "${year.key}":
         "None needed - the value is a java.lang.Long produced by the database, not a string that ever held user input.",
     "${year}":
-        "SAFE — ${year} is a java.lang.Long element of folderYearList, populated at src/main/java/com/simisinc/platform/presentation/widgets/cms/FileListByFolderWidget.java:104 from the SQL",
+        "SAFE — ${year} is a java.lang.Long element of folderYearList, populated at src/main/java/com/jcms/platform/presentation/widgets/cms/FileListByFolderWidget.java:104 from the SQL",
 
     # --- ATTR context additions ---
 

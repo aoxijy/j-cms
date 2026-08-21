@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.simisinc</groupId>
+  <groupId>com.jcms</groupId>
   <artifactId>j-cms</artifactId>
   <version>20260807.10002-SNAPSHOT</version>
   <name>J-CMS</name>
-  <url>https://www.jcms.com</url>
+  <url>https://github.com/aoxijy/j-cms</url>
   <description>Agile, Enterprise, Open Source Content Management System (CMS) and Web Portal</description>
   <organization>
     <name>J-CMS Maintainers</name>
-    <url>https://github.com/J-CMS</url>
+    <url>https://github.com/aoxijy/j-cms</url>
   </organization>
   <licenses>
     <license>
@@ -487,6 +487,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
       <version>${testcontainers.version}</version>
@@ -550,6 +556,60 @@
         <version>${maven-release-plugin.version}</version>
       </plugin>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.6.1</version>
+        <executions>
+          <execution>
+            <id>add-pin-resolver-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.basedir}/ssrf-pin-resolver/src</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>pin-resolver-jar</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target>
+                <mkdir dir="${project.build.directory}/ssrf-pin-resolver-classes"/>
+                <mkdir dir="${project.build.directory}"/>
+                <javac srcdir="${project.basedir}/ssrf-pin-resolver/src"
+                       source="${java.version}"
+                       target="${java.version}"
+                       destdir="${project.build.directory}/ssrf-pin-resolver-classes"
+                       debug="on"
+                       debuglevel="lines,source"
+                       deprecation="on"
+                       optimize="on"
+                       includeantruntime="false">
+                  <include name="**/*.java"/>
+                </javac>
+                <jar jarfile="${project.build.directory}/j-cms-ssrf-pin-resolver.jar">
+                  <fileset dir="${project.build.directory}/ssrf-pin-resolver-classes" includes="**/*.class"/>
+                  <fileset dir="${project.basedir}/ssrf-pin-resolver/src" includes="META-INF/services/**"/>
+                </jar>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin.version}</version>
@@ -564,6 +624,17 @@
               <version>${lombok.version}</version>
             </path>
           </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.2</version>
+        <configuration>
+          <excludes>
+            <exclude>com/jcms/platform/provided/net/**</exclude>
+            <exclude>META-INF/services/java.net.spi.InetAddressResolverProvider</exclude>
+          </excludes>
         </configuration>
       </plugin>
       <plugin>
@@ -671,10 +742,10 @@
         <version>${maven-jacoco-plugin.version}</version>
         <configuration>
           <excludes>
-<!--            <exclude>**/com/simisinc/platform/infrastructure/persistence/**</exclude>-->
-            <exclude>**/com/simisinc/platform/**/ecommerce/**</exclude>
-            <exclude>**/com/simisinc/platform/infrastructure/database/install/**</exclude>
-            <exclude>**/com/simisinc/platform/infrastructure/database/upgrade/**</exclude>
+<!--            <exclude>**/com/jcms/platform/infrastructure/persistence/**</exclude>-->
+            <exclude>**/com/jcms/platform/**/ecommerce/**</exclude>
+            <exclude>**/com/jcms/platform/infrastructure/database/install/**</exclude>
+            <exclude>**/com/jcms/platform/infrastructure/database/upgrade/**</exclude>
           </excludes>
         </configuration>
         <executions>

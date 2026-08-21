@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2026 SimIS Inc.
+  ~ Copyright 2026 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="title" class="java.lang.String" scope="request"/>
 <jsp:useBean id="aspectRatio" class="java.lang.String" scope="request"/>
 <jsp:useBean id="provider" class="java.lang.String" scope="request"/>

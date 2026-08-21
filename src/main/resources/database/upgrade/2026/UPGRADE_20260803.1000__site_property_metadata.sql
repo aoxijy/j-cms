@@ -1,4 +1,4 @@
--- Copyright 2026 SimIS Inc. (https://www.simiscms.com), Licensed under the Apache License, Version 2.0 (the "License").
+-- Copyright 2026 J-CMS Maintainers (https://github.com/aoxijy/j-cms), Licensed under the Apache License, Version 2.0 (the "License").
 -- Issue #454: site_properties has never tracked who changed a value or when, so there was no way
 -- to answer "when was this secret last rotated, and by whom" short of parsing audit_log text. Adds
 -- generic modified/modified_by tracking (useful for every property, not just secrets) plus an

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright 2026 SimIS Inc. (https://www.simiscms.com)
+  ~ Copyright 2026 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
             or "" if none exist yet
         </description>
         <name>srcset</name>
-        <function-class>com.simisinc.platform.application.cms.ImageCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.ImageCommand</function-class>
         <function-signature>java.lang.String srcset(java.lang.String)</function-signature>
     </function>
     <function>
@@ -35,7 +35,7 @@
             for use in a JSP loop rendering many images on one page
         </description>
         <name>srcsetBatch</name>
-        <function-class>com.simisinc.platform.application.cms.ImageCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.ImageCommand</function-class>
         <function-signature>java.lang.String srcsetBatch(java.lang.String,java.util.Map)</function-signature>
     </function>
 </taglib>

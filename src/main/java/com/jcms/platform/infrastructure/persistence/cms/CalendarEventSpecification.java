@@ -1,0 +1,166 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.infrastructure.persistence.cms;
+
+import com.jcms.platform.presentation.controller.DataConstants;
+
+import java.sql.Timestamp;
+
+/**
+ * Properties for querying objects from the calendar event repository
+ *
+ * @author matt rajkowski
+ * @created 10/29/18 1:28 PM
+ */
+public class CalendarEventSpecification {
+
+  private long id = -1L;
+  private long calendarId = -1L;
+  private String uniqueId = null;
+  private int publishedOnly = DataConstants.UNDEFINED;
+  // Mirrors MedicineSpecification's archivedOnly (issue #882): UNDEFINED includes archived rows
+  // (the pre-#882 behavior, unchanged for any caller that never sets this), TRUE returns only
+  // archived rows, FALSE excludes them.
+  private int archivedOnly = DataConstants.UNDEFINED;
+  private Timestamp startingDateRange = null;
+  private Timestamp endingDateRange = null;
+  private String searchTerm = null;
+  // issue #996 (editorial calendar "Drafts with no dates" feed): when true, matches an event with
+  // no startDate set (start_date IS NULL) instead of applying the startingDateRange/
+  // endingDateRange filter above -- an event's startDate IS the event (see EditorialCalendarAjax's
+  // addEvents javadoc), so that is the only anchor field for this type. Mirrors
+  // WebPageSpecification/BlogPostSpecification's identical undatedOnly field. Defaults to false so
+  // every pre-#996 caller is unaffected.
+  private boolean undatedOnly = false;
+  // issue #426 (editorial calendar): the author filter. -1 (unset) matches every event, mirroring
+  // this class's own calendarId field and WebPageSpecification/BlogPostSpecification's identical
+  // new createdBy field.
+  private long createdBy = -1L;
+  // A calendar's "Online?" checkbox (Calendar.enabled) is meant to take its events off every
+  // public-facing surface, mirroring CalendarEventDetailsWidget's existing admin/content-manager
+  // bypass for a single event's details page. Defaults to false (no filtering) so admin-side
+  // callers (event management, editorial calendar) that must still see every calendar's events
+  // are unaffected -- only the public list/feed widgets opt in for non-previewing visitors.
+  private boolean calendarEnabledOnly = false;
+
+  public CalendarEventSpecification() {
+  }
+
+  public CalendarEventSpecification(long id) {
+    this.id = id;
+  }
+
+  public CalendarEventSpecification(String uniqueId) {
+    this.uniqueId = uniqueId;
+  }
+
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  public long getCalendarId() {
+    return calendarId;
+  }
+
+  public void setCalendarId(long calendarId) {
+    this.calendarId = calendarId;
+  }
+
+  public String getUniqueId() {
+    return uniqueId;
+  }
+
+  public void setUniqueId(String uniqueId) {
+    this.uniqueId = uniqueId;
+  }
+
+  public int getPublishedOnly() {
+    return publishedOnly;
+  }
+
+  public void setPublishedOnly(boolean publishedOnly) {
+    this.publishedOnly = (publishedOnly ? DataConstants.TRUE : DataConstants.FALSE);
+  }
+
+  public void setPublishedOnly(int publishedOnly) {
+    this.publishedOnly = publishedOnly;
+  }
+
+  public int getArchivedOnly() {
+    return archivedOnly;
+  }
+
+  public void setArchivedOnly(boolean archivedOnly) {
+    this.archivedOnly = (archivedOnly ? DataConstants.TRUE : DataConstants.FALSE);
+  }
+
+  public void setArchivedOnly(int archivedOnly) {
+    this.archivedOnly = archivedOnly;
+  }
+
+  public Timestamp getStartingDateRange() {
+    return startingDateRange;
+  }
+
+  public void setStartingDateRange(Timestamp startingDateRange) {
+    this.startingDateRange = startingDateRange;
+  }
+
+  public Timestamp getEndingDateRange() {
+    return endingDateRange;
+  }
+
+  public void setEndingDateRange(Timestamp endingDateRange) {
+    this.endingDateRange = endingDateRange;
+  }
+
+  public String getSearchTerm() {
+    return searchTerm;
+  }
+
+  public void setSearchTerm(String searchTerm) {
+    this.searchTerm = searchTerm;
+  }
+
+  public long getCreatedBy() {
+    return createdBy;
+  }
+
+  public void setCreatedBy(long createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  public boolean isUndatedOnly() {
+    return undatedOnly;
+  }
+
+  public void setUndatedOnly(boolean undatedOnly) {
+    this.undatedOnly = undatedOnly;
+  }
+
+  public boolean isCalendarEnabledOnly() {
+    return calendarEnabledOnly;
+  }
+
+  public void setCalendarEnabledOnly(boolean calendarEnabledOnly) {
+    this.calendarEnabledOnly = calendarEnabledOnly;
+  }
+}

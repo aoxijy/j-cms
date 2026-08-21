@@ -16,7 +16,7 @@ TOOLS_DIR = Path(__file__).resolve().parent.parent
 POM_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.simisinc</groupId>
+  <groupId>com.jcms</groupId>
   <artifactId>j-cms</artifactId>
   <version>{version}</version>
   <dependencies>
@@ -64,8 +64,8 @@ def make_pom(root: Path, version: str = "1.0.0-SNAPSHOT", deps=None) -> None:
 def make_application_info(root: Path, version: str = "1.0.0") -> None:
     write(
         root,
-        "src/main/java/com/simisinc/platform/ApplicationInfo.java",
-        'package com.simisinc.platform;\n\n'
+        "src/main/java/com/jcms/platform/ApplicationInfo.java",
+        'package com.jcms.platform;\n\n'
         'public class ApplicationInfo {\n'
         f'  public static final String VERSION = "{version}";\n'
         '}\n',

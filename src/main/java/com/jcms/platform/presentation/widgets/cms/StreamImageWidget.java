@@ -1,0 +1,149 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.presentation.widgets.cms;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.jcms.platform.application.filesystem.FileSystemCommand;
+import com.jcms.platform.domain.model.cms.Image;
+import com.jcms.platform.domain.model.cms.ImageVariant;
+import com.jcms.platform.infrastructure.persistence.cms.ImageRepository;
+import com.jcms.platform.infrastructure.persistence.cms.ImageVariantRepository;
+import com.jcms.platform.presentation.controller.FileDownloadCommand;
+import com.jcms.platform.presentation.controller.WidgetContext;
+import com.jcms.platform.presentation.widgets.GenericWidget;
+
+/**
+ * Streams previously uploaded images
+ *
+ * @author matt rajkowski
+ * @created 5/3/18 4:00 PM
+ */
+public class StreamImageWidget extends GenericWidget {
+
+  static final long serialVersionUID = -8484048371911908893L;
+  private static Log LOG = LogFactory.getLog(StreamImageWidget.class);
+
+  public WidgetContext execute(WidgetContext context) {
+
+    // GET uri /assets/img/20180503171549-5/logo.png
+    LOG.debug("Found request uri: " + context.getUri());
+
+    // Use the request uri
+    String resourceValue = context.getUri().substring(context.getResourcePath().length() + 1);
+    if (resourceValue.contains("/")) {
+      resourceValue = resourceValue.substring(0, resourceValue.indexOf("/"));
+    }
+    LOG.debug("Using resource value: " + resourceValue);
+    int dashIdx = resourceValue.lastIndexOf("-");
+    if (dashIdx == -1) {
+      return null;
+    }
+
+    // Determine the file id and web path
+    String webPath = resourceValue.substring(0, dashIdx);
+    String fileIdValue = resourceValue.substring(dashIdx + 1);
+    long fileId = Long.parseLong(fileIdValue);
+    if (fileId <= 0) {
+      return null;
+    }
+
+    Image record = ImageRepository.findByWebPathAndId(webPath, fileId);
+    if (record == null) {
+      LOG.warn("Server image record does not exist: " + fileId);
+      return null;
+    }
+
+    // Issue #411: ?variant=thumbnail|medium|large serves a resized rendition instead of the
+    // original -- falls back to the original when no variant param is given, the requested
+    // variant doesn't exist (e.g. the background job hasn't finished yet, or this size didn't
+    // make sense for this image), or its file is missing on disk.
+    String serverRootPath = FileSystemCommand.getFileServerRootPath();
+    String variantType = context.getParameter("variant");
+    File file = null;
+    String fileType = record.getFileType();
+    long lastModified = record.getCreated().getTime();
+    if (StringUtils.isNotBlank(variantType)) {
+      ImageVariant variant = ImageVariantRepository.findByImageIdAndVariantType(record.getId(), variantType);
+      if (variant != null) {
+        File variantFile = new File(serverRootPath + variant.getFileServerPath());
+        if (variantFile.isFile()) {
+          file = variantFile;
+          fileType = variant.getFileType();
+          // `modified` (not `created`) so a regenerated-in-place variant (see
+          // ImageVariantRepository.save()) reports a fresh Last-Modified instead of a client
+          // serving a stale cached copy forever off a 304.
+          lastModified = variant.getModified().getTime();
+        }
+      }
+    }
+    if (file == null) {
+      file = new File(serverRootPath + record.getFileServerPath());
+    }
+    if (!file.isFile()) {
+      LOG.warn("Server file does not exist: " + file.getPath());
+      return null;
+    }
+
+    // Check for a last-modified header and return 304 if possible
+    long headerValue = context.getRequest().getDateHeader("If-Modified-Since");
+    if (lastModified <= headerValue + 1000) {
+      context.getResponse().setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+      context.setHandledResponse(true);
+      return context;
+    }
+
+    // Set header info: nosniff + a sandbox CSP so an uploaded SVG/HTML served here (an image source) still
+    // renders but cannot run script in this origin; the image content type is preserved for embedding.
+    context.getResponse().setDateHeader("Last-Modified", lastModified);
+    FileDownloadCommand.applyInlineMediaHeaders(context.getResponse(), fileType);
+    context.getResponse().setContentLength((int) file.length());
+
+    // Check for head method
+    if ("head".equalsIgnoreCase(context.getRequest().getMethod())) {
+      context.setHandledResponse(true);
+      return context;
+    }
+
+    // Send the file
+    try {
+      FileInputStream in = new FileInputStream(file);
+      OutputStream out = context.getResponse().getOutputStream();
+
+      // Copy the contents of the file to the output stream
+      byte[] buf = new byte[1024];
+      int count = 0;
+      while ((count = in.read(buf)) >= 0) {
+        out.write(buf, 0, count);
+      }
+      out.close();
+      in.close();
+    } catch (Exception e) {
+      LOG.debug("Stream error: " + e.getMessage());
+    }
+    context.setHandledResponse(true);
+    return context;
+  }
+}

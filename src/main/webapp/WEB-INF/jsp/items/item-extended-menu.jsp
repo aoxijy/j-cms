@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@
 <%@ taglib prefix="url" uri="/WEB-INF/tlds/url-functions.tld" %>
 <%@ taglib prefix="text" uri="/WEB-INF/tlds/text-functions.tld" %>
 <%@ taglib prefix="image" uri="/WEB-INF/tlds/image-functions.tld" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
-<jsp:useBean id="collection" class="com.simisinc.platform.domain.model.items.Collection" scope="request"/>
-<jsp:useBean id="item" class="com.simisinc.platform.domain.model.items.Item" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="collection" class="com.jcms.platform.domain.model.items.Collection" scope="request"/>
+<jsp:useBean id="item" class="com.jcms.platform.domain.model.items.Item" scope="request"/>
 <jsp:useBean id="itemTabList" class="java.util.ArrayList" scope="request"/>
 <style>
     .item-menu.extended-bar {
@@ -43,7 +43,7 @@
       <c:choose>
         <c:when test="${!empty item.imageUrl}">
           <c:set var="itemImageSrcset" value="${image:srcset(item.imageUrl)}"/>
-          <%--                          <img src="/assets/img/1613486955904-2/SimIS%20Logo.png" />--%>
+          <%--                          <img src="/assets/img/1613486955904-2/J-CMS%20Logo.png" />--%>
           <img alt="item image" src="<c:out value="${item.imageUrl}"/>"
             <c:if test="${not empty itemImageSrcset}"> srcset="<c:out value="${itemImageSrcset}"/>" sizes="200px"</c:if>
             decoding="async"/>

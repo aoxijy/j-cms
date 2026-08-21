@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+  ~ Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,25 +26,25 @@
   <!--</context-param>-->
   <!-- Listeners -->
   <listener>
-    <listener-class>com.simisinc.platform.presentation.controller.ContextListener</listener-class>
+    <listener-class>com.jcms.platform.presentation.controller.ContextListener</listener-class>
   </listener>
   <!--<listener>-->
-    <!--<listener-class>com.simisinc.platform.presentation.controller.SessionListener</listener-class>-->
+    <!--<listener-class>com.jcms.platform.presentation.controller.SessionListener</listener-class>-->
   <!--</listener>-->
   <!-- Filters -->
   <!-- Opt-in: when CMS_TRUSTED_PROXIES is set, resolve the real client IP from
        X-Forwarded-For before any IP-based control runs. Must be mapped first. -->
   <filter>
     <filter-name>TrustedProxyIpFilter</filter-name>
-    <filter-class>com.simisinc.platform.presentation.controller.TrustedProxyIpFilter</filter-class>
+    <filter-class>com.jcms.platform.presentation.controller.TrustedProxyIpFilter</filter-class>
   </filter>
   <filter>
     <filter-name>WebRequestFilter</filter-name>
-    <filter-class>com.simisinc.platform.presentation.controller.WebRequestFilter</filter-class>
+    <filter-class>com.jcms.platform.presentation.controller.WebRequestFilter</filter-class>
   </filter>
   <filter>
     <filter-name>RestRequestFilter</filter-name>
-    <filter-class>com.simisinc.platform.rest.controller.RestRequestFilter</filter-class>
+    <filter-class>com.jcms.platform.rest.controller.RestRequestFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>TrustedProxyIpFilter</filter-name>
@@ -61,26 +61,26 @@
   </filter-mapping>
   <servlet>
     <servlet-name>PageServlet</servlet-name>
-    <servlet-class>com.simisinc.platform.presentation.controller.PageServlet</servlet-class>
+    <servlet-class>com.jcms.platform.presentation.controller.PageServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet>
     <servlet-name>RestServlet</servlet-name>
-    <servlet-class>com.simisinc.platform.rest.controller.RestServlet</servlet-class>
+    <servlet-class>com.jcms.platform.rest.controller.RestServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet>
     <servlet-name>MediaApi</servlet-name>
-    <servlet-class>com.simisinc.platform.presentation.controller.MediaApiController</servlet-class>
+    <servlet-class>com.jcms.platform.presentation.controller.MediaApiController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>StylesheetServlet</servlet-name>
-    <servlet-class>com.simisinc.platform.presentation.controller.StylesheetServlet</servlet-class>
+    <servlet-class>com.jcms.platform.presentation.controller.StylesheetServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet>
     <servlet-name>RobotsServlet</servlet-name>
-    <servlet-class>com.simisinc.platform.presentation.controller.RobotsServlet</servlet-class>
+    <servlet-class>com.jcms.platform.presentation.controller.RobotsServlet</servlet-class>
   </servlet>
   <!-- Mappings -->
   <servlet-mapping>

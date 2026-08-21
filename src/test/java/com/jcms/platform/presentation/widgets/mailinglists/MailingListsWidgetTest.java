@@ -1,0 +1,96 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.presentation.widgets.mailinglists;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+import com.jcms.platform.WidgetBase;
+import com.jcms.platform.domain.model.mailinglists.MailingList;
+import com.jcms.platform.infrastructure.persistence.mailinglists.MailingListRepository;
+import com.jcms.platform.presentation.controller.AuditEventCommand;
+import com.jcms.platform.presentation.controller.WidgetContext;
+
+/**
+ * The "Delete" row action on /admin/mailing-lists submits via confirmPostAction(), a real POST.
+ * WebContainerContext now checks command=delete before the HTTP method (see #799), so this request
+ * correctly resolves to delete(WidgetContext) regardless of GET vs POST -- these tests call delete()
+ * directly, the method a real request now reaches. (Earlier, before #799's root-cause fix, a POST
+ * always won and this widget needed its own post() override forwarding to delete() -- see #796/#798;
+ * that override is gone now that the dispatcher itself routes correctly.)
+ */
+class MailingListsWidgetTest extends WidgetBase {
+
+  private static MailingList mailingList(long memberCount) {
+    MailingList list = new MailingList();
+    list.setId(1L);
+    list.setName("newsletter");
+    list.setTitle("Newsletter");
+    list.setMemberCount(memberCount);
+    return list;
+  }
+
+  @Test
+  void deleteMailingListRemovesItAndRedirects() throws Exception {
+    setRoles(widgetContext, ADMIN);
+    addQueryParameter(widgetContext, "mailingListId", "1");
+
+    MailingList list = mailingList(0);
+
+    try (MockedStatic<MailingListRepository> repository = mockStatic(MailingListRepository.class);
+        MockedStatic<AuditEventCommand> audit = mockStatic(AuditEventCommand.class)) {
+      repository.when(() -> MailingListRepository.findById(1L)).thenReturn(list);
+      repository.when(() -> MailingListRepository.remove(list)).thenReturn(true);
+
+      WidgetContext result = new MailingListsWidget().delete(widgetContext);
+
+      repository.verify(() -> MailingListRepository.remove(list), times(1));
+      assertEquals("Mailing list deleted", result.getSuccessMessage());
+      assertEquals("/admin/mailing-lists", result.getRedirect());
+      // #753: mailing-list entity CRUD was completely unaudited before this
+      audit.verify(() -> AuditEventCommand.record(any(), any(), eq("mailing_list.delete"), eq(AuditEventCommand.SUCCESS),
+          eq("mailing_list"), eq("1"), eq("newsletter"), any()));
+    }
+  }
+
+  @Test
+  void deleteLeavesRecordsWithTooManyMembers() throws Exception {
+    setRoles(widgetContext, ADMIN);
+    addQueryParameter(widgetContext, "mailingListId", "1");
+
+    MailingList list = mailingList(11);
+
+    try (MockedStatic<MailingListRepository> repository = mockStatic(MailingListRepository.class);
+        MockedStatic<AuditEventCommand> audit = mockStatic(AuditEventCommand.class)) {
+      repository.when(() -> MailingListRepository.findById(1L)).thenReturn(list);
+
+      WidgetContext result = new MailingListsWidget().delete(widgetContext);
+
+      repository.verify(() -> MailingListRepository.remove(any()), never());
+      assertEquals("Mailing list cannot be deleted, there are related records", result.getWarningMessage());
+      audit.verify(() -> AuditEventCommand.record(any(), any(), eq("mailing_list.delete"), eq(AuditEventCommand.FAILURE),
+          eq("mailing_list"), eq("1"), eq("newsletter"), any()));
+    }
+  }
+}

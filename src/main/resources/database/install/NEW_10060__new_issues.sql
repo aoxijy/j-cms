@@ -1,4 +1,4 @@
--- Copyright 2022 SimIS Inc. (https://www.simiscms.com), Licensed under the Apache License, Version 2.0 (the "License").
+-- Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms), Licensed under the Apache License, Version 2.0 (the "License").
 -- Issues
 
 CREATE TABLE default_issue_labels (

@@ -1,4 +1,4 @@
--- Copyright 2026 SimIS Inc. (https://www.simiscms.com), Licensed under the Apache License, Version 2.0 (the "License").
+-- Copyright 2026 J-CMS Maintainers (https://github.com/aoxijy/j-cms), Licensed under the Apache License, Version 2.0 (the "License").
 -- The form_data table has never had a retention/cleanup job -- submissions can carry PII (whatever
 -- fields the form collects) and rows stayed forever. Retention here only applies to rows that have
 -- reached a terminal state (processed IS NOT NULL OR dismissed IS NOT NULL); rows still awaiting

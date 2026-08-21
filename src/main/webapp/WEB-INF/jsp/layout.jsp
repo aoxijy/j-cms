@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright 2022 SimIS Inc.
+  ~ Copyright 2022 J-CMS Maintainers
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@
 <%@ taglib prefix="image" uri="/WEB-INF/tlds/image-functions.tld" %>
 <%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
 <%@ taglib prefix="url" uri="/WEB-INF/tlds/url-functions.tld" %>
-<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
-<jsp:useBean id="headerRenderInfo" class="com.simisinc.platform.presentation.controller.HeaderRenderInfo" scope="request"/>
-<jsp:useBean id="footerRenderInfo" class="com.simisinc.platform.presentation.controller.FooterRenderInfo" scope="request"/>
-<jsp:useBean id="pageRenderInfo" class="com.simisinc.platform.presentation.controller.PageRenderInfo" scope="request"/>
+<jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="headerRenderInfo" class="com.jcms.platform.presentation.controller.HeaderRenderInfo" scope="request"/>
+<jsp:useBean id="footerRenderInfo" class="com.jcms.platform.presentation.controller.FooterRenderInfo" scope="request"/>
+<jsp:useBean id="pageRenderInfo" class="com.jcms.platform.presentation.controller.PageRenderInfo" scope="request"/>
 <jsp:useBean id="systemPropertyMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="sitePropertyMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="themePropertyMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="socialPropertyMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="masterMenuTabList" class="java.util.ArrayList" scope="request"/>
-<jsp:useBean id="masterWebPage" class="com.simisinc.platform.domain.model.cms.WebPage" scope="request"/>
+<jsp:useBean id="masterWebPage" class="com.jcms.platform.domain.model.cms.WebPage" scope="request"/>
 <jsp:useBean id="controllerShowMainMenu" class="java.lang.String" scope="request"/>
 <%-- Navigation --%>
 <c:if test="${controllerShowMainMenu eq 'true'}">

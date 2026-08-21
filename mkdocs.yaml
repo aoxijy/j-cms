@@ -1,6 +1,6 @@
 site_name: 'J-CMS TechDocs'
 site_description: 'Developer documentation for J-CMS'
-repo_url: https://github.com/J-CMS
+repo_url: https://github.com/aoxijy/j-cms
 edit_uri: tree/main/docs
 
 # You can test with: npx @techdocs/cli serve

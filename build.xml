@@ -69,7 +69,7 @@
   <!-- Version for scripts to use -->
   <target name="version">
     <echo message="Project: ${ant.project.name}"/>
-    <loadfile srcfile="${src.dir}/com/simisinc/platform/ApplicationInfo.java" property="version">
+    <loadfile srcfile="${src.dir}/com/jcms/platform/ApplicationInfo.java" property="version">
       <filterchain>
         <linecontains>
           <contains value="String VERSION ="/>
@@ -494,7 +494,7 @@
           <jvmarg value="-javaagent:${lib.test.dir}/byte-buddy-agent-1.14.10.jar"/>
           <jvmarg value="-Djava.awt.headless=true"/>
         </fork>
-        <listener classname="com.simisinc.platform.ContainerFailureReportingListener"/>
+        <listener classname="com.jcms.platform.ContainerFailureReportingListener"/>
       </testclasses>
     </junitlauncher>
     <fail if="hasFailingTest" />

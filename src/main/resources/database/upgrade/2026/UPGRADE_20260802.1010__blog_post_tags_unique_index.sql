@@ -1,4 +1,4 @@
--- Copyright 2026 SimIS Inc. (https://www.simiscms.com), Licensed under the Apache License, Version 2.0 (the "License").
+-- Copyright 2026 J-CMS Maintainers (https://github.com/aoxijy/j-cms), Licensed under the Apache License, Version 2.0 (the "License").
 -- Issue #633: blog_post_tags has existed since NEW_10010__new_cms.sql but was never wired up by
 -- BlogPostRepository, so it has always been empty in production -- safe to index now. Without this,
 -- a repeated/duplicated tag-assignment save (double submit, retried request) could insert the same

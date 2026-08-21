@@ -1,4 +1,4 @@
--- Copyright 2026 SimIS Inc. (https://www.simiscms.com), Licensed under the Apache License, Version 2.0 (the "License").
+-- Copyright 2026 J-CMS Maintainers (https://github.com/aoxijy/j-cms), Licensed under the Apache License, Version 2.0 (the "License").
 -- Tags for images, matching NEW_10010__new_cms.sql for fresh installs. Unlike items' tags (see
 -- UPGRADE_20260802.1000__item_tags.sql), images have no collection concept -- a tag here is a
 -- single global label, not scoped per anything.

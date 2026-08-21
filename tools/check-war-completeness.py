@@ -86,7 +86,7 @@ ALLOWLIST: dict[str, str] = {
     "org.apache.catalina": "Tomcat internals, provided by the container",
     "org.apache.jasper": "Tomcat JSP engine, provided by the container",
     "org.apache.tomcat": "Tomcat internals, provided by the container",
-    "com.simisinc.platform.provided.net": (
+    "com.jcms.platform.provided.net": (
         "the SSRF connect-time DNS pin resolver (issue #760, ssrf-pin-resolver/) -- "
         "compiled against by HttpGetCommand and HttpDownloadFileCommand but deliberately "
         "excluded from the WAR and supplied instead on Tomcat's shared classloader "
@@ -178,7 +178,7 @@ ALLOWLIST: dict[str, str] = {
 # Before adding an entry here, make sure the reason it must be absent is a genuine deployment
 # hazard (like the classloader-identity trap below), not just tidiness.
 FORBIDDEN: dict[str, str] = {
-    "com.simisinc.platform.provided.net": (
+    "com.jcms.platform.provided.net": (
         "the SSRF connect-time DNS pin resolver (issue #760, ssrf-pin-resolver/) -- must be "
         "supplied ONLY from Tomcat's shared classloader (CATALINA_HOME/lib, wired in "
         "docker/app/Dockerfile), never from WEB-INF/lib. Tomcat's webapp classloader is "

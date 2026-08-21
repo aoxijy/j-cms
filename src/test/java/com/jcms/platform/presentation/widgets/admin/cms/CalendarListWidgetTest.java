@@ -1,0 +1,137 @@
+/*
+ * Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jcms.platform.presentation.widgets.admin.cms;
+
+import com.jcms.platform.WidgetBase;
+import com.jcms.platform.domain.model.cms.Calendar;
+import com.jcms.platform.infrastructure.persistence.cms.CalendarEventRepository;
+import com.jcms.platform.infrastructure.persistence.cms.CalendarRepository;
+import com.jcms.platform.presentation.controller.WidgetContext;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+
+/**
+ * @author matt rajkowski
+ * @created 5/8/2022 7:00 AM
+ */
+class CalendarListWidgetTest extends WidgetBase {
+
+  @Test
+  void execute() {
+    // Set widget preferences
+    addPreferencesFromWidgetXml(widgetContext, "<widget name=\"calendarList\" />");
+
+    List<Calendar> calendarList = new ArrayList<>();
+    Calendar calendar = new Calendar();
+    calendar.setId(1L);
+    calendar.setUniqueId("calendar");
+    calendarList.add(calendar);
+
+    Map<Long, Long> countsByCalendarId = new HashMap<>();
+    countsByCalendarId.put(1L, 8L);
+
+    try (MockedStatic<CalendarRepository> calendarRepositoryMockedStatic = mockStatic(CalendarRepository.class)) {
+      calendarRepositoryMockedStatic.when(CalendarRepository::findAll).thenReturn(calendarList);
+
+      try (MockedStatic<CalendarEventRepository> calendarEventRepositoryMockedStatic = mockStatic(CalendarEventRepository.class)) {
+        calendarEventRepositoryMockedStatic.when(CalendarEventRepository::countGroupedByCalendarId).thenReturn(countsByCalendarId);
+
+        // Execute the widget
+        CalendarListWidget widget = new CalendarListWidget();
+        widget.execute(widgetContext);
+
+        // The N+1 fix: a single grouped-count call, never a per-row findCount() loop
+        calendarEventRepositoryMockedStatic.verify(CalendarEventRepository::countGroupedByCalendarId, times(1));
+        calendarEventRepositoryMockedStatic.verify(() -> CalendarEventRepository.findCount(any()), never());
+      }
+    }
+
+    // Verify the request
+    Assertions.assertEquals(CalendarListWidget.JSP, widgetContext.getJsp());
+
+    List<Calendar> calendarListRequest = (List) request.getAttribute("calendarList");
+    Assertions.assertEquals(calendarList.size(), calendarListRequest.size());
+
+    Map<Long, Long> calendarEventCount = (Map) request.getAttribute("calendarEventCount");
+    Assertions.assertEquals(8L, calendarEventCount.get(calendar.getId()));
+  }
+
+  @Test
+  void deleteError() {
+    // Set query parameters
+    addQueryParameter(widgetContext, "id", "1");
+
+    // Set widget preferences
+    addPreferencesFromWidgetXml(widgetContext, "<widget name=\"calendarList\" />");
+
+    Calendar calendar = new Calendar();
+    calendar.setId(1L);
+
+    try (MockedStatic<CalendarRepository> calendarRepositoryMockedStatic = mockStatic(CalendarRepository.class)) {
+      calendarRepositoryMockedStatic.when(() -> CalendarRepository.findById(calendar.getId())).thenReturn(calendar);
+
+      // Execute the widget
+      CalendarListWidget widget = new CalendarListWidget();
+      WidgetContext result = widget.delete(widgetContext);
+
+      // Verify without Admin role
+      Assertions.assertNotNull(widgetContext.getWarningMessage());
+      Assertions.assertNotNull(result);
+    }
+  }
+
+  @Test
+  void deleteSuccess() {
+    // Set query parameters
+    addQueryParameter(widgetContext, "id", "1");
+
+    // Set widget preferences
+    addPreferencesFromWidgetXml(widgetContext, "<widget name=\"calendarList\" />");
+
+    Calendar calendar = new Calendar();
+    calendar.setId(1L);
+
+    try (MockedStatic<CalendarRepository> calendarRepositoryMockedStatic = mockStatic(CalendarRepository.class)) {
+      calendarRepositoryMockedStatic.when(() -> CalendarRepository.findById(calendar.getId())).thenReturn(calendar);
+      calendarRepositoryMockedStatic.when(() -> CalendarRepository.remove(calendar)).thenReturn(true);
+
+      // Run as Admin
+      setRoles(widgetContext, ADMIN);
+
+      // Execute the widget
+      CalendarListWidget widget = new CalendarListWidget();
+      WidgetContext result = widget.delete(widgetContext);
+
+      // Verify
+      Assertions.assertNotNull(result);
+      Assertions.assertNull(widgetContext.getWarningMessage());
+      Assertions.assertNull(widgetContext.getErrorMessage());
+      Assertions.assertNotNull(widgetContext.getSuccessMessage());
+    }
+  }
+}

@@ -45,7 +45,7 @@ The key concepts are:
     ├── main
     │   ├── java
     │   │   └── com
-    │   │       └── simisinc
+    │   │       └── jcmsinc
     │   │           └── platform
     │   │               ├── application
     │   │               │   ├── admin
@@ -142,7 +142,7 @@ The key concepts are:
     └── test
         ├── java
         │   └── com
-        │       └── simisinc
+        │       └── jcmsinc
         │           └── platform
         │               ├── application
         │               │   ├── admin

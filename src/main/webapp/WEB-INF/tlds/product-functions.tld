@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+  ~ Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,39 +25,39 @@
             Returns whether a product is active in the store
         </description>
         <name>isActive</name>
-        <function-class>com.simisinc.platform.application.ecommerce.ProductStatusCommand</function-class>
-        <function-signature>boolean isActive(com.simisinc.platform.domain.model.ecommerce.Product)</function-signature>
+        <function-class>com.jcms.platform.application.ecommerce.ProductStatusCommand</function-class>
+        <function-signature>boolean isActive(com.jcms.platform.domain.model.ecommerce.Product)</function-signature>
     </function>
     <function>
         <description>
             Returns whether a product is pending in the store
         </description>
         <name>isPending</name>
-        <function-class>com.simisinc.platform.application.ecommerce.ProductStatusCommand</function-class>
-        <function-signature>boolean isPending(com.simisinc.platform.domain.model.ecommerce.Product)</function-signature>
+        <function-class>com.jcms.platform.application.ecommerce.ProductStatusCommand</function-class>
+        <function-signature>boolean isPending(com.jcms.platform.domain.model.ecommerce.Product)</function-signature>
     </function>
     <function>
         <description>
             Returns a status for the product
         </description>
         <name>status</name>
-        <function-class>com.simisinc.platform.application.ecommerce.ProductStatusCommand</function-class>
-        <function-signature>java.lang.String determineStatus(com.simisinc.platform.domain.model.ecommerce.Product)</function-signature>
+        <function-class>com.jcms.platform.application.ecommerce.ProductStatusCommand</function-class>
+        <function-signature>java.lang.String determineStatus(com.jcms.platform.domain.model.ecommerce.Product)</function-signature>
     </function>
     <function>
         <description>
             Returns a price range of the SKUs for the product
         </description>
         <name>priceRange</name>
-        <function-class>com.simisinc.platform.application.ecommerce.ProductPriceCommand</function-class>
-        <function-signature>java.lang.String determinePriceRange(com.simisinc.platform.domain.model.ecommerce.Product)</function-signature>
+        <function-class>com.jcms.platform.application.ecommerce.ProductPriceCommand</function-class>
+        <function-signature>java.lang.String determinePriceRange(com.jcms.platform.domain.model.ecommerce.Product)</function-signature>
     </function>
     <function>
         <description>
             Returns an inventory summary of the product SKUs
         </description>
         <name>inventorySummary</name>
-        <function-class>com.simisinc.platform.application.ecommerce.ProductInventoryCommand</function-class>
-        <function-signature>java.lang.String determineInventorySummary(com.simisinc.platform.domain.model.ecommerce.Product)</function-signature>
+        <function-class>com.jcms.platform.application.ecommerce.ProductInventoryCommand</function-class>
+        <function-signature>java.lang.String determineInventorySummary(com.jcms.platform.domain.model.ecommerce.Product)</function-signature>
     </function>
 </taglib>

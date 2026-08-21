@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Have a question or a rough, early-stage idea instead? Please start in [Discussions](https://github.com/J-CMS/discussions). Concrete proposals are welcome here.
+        Have a question or a rough, early-stage idea instead? Please start in [Discussions](https://github.com/aoxijy/j-cms/discussions). Concrete proposals are welcome here.
   - type: textarea
     id: problem
     attributes:

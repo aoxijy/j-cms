@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+  ~ Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
             Returns installed Font Awesome path name
         </description>
         <name>fontawesome</name>
-        <function-class>com.simisinc.platform.application.cms.FontCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.FontCommand</function-class>
         <function-signature>java.lang.String fontawesome()</function-signature>
     </function>
     <function>
@@ -33,7 +33,7 @@
             Returns the font awesome css prefix that works with the installed Font Awesome
         </description>
         <name>far</name>
-        <function-class>com.simisinc.platform.application.cms.FontCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.FontCommand</function-class>
         <function-signature>java.lang.String far()</function-signature>
     </function>
     <function>
@@ -41,7 +41,7 @@
             Returns the font awesome css prefix that works with the installed Font Awesome
         </description>
         <name>fal</name>
-        <function-class>com.simisinc.platform.application.cms.FontCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.FontCommand</function-class>
         <function-signature>java.lang.String fal()</function-signature>
     </function>
     <function>
@@ -49,7 +49,7 @@
             Returns the font awesome css prefix that works with the installed Font Awesome
         </description>
         <name>fad</name>
-        <function-class>com.simisinc.platform.application.cms.FontCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.FontCommand</function-class>
         <function-signature>java.lang.String fad()</function-signature>
     </function>
     <function>
@@ -57,7 +57,7 @@
             Returns the font awesome css prefix that works with the installed Font Awesome
         </description>
         <name>fat</name>
-        <function-class>com.simisinc.platform.application.cms.FontCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.FontCommand</function-class>
         <function-signature>java.lang.String fat()</function-signature>
     </function>
     <function>
@@ -65,7 +65,7 @@
             Returns the font awesome css prefix that works with the installed Font Awesome
         </description>
         <name>fas</name>
-        <function-class>com.simisinc.platform.application.cms.FontCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.FontCommand</function-class>
         <function-signature>java.lang.String fas()</function-signature>
     </function>
     <function>
@@ -73,7 +73,7 @@
             Returns the font awesome css prefix that works with the installed Font Awesome
         </description>
         <name>fab</name>
-        <function-class>com.simisinc.platform.application.cms.FontCommand</function-class>
+        <function-class>com.jcms.platform.application.cms.FontCommand</function-class>
         <function-signature>java.lang.String fab()</function-signature>
     </function>
 </taglib>

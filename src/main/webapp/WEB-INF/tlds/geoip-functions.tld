@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+  ~ Copyright 2022 J-CMS Maintainers (https://github.com/aoxijy/j-cms)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
             Returns location of IP
         </description>
         <name>location</name>
-        <function-class>com.simisinc.platform.application.maps.GeoIPCommand</function-class>
+        <function-class>com.jcms.platform.application.maps.GeoIPCommand</function-class>
         <function-signature>java.lang.String getCityStateCountryLocation(java.lang.String, java.lang.String)</function-signature>
     </function>
     <function>
@@ -33,7 +33,7 @@
             Returns country of IP
         </description>
         <name>country</name>
-        <function-class>com.simisinc.platform.application.maps.GeoIPCommand</function-class>
+        <function-class>com.jcms.platform.application.maps.GeoIPCommand</function-class>
         <function-signature>java.lang.String getCountryLocation(java.lang.String, java.lang.String)</function-signature>
     </function>
     <function>
@@ -41,7 +41,7 @@
             Returns city/state of IP
         </description>
         <name>cityState</name>
-        <function-class>com.simisinc.platform.application.maps.GeoIPCommand</function-class>
+        <function-class>com.jcms.platform.application.maps.GeoIPCommand</function-class>
         <function-signature>java.lang.String getCityStateLocation(java.lang.String, java.lang.String)</function-signature>
     </function>
 </taglib>

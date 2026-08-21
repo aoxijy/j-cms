@@ -17,7 +17,7 @@ The following steps will guide you through the developer tools and environment s
 2. Install [Apache Ant 1.10+](https://ant.apache.org) and configure your terminal's path with ANT_HOME/bin
 3. Install [Apache Tomcat 11.x](https://tomcat.apache.org/download-11.cgi) into a directory of your choice
 4. Install the PostgreSQL database server – natively on MacOS with [Postgres.app](https://postgresapp.com) or with a Docker container like (postgis/postgis:17-3.5)
-5. Clone the J-CMS repo – `git clone https://github.com/J-CMS.git`
+5. Clone the J-CMS repo – `git clone https://github.com/aoxijy/j-cms.git`
 6. In the repo directory execute `ant webapp` – this tests your environment and updates code and library changes in a working Tomcat exploded webapp directory `./out/exploded/ROOT`
 7. Open J-CMS in VS Code and accept the recommended extensions
 8. Manually setup the VS Code Community Server Connector with Apache Tomcat, setup a deployment, and choose to edit the server with your system's settings:
@@ -40,7 +40,7 @@ If not specified, the path for file assets and external configuration on Linux i
 
 ## Developer Resources
 
-- [J-CMS](https://www.jcms.com)
+- [J-CMS](https://github.com/aoxijy/j-cms)
 - [Java 21 SDK Documentation](https://docs.oracle.com/en/java/javase/21/)
 - [MVC Example with Servlets and JSP](https://www.baeldung.com/mvc-servlet-jsp)
 - [Jakarta Servlet 6.1 API](https://tomcat.apache.org/tomcat-11.0-doc/servletapi/index.html)

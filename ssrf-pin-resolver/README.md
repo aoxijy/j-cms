@@ -80,7 +80,7 @@ include, or moving `pin.resolver.build.dir` back under `build.dir` as an early d
 change did) could silently reintroduce it.
 
 `tools/check-war-completeness.py` gates this directly: its `FORBIDDEN` dict asserts
-`com.simisinc.platform.provided.net` is positively absent from the exploded WAR class tree (not
+`com.jcms.platform.provided.net` is positively absent from the exploded WAR class tree (not
 just "not reported missing" -- the opposite check from the rest of that script), and fails
 under `--strict`, which `war-completeness.yml` already runs on every push and PR to `main`. It
 is still worth re-confirming by hand (`jar tf target/j-cms.war | grep -i provided/net`)

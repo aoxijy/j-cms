@@ -52,7 +52,7 @@ carries the signature, certificate, and transparency-log entry together:
 ```
 cosign verify-blob bom.json \
   --bundle bom.json.sigstore.json \
-  --certificate-identity-regexp '^https://github.com/J-CMS/' \
+  --certificate-identity-regexp '^https://github.com/aoxijy/j-cms/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
