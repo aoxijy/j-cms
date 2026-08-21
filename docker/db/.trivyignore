@@ -8,6 +8,10 @@
 # its line here. A lapsed expiry re-fails the publish gate on the next run --
 # deliberately, so triage cannot be forgotten silently.
 #
-# Currently empty: the 7 CVEs pending as of 2026-07-23 were all triaged
-# not_affected (vulnerable_code_not_in_execute_path) with recorded evidence
-# on 2026-07-24 -- see the VEX statements' impact_statement fields.
+# Newly reported findings without an upstream fix. These are suppressed only until
+# the stated review date; the expiry checker re-fails CI if they are not triaged,
+# fixed, or renewed with recorded evidence by then.
+CVE-2026-53613 exp:2026-08-29
+CVE-2026-58050 exp:2026-08-29
+CVE-2026-14456 exp:2026-08-29
+CVE-2026-73515 exp:2026-08-29

@@ -31,7 +31,7 @@ import subprocess
 import sys
 from collections import OrderedDict
 
-REPO = "J-CMS"
+REPO = "aoxijy/j-cms"
 PRODUCT_PURL = "pkg:oci/j-cms-db"
 VEX_ID = "https://github.com/aoxijy/j-cms/docker/db/vex/j-cms-db"
 AUTHOR = "J-CMS Maintainers"
