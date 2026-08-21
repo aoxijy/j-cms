@@ -18,9 +18,7 @@ package com.jcms.platform.infrastructure.scheduler;
 
 import com.jcms.platform.domain.events.Event;
 import com.jcms.platform.infrastructure.workflow.WorkflowManager;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
@@ -34,8 +32,6 @@ import org.jobrunr.jobs.lambdas.JobRequestHandler;
 @NoArgsConstructor
 public class WorkflowEngineJob implements JobRequest {
 
-  @Getter
-  @Setter
   private Event event = null;
 
   public WorkflowEngineJob(Event event) {

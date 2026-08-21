@@ -19,9 +19,7 @@ package com.jcms.platform.infrastructure.scheduler.cms;
 import com.jcms.platform.application.cms.SaveWebPageHitCommand;
 import com.jcms.platform.infrastructure.persistence.cms.WebPageHitRepository;
 import com.jcms.platform.domain.model.cms.WebPageHit;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jobrunr.jobs.annotations.Job;
@@ -39,8 +37,6 @@ public class RecordWebPageHitJob implements JobRequest {
 
   private static Log LOG = LogFactory.getLog(RecordWebPageHitJob.class);
 
-  @Getter
-  @Setter
   private WebPageHit webPageHit = null;
 
   public RecordWebPageHitJob(WebPageHit webPageHit) {

@@ -21,9 +21,7 @@ import com.jcms.platform.application.mailinglists.MailChimpCommand;
 import com.jcms.platform.domain.model.mailinglists.Email;
 import com.jcms.platform.domain.model.mailinglists.MailingList;
 import com.jcms.platform.infrastructure.persistence.mailinglists.EmailRepository;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,16 +43,10 @@ public class ProcessEmailSubscriptionJob implements JobRequest {
   public static final String STATUS_SUBSCRIBED = "subscribed";
   public static final String STATUS_UNSUBSCRIBED = "unsubscribed";
 
-  @Getter
-  @Setter
   private Email email = null;
 
-  @Getter
-  @Setter
   private MailingList mailingList = null;
 
-  @Getter
-  @Setter
   private String status = null;
 
   public ProcessEmailSubscriptionJob(Email email, MailingList mailingList, String status) {

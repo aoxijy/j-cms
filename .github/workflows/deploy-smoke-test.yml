@@ -62,6 +62,34 @@ jobs:
         # deploy or the app fails to boot, the container never turns healthy and this step fails.
         run: docker compose up -d --build --wait --wait-timeout 300 app
 
+      - name: Exercise readiness, page rendering, and REST API
+        run: |
+          set -euo pipefail
+
+          # The application defaults to an offline site with its API disabled. Enable both only in
+          # this disposable CI database and add a deterministic app key, then restart the app so
+          # no startup-loaded site-property cache can hide the database changes.
+          docker compose exec -T db psql -U jcms -d j-cms -v ON_ERROR_STOP=1 <<'SQL'
+          UPDATE site_properties SET property_value = 'true'
+            WHERE property_name IN ('site.online', 'site.api');
+          INSERT INTO apps (name, public_key, enabled)
+            VALUES ('CI smoke test', 'jcms-ci-smoke-key', true)
+            ON CONFLICT (public_key) DO UPDATE SET enabled = EXCLUDED.enabled;
+          SQL
+          docker compose restart app
+
+          timeout 180 bash -c 'until curl -fsS http://localhost/healthz | grep -q '"'"'"status":"UP"'"'"'; do echo "waiting for restarted app..."; sleep 3; done'
+
+          # Readiness proves startup, DB connectivity, and writable file storage. The page request
+          # additionally exercises WebRequestFilter, page routing, widgets, JSP rendering, and the
+          # response body. The API request exercises app-key auth, REST routing, DB querying, and
+          # JSON serialization rather than merely checking that /api/* returns some HTTP status.
+          curl -fsS http://localhost/healthz | grep -q '"status":"UP"'
+          curl -fsS http://localhost/ | grep -qi '<html'
+          curl -fsS -H 'X-API-Key: jcms-ci-smoke-key' \
+            'http://localhost/api/pages?page=1&size=5' \
+            | python3 -c 'import json,sys; body=json.load(sys.stdin); assert body["meta"]["type"] == "page"; assert isinstance(body["data"], list)'
+
       - name: Dump container logs on failure
         if: failure()
         run: docker compose logs --no-color

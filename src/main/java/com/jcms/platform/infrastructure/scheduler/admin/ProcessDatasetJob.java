@@ -26,9 +26,7 @@ import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 import com.univocity.parsers.tsv.TsvParser;
 import com.univocity.parsers.tsv.TsvParserSettings;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,12 +51,8 @@ public class ProcessDatasetJob implements JobRequest {
 
   private static Log LOG = LogFactory.getLog(ProcessDatasetJob.class);
 
-  @Getter
-  @Setter
   private long datasetId = -1;
 
-  @Getter
-  @Setter
   private long modifiedByUserId = -1;
 
   public ProcessDatasetJob(Dataset dataset) {

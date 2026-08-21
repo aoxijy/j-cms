@@ -100,30 +100,30 @@ public class GeoIPCommand {
       if (LOG.isTraceEnabled()) {
         LOG.trace(response.toJson());
       }
-      if (response.getContinent() != null) {
-        geoIP.setContinent(response.getContinent().getName());
+      if (response.continent() != null) {
+        geoIP.setContinent(response.continent().name());
       }
-      if (response.getCountry() != null) {
-        geoIP.setCountryISOCode(response.getCountry().getIsoCode());
-        geoIP.setCountry(response.getCountry().getName());
+      if (response.country() != null) {
+        geoIP.setCountryISOCode(response.country().isoCode());
+        geoIP.setCountry(response.country().name());
       }
-      if (response.getMostSpecificSubdivision() != null) {
-        geoIP.setStateISOCode(response.getMostSpecificSubdivision().getIsoCode());
-        geoIP.setState(response.getMostSpecificSubdivision().getName());
-      } else if (response.getLeastSpecificSubdivision() != null) {
-        geoIP.setStateISOCode(response.getLeastSpecificSubdivision().getIsoCode());
-        geoIP.setState(response.getLeastSpecificSubdivision().getName());
+      if (response.mostSpecificSubdivision() != null) {
+        geoIP.setStateISOCode(response.mostSpecificSubdivision().isoCode());
+        geoIP.setState(response.mostSpecificSubdivision().name());
+      } else if (response.leastSpecificSubdivision() != null) {
+        geoIP.setStateISOCode(response.leastSpecificSubdivision().isoCode());
+        geoIP.setState(response.leastSpecificSubdivision().name());
       }
-      if (response.getCity() != null) {
-        geoIP.setCity(response.getCity().getName());
+      if (response.city() != null) {
+        geoIP.setCity(response.city().name());
       }
-      if (response.getPostal() != null) {
-        geoIP.setPostalCode(response.getPostal().getCode());
+      if (response.postal() != null) {
+        geoIP.setPostalCode(response.postal().code());
       }
-      if (response.getLocation() != null) {
-        geoIP.setTimezone(response.getLocation().getTimeZone());
-        geoIP.setLatitude(response.getLocation().getLatitude());
-        geoIP.setLongitude(response.getLocation().getLongitude());
+      if (response.location() != null) {
+        geoIP.setTimezone(response.location().timeZone());
+        geoIP.setLatitude(response.location().latitude());
+        geoIP.setLongitude(response.location().longitude());
         // Metro code is no longer populated. MaxMind retired the DMA metro-code data and removed
         // Location.getMetroCode() in geoip2 5.x, so there is no value to read and no replacement
         // field to read it from. GeoIP.metroCode keeps its default, which is the same value this
@@ -221,8 +221,8 @@ public class GeoIPCommand {
       if (LOG.isTraceEnabled()) {
         LOG.trace(response.toJson());
       }
-      if (response.getCountry() != null) {
-        return response.getCountry().getIsoCode();
+      if (response.country() != null) {
+        return response.country().isoCode();
       }
     } catch (Exception e) {
       LOG.warn("Country from IP error: " + e.getMessage());
