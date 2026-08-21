@@ -1,0 +1,90 @@
+/*
+ * Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.simisinc.platform.infrastructure.persistence.cms;
+
+import com.simisinc.platform.domain.model.Entity;
+
+/**
+ * Properties for querying objects from the image repository
+ *
+ * @author matt rajkowski
+ * @created 7/16/18 9:47 AM
+ */
+public class ImageSpecification extends Entity {
+
+  private Long id = -1L;
+  private String filename = null;
+  // Case-insensitive substring match on filename (LIKE), distinct from filename's exact match above --
+  // used by the /admin/images search box (issue #498) so "3d" finds "3-D Printing.png".
+  private String matchesName = null;
+  private long createdBy = -1;
+  private String fileType = null;
+  // Filters to images carrying this image tag -- used by the /admin/images tag filter dropdown.
+  private long tagId = -1;
+
+  public ImageSpecification() {
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public String getFilename() {
+    return filename;
+  }
+
+  public void setFilename(String filename) {
+    this.filename = filename;
+  }
+
+  public String getMatchesName() {
+    return matchesName;
+  }
+
+  public void setMatchesName(String matchesName) {
+    this.matchesName = matchesName;
+  }
+
+  public long getCreatedBy() {
+    return createdBy;
+  }
+
+  public void setCreatedBy(long createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  public String getFileType() {
+    return fileType;
+  }
+
+  public void setFileType(String fileType) {
+    this.fileType = fileType;
+  }
+
+  public long getTagId() {
+    return tagId;
+  }
+
+  public void setTagId(long tagId) {
+    this.tagId = tagId;
+  }
+
+}

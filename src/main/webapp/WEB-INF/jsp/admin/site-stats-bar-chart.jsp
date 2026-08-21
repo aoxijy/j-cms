@@ -1,0 +1,89 @@
+<%--
+  ~ Copyright 2022 SimIS Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="statisticsDataList" class="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="label" class="java.lang.String" scope="request"/>
+<c:if test="${!empty title}">
+  <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}"/></h4>
+</c:if>
+<%@include file="../page_messages.jspf" %>
+<script src="${ctx}/javascript/chartjs-4.4.1/chart.umd.min.js"></script>
+<%-- The canvas chart is not readable by assistive technology, so it is labeled and paired with an equivalent
+     screen-reader-only data table (WCAG 2.1 SC 1.1.1 / 1.3.1; Section 508). --%>
+<canvas id="myChart-${widgetContext.uniqueId}" width="200" height="100" role="img"
+        aria-label="<c:out value="${not empty title ? title : label}"/> chart. The data follows in a table."></canvas>
+<table class="show-for-sr">
+  <caption><c:out value="${not empty title ? title : label}"/> &ndash; data table</caption>
+  <thead>
+    <tr>
+      <th scope="col">Category</th>
+      <th scope="col"><c:out value="${label}"/></th>
+    </tr>
+  </thead>
+  <tbody>
+    <c:forEach items="${statisticsDataList}" var="data">
+      <tr>
+        <th scope="row"><c:out value="${data.label}"/></th>
+        <td><c:out value="${data.value}"/></td>
+      </tr>
+    </c:forEach>
+  </tbody>
+</table>
+<script nonce="${cspNonce}">
+  var chartContext = document.getElementById("myChart-${widgetContext.uniqueId}").getContext('2d');
+  var myChart = new Chart(chartContext, {
+    type: "bar",
+    data: {
+      labels: [
+        <c:forEach items="${statisticsDataList}" var="data" varStatus="status">
+        "${js:escape(data.label)}"<c:if test="${!status.last}">, </c:if>
+        </c:forEach>
+      ],
+      datasets: [{
+        label: "${js:escape(label)}",
+        data: [
+          <c:forEach items="${statisticsDataList}" var="data" varStatus="status">
+          ${data.value}<c:if test="${!status.last}">, </c:if>
+          </c:forEach>
+        ],
+        backgroundColor: "rgb(75, 192, 192)"
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          display: true,
+          ticks: {
+            suggestedMin: 0,
+            suggestedMax: 10,
+            // beginAtZero: true,
+            precision:0
+          }
+        }
+      }
+    }
+  });
+</script>

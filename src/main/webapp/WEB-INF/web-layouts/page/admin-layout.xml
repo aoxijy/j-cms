@@ -1,0 +1,2576 @@
+<?xml version="1.0" ?>
+<pages>
+  <!-- Admin -->
+  <page name="/admin" role="admin,content-manager,community-manager,ecommerce-manager" title="Admin">
+    <section>
+      <column>
+        <widget name="content" class="margin-bottom-20">
+          <html><![CDATA[<h4>Welcome back, ${user.fullName:html}.</h4>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Activity</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x grid-margin-y platform-dashboard-group">
+      <column class="small-6 medium-4 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-globe</icon>
+          <title>Online Now</title>
+          <report>total-sessions-now</report>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-globe</icon>
+          <title>Human Visitors Today</title>
+          <report>total-sessions-today</report>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-robot</icon>
+          <title>Bot Sessions Today</title>
+          <report>bot-sessions-today</report>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Security</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x grid-margin-y platform-dashboard-group">
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-bolt</icon>
+          <title>Peak Requests / IP (1h)</title>
+          <report>request-rate-spike-alert</report>
+          <link>/admin/blocked-ip-list</link>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-map-marker-alt</icon>
+          <title>New Countries in Top 5</title>
+          <report>geo-anomaly-alert</report>
+          <link>/admin/community/analytics</link>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-exclamation-triangle</icon>
+          <title>Failed Logins (24h)</title>
+          <report>failed-logins-24h</report>
+          <link>/admin/audit-log?eventType=authentication.login.failure</link>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-lock</icon>
+          <title>Locked Accounts</title>
+          <report>locked-accounts</report>
+          <link>/admin/users</link>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Deliverability</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x grid-margin-y platform-dashboard-group">
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-shield-halved</icon>
+          <title>Mailing List Spam Rate</title>
+          <report>mailing-list-spam-rate-alert</report>
+          <link>/admin/mailing-list-members</link>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Workflow</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x grid-margin-y platform-dashboard-group">
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-edit</icon>
+          <title>Drafts Awaiting Review</title>
+          <report>drafts-awaiting-review</report>
+          <link>/admin/content-list</link>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-clock</icon>
+          <title>Scheduled, Not Yet Live</title>
+          <report>scheduled-not-live</report>
+          <link>/admin/web-pages</link>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-hourglass-end</icon>
+          <title>Expiring Soon</title>
+          <report>expiring-soon</report>
+          <link>/admin/web-pages</link>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-inbox</icon>
+          <title>Submissions Awaiting Review</title>
+          <report>submissions-awaiting-review</report>
+          <link>/admin/form-data</link>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Insights</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x grid-margin-y platform-dashboard-group">
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-magnifying-glass-minus</icon>
+          <title>Zero-Result Searches (24h)</title>
+          <report>zero-result-search-alert</report>
+        </widget>
+      </column>
+      <column class="small-6 medium-4 large-3 cell">
+        <widget name="siteStats">
+          <icon>fa-filter</icon>
+          <title>Faceted Search Adoption % (7d)</title>
+          <report>facet-adoption-rate</report>
+          <days>7</days>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x grid-margin-y">
+      <column class="small-12 cell">
+        <widget name="siteStats">
+          <title>Recent Admin Activity</title>
+          <report>recent-admin-actions</report>
+          <link>/admin/audit-log</link>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <!--<column use="admin-menu" />-->
+      <column class="small-12 cell">
+        <widget name="content" class="callout">
+          <uniqueId>admin-content-C04096CF-EEB1-4C4A-8002-58F00608D2F3</uniqueId>
+        </widget>
+      </column>
+      <!--
+      <column class="small-4 cell">
+        <widget name="systemMessages" />
+        <widget name="todoList" role="admin" class="clear-float">
+          <title>Administrator Getting Started Tasks</title>
+          <uniqueId>admin-administrator-checklist</uniqueId>
+          <items>
+            <item name="Navigate to the Admin module" checked="true" />
+            <item name="Update the site settings with the site's name and details" />
+            <item name="Verify the mail server settings, so mail can be sent" />
+            <item name="Create an administrator account" />
+            <item name="Sign in with your administrator account" />
+            <item name="Create the site map and beginning content" />
+            <item name="Add any social media accounts for the site" />
+            <item name="Setup the user groups for this site (if any)" />
+            <item name="Update the site settings to optionally allow users to register" />
+            <item name="Update the site settings to put the site online!" />
+          </items>
+        </widget>
+        <widget name="todoList" role="admin,content-manager">
+          <title>Content Creator Getting Started Tasks</title>
+          <uniqueId>admin-content-checklist</uniqueId>
+          <items>
+            <item name="Navigate to the Admin module" checked="true" />
+            <item name="Review the site map" />
+            <item name="Upload shared images" />
+            <item name="Create and modify content" />
+          </items>
+        </widget>
+        <widget name="todoList" role="admin,community-manager">
+          <title>Community Manager Getting Started Tasks</title>
+          <uniqueId>admin-community-checklist</uniqueId>
+          <items>
+            <item name="Navigate to the Admin module" checked="true" />
+            <item name="Review the user groups" />
+            <item name="Review the form data" />
+            <item name="Check out the analytics" />
+          </items>
+        </widget>
+      </column>
+      -->
+    </section>
+  </page>
+
+  <page name="/admin/documentation" title="Documentation" role="admin,content-manager,community-manager">
+    <column class="small-12 cell">
+      <widget name="content">
+        <html><![CDATA[<h3>App Platform Resources</h3>
+<ul>
+<li><a target="_blank" href="https://github.com/J-CMS/mobile-apps-and-websites">Platform Product Information</a></li>
+<li><a href="/admin/documentation/wiki/Home">Platform Documentation Wiki</a></li>
+</ul>]]></html>
+      </widget>
+    </column>
+  </page>
+  <page name="/admin/documentation/wiki" role="admin,content-manager,community-manager">
+    <column class="small-12 cell">
+      <widget name="wiki" class="padding-20 padding-width-30">
+        <title>Documentation</title>
+        <wikiUniqueId>j-cms-documentation</wikiUniqueId>
+      </widget>
+    </column>
+  </page>
+
+  <page name="/admin/site-properties" role="admin" title="Site Settings">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Site Settings" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Site Settings</title>
+          <prefix>site</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/site-header-properties" role="admin,content-manager" title="Utility Bar Settings">
+    <section>
+      <column class="small-12 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Header Settings</title>
+          <prefix>site.header,theme.utilitybar</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/social-media-settings" role="admin" title="Social Media Settings">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Social Media Settings" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 medium-9 large-8 small-order-2 medium-order-1 small-margin-top-10 cell">
+        <widget name="socialMediaLinkList">
+          <title>Social Profile Links</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-3 large-4 small-order-1 medium-order-2 cell">
+        <widget name="socialMediaLinkForm" class="callout radius primary" sticky="true">
+          <title>Add a Platform</title>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Contact &amp; Integration Settings</title>
+          <prefix>social</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/theme-properties" role="admin" title="Theme Settings">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Theme Settings" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 medium-6 large-5 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Theme Settings</title>
+          <prefix>theme</prefix>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-5 cell">
+        <widget name="content" class="box">
+          <html><![CDATA[<h4>Typography</h4>
+          <h1>H1 Header</h1>
+          <h2>H2 Header</h2>
+          <h3>H3 Header</h3>
+          <h4>H4 Header</h4>
+          <h5>H5 Header</h5>
+          <p class="no-gap">This is body text, with <a href="#">an example link</a>, and <strong>bold text</strong>.</p>
+          <hr />
+          <h4>Reference Elements</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Table Header</th>
+                <th>Table Header</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Content Goes Here</td>
+                <td>Content Goes Here</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="margin-top-200">
+            <span class="label">Default Label</span>
+            <span class="primary label">Primary Label</span>
+            <span class="secondary label">Secondary Label</span>
+            <span class="success label">Success Label</span>
+            <span class="alert label">Alert Label</span>
+            <span class="warning label">Warning Label</span>
+          </div>
+          <div class="margin-top-20">
+            <span class="primary badge">1</span>
+            <span class="secondary badge">2</span>
+            <span class="success badge">3</span>
+            <span class="alert badge">A</span>
+            <span class="warning badge">B</span>
+          </div>
+          <div class="primary progress margin-top-20" role="progressbar" tabindex="0" aria-valuenow="25" aria-valuemin="0" aria-valuetext="25 percent" aria-valuemax="100">
+            <div class="progress-meter" style="width: 25%">
+              <p class="progress-meter-text">25%</p>
+            </div>
+          </div>
+          <div class="warning progress">
+            <div class="progress-meter" style="width: 50%">
+              <p class="progress-meter-text">50%</p>
+            </div>
+          </div>
+          <div class="alert progress">
+            <div class="progress-meter" style="width: 75%">
+              <p class="progress-meter-text">75%</p>
+            </div>
+          </div>
+          <div class="success progress" role="progressbar" tabindex="0" aria-valuenow="100" aria-valuemin="0" aria-valuetext="100 percent" aria-valuemax="100">
+            <div class="progress-meter" style="width: 100%">
+              <p class="progress-meter-text">100%</p>
+            </div>
+          </div>
+          <ul class="pagination" role="navigation" aria-label="Pagination">
+            <li class="disabled">Previous <span class="show-for-sr">page</span></li>
+            <li class="current"><span class="show-for-sr">You're on page</span> 1</li>
+            <li><a href="#0" aria-label="Page 2">2</a></li>
+            <li><a href="#0" aria-label="Page 3">3</a></li>
+            <li><a href="#0" aria-label="Page 4">4</a></li>
+            <li class="ellipsis" aria-hidden="true"></li>
+            <li><a href="#0" aria-label="Page 12">12</a></li>
+            <li><a href="#0" aria-label="Page 13">13</a></li>
+            <li><a href="#0" aria-label="Next page">Next <span class="show-for-sr">page</span></a></li>
+          </ul>
+          <div class="margin-top-200 margin-bottom-200">
+            <a class="button base" href="#">Default</a>
+            <a class="button primary" href="#">Primary</a>
+            <a class="button secondary" href="#">Secondary</a>
+            <a class="button success" href="#">Success</a>
+            <a class="button alert" href="#">Alert</a>
+            <a class="button warning" href="#">Warning</a>
+          </div>
+          <div class="base callout">Callout</div>
+          <div class="primary callout">Primary Callout</div>
+          <div class="secondary callout">Secondary Callout</div>
+          <div class="success callout">Success Callout</div>
+          <div class="warning callout">Warning Callout</div>
+          <div class="alert callout">Alert Callout</div>
+]]></html>
+        </widget>
+        <widget name="themeEditor" class="callout radius secondary" hr="true">
+          <title>Themes</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/form-data" role="admin,community-manager" title="Form Data">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Form Data" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="formDataList">
+          <title>Submitted Forms</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/forms" role="admin,community-manager" title="Form Builder">
+    <section>
+      <column class="small-12 medium-10 large-9 cell">
+        <widget name="formsList">
+          <title>Forms</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-2 large-3 cell">
+        <widget name="formDefinitionForm" class="callout radius primary">
+          <title>Add a form</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/forms-editor{?formDefinitionId}" role="admin,community-manager" title="Form Editor">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Forms" value="/admin/forms" />
+            <link name="Edit Form" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="formDefinitionForm">
+          <title>Form Settings</title>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-8 large-8 cell">
+        <widget name="formFieldsList">
+          <title>Fields</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-4 large-4 cell">
+        <widget name="formFieldForm" class="callout radius primary">
+          <title>Add a field</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/mailing-lists" role="admin,community-manager" title="Mailing Lists">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Form Data" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 medium-10 large-9 cell">
+        <widget name="mailingLists">
+          <title>Mailing Lists</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-2 large-3 cell">
+        <widget name="mailingListForm" class="callout radius primary">
+          <title>Add a mailing list</title>
+        </widget>
+        <widget name="mailingListSearchForm" class="callout radius primary">
+          <title>Search emails</title>
+          <redirectTo>/admin/mailing-lists</redirectTo>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/mailing-list{?mailingListId}" role="admin,community-manager" title="Mailing List Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Mailing Lists" value="/admin/mailing-lists" />
+            <link name="Mailing List Details" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="mailingListForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/mailing-list-members{?mailingListId}" role="admin,community-manager" title="Mailing List Members">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Mailing Lists" value="/admin/mailing-lists" />
+            <link name="Mailing List Members" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="mailingListMembers" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/newsletter-send" role="admin,content-manager,community-manager" title="Send Newsletter">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="newsletterSend">
+          <icon>fa-paper-plane</icon>
+          <title>Send Newsletter</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/mail-properties" role="admin" title="Email Settings">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Mail Server Settings" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 medium-7 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Email Settings</title>
+          <prefix>mail</prefix>
+        </widget>
+      </column>
+      <column class="small-12 medium-5 cell">
+        <widget name="sendMail" class="callout primary radius">
+          <icon>mail</icon>
+          <title>Mail Test</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/configure-analytics" role="admin" title="Analytics Settings">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Analytics Settings</title>
+          <prefix>analytics</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/captcha-properties" role="admin" title="Captcha Settings">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Captcha Settings" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Captcha Settings</title>
+          <prefix>captcha</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/robots-properties" role="admin" title="Robots &amp; Crawlers Settings">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Robots &amp; Crawlers Settings</title>
+          <prefix>robots</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/llms-properties" role="admin" title="LLM/AI Visibility (llms.txt) Settings">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>LLM/AI Visibility (llms.txt) Settings</title>
+          <prefix>llms</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/security-properties" role="admin" title="Security Settings">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Security Settings</title>
+          <prefix>security</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/feature-flags" role="admin" title="Feature Flags">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Feature Flags</title>
+          <prefix>features</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/seo-overview" role="admin" title="SEO &amp; AI Visibility">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="seoOverview">
+          <icon>fa-magnifying-glass-chart</icon>
+          <title>SEO &amp; AI Visibility</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/seo-sitemap" role="admin,content-manager" title="SEO Sitemap">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="seoSitemap">
+          <icon>fa-map</icon>
+          <title>SEO Sitemap</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/bi-properties" role="admin" title="BI Settings">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>BI Settings</title>
+          <prefix>bi</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/elearning-properties" role="admin" title="E-Learning Settings">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>E-learning Settings</title>
+          <prefix>elearning</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/elearning-statements" role="admin" title="xAPI Statements">
+    <section>
+      <column class="small-12 cell">
+        <widget name="xapiStatementList">
+          <title>xAPI Statements</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/mailing-list-properties" role="admin" title="Mailing List Settings">
+    <section>
+      <column class="small-12 large-10 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Mailing List Settings</title>
+          <prefix>mailing-list</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/maps-properties" role="admin" title="Map Settings">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Map Settings" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 medium-7 cell">
+        <widget name="sitePropertiesEditor">
+          <title>Map Settings</title>
+          <prefix>maps</prefix>
+        </widget>
+      </column>
+      <column class="medium-5 cell">
+        <widget name="content" class="callout primary radius">
+          <html><![CDATA[<h4>About Map Services</h4>
+          <ul><li>The Tiles Service value must be exactly <code>openstreetmap</code> or <code>custom</code> (a self-hosted tile server; set the Custom Map Tiles URL to a template like https://tiles.example.com/{z}/{x}/{y}.png). Any other value, including "google" or "apple", silently falls back to openstreetmap -- there is no Google Maps or Apple Maps tile integration today.</li><li>The Geocoder Service value must be exactly <code>nominatim</code>; any other value (including blank) turns off automatic address-to-coordinate lookups.</li></ul>
+<h5>Nominatim Usage</h5><p>Nominatim's usage policy caps this at 1 request per second, which this app enforces itself. If deployed with multiple app instances, keep in mind each instance enforces that limit independently -- so N instances can collectively send up to N requests per second.</p>
+]]></html>
+        </widget>
+        <widget name="map" class="callout secondary radius">
+          <latitude>36.7282</latitude>
+          <longitude>-76.5836</longitude>
+          <markerTitle>J-CMS HQ</markerTitle>
+          <markerText>Suffolk, Virginia</markerText>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/community/analytics" role="admin,community-manager" title="Site Analytics">
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Traffic &amp; Sessions</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x">
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-globe</icon>
+          <title>Online Now</title>
+          <report>total-sessions-now</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-globe</icon>
+          <title>Sessions Today</title>
+          <report>total-sessions-today</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-user</icon>
+          <title>Real Sessions Today</title>
+          <report>real-sessions-today</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-robot</icon>
+          <title>Bot Sessions Today</title>
+          <report>bot-sessions-today-total</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-percentage</icon>
+          <title>Bot Traffic %</title>
+          <report>bot-traffic-percentage</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-book-open</icon>
+          <title>Pages per Session</title>
+          <report>pages-per-session</report>
+          <days>30</days>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-user-clock</icon>
+          <title>Return Visitor Rate</title>
+          <report>return-visitor-rate</report>
+          <days>30</days>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Last 14 Days</title>
+          <report>locations-map</report>
+          <days>14</days>
+<!--          <mapHeight>200</mapHeight>-->
+        </widget>
+      </column>
+      <column class="small-12 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-map-marker</icon>
+          <title>Locations List</title>
+          <report>locations-list</report>
+          <days>14</days>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Daily Sessions</title>
+          <label>Sessions</label>
+          <report>daily-sessions</report>
+          <type>line</type>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Monthly Sessions</title>
+          <label>Sessions</label>
+          <report>monthly-sessions</report>
+          <type>line</type>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Daily Real Sessions</title>
+          <label>Real Sessions</label>
+          <report>daily-real-sessions</report>
+          <type>line</type>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Daily Bot Sessions</title>
+          <label>Bot Sessions</label>
+          <report>daily-bot-sessions</report>
+          <type>line</type>
+        </widget>
+      </column>
+    </section>
+
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Users &amp; Accounts</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x">
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-users</icon>
+          <title>Total Users</title>
+          <report>total-users</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-user-check</icon>
+          <title>Enabled Accounts</title>
+          <report>enabled-accounts</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-user-shield</icon>
+          <title>Validated Accounts</title>
+          <report>validated-accounts</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-user-plus</icon>
+          <title>New This Month</title>
+          <report>new-registrations-this-month</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-user-cog</icon>
+          <title>Admin/Staff Accounts</title>
+          <report>admin-staff-accounts</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-user-friends</icon>
+          <title>Public Accounts</title>
+          <report>public-accounts</report>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Daily Active Users</title>
+          <label>Active Users</label>
+          <report>dau</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Monthly Active Users</title>
+          <label>Active Users</label>
+          <report>mau</report>
+          <type>bar</type>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Daily User Registrations</title>
+          <label>User Registrations</label>
+          <report>daily-user-registrations</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Monthly User Registrations</title>
+          <label>User Registrations</label>
+          <report>monthly-user-registrations</report>
+          <type>bar</type>
+        </widget>
+      </column>
+    </section>
+
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Mailing Lists</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x">
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="communityStats">
+          <icon>fa-mail-bulk</icon>
+          <title>Mailing List Subscribers</title>
+          <report>total-mailing-list-members</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-star-half-stroke</icon>
+          <title>Mailing List Quality Score</title>
+          <report>mailing-list-quality-score</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-mail-bulk</icon>
+          <title>Active Subscribers</title>
+          <report>active-mailing-list-subscribers</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-mail-bulk</icon>
+          <title>Unsubscribed</title>
+          <report>unsubscribed-mailing-list-members</report>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Daily Mailing List Subscriptions</title>
+          <label>Subscriptions</label>
+          <report>daily-mailing-list-subscriptions</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Monthly Mailing List Subscriptions</title>
+          <label>Subscriptions</label>
+          <report>monthly-mailing-list-subscriptions</report>
+          <type>bar</type>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-shield-halved</icon>
+          <title>Email Deliverability</title>
+          <label>Status</label>
+          <value>Subscribers</value>
+          <report>mailing-list-classification-breakdown</report>
+        </widget>
+      </column>
+    </section>
+
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Forms</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container grid-x grid-margin-x">
+      <column class="small-12 medium-6 large-6 cell callout">
+        <widget name="siteStats">
+          <icon>fa-list-alt</icon>
+          <title>Total Form Submissions</title>
+          <report>total-form-submissions</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-6 cell callout">
+        <widget name="siteStats">
+          <icon>fa-ban</icon>
+          <title>Spam-Flagged Submissions (30d)</title>
+          <report>form-submissions-spam-flagged</report>
+          <days>30</days>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Daily Form Submissions</title>
+          <label>Submissions</label>
+          <report>daily-form-submissions</report>
+          <type>line</type>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Monthly Form Submissions</title>
+          <label>Submissions</label>
+          <report>monthly-form-submissions</report>
+          <type>line</type>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-list-alt</icon>
+          <title>Top Forms by Submission Volume</title>
+          <report>top-forms</report>
+          <label>Form</label>
+          <value>Submissions</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-ban</icon>
+          <title>Rejected Submissions by Reason</title>
+          <report>form-failures-by-reason</report>
+          <label>Reason</label>
+          <value>Rejections</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <!--
+      Conversion rate needs a specific page + form pairing filled in below; there's no reliable
+      automatic way to tell which form belongs to which page, so this is commented out until
+      configured for this site. Example: a page at /contact-us with a Contact Us form embedded
+      on it (whose formUniqueId defaults to the page name for the shipped template).
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-percent</icon>
+          <title>% Conversion (30d)</title>
+          <report>conversion-rate</report>
+          <pagePath>/contact-us</pagePath>
+          <formUniqueId>contact-us</formUniqueId>
+          <days>30</days>
+        </widget>
+      </column>
+      -->
+      <!--
+      Requires the funnel.contactForm.pagePath / funnel.contactForm.formUniqueId site properties to be
+      configured (issue #565, phase 1); otherwise every stage reports zero, since nothing is being
+      recorded yet. Uncommented once a site opts in, the same way the conversion-rate tile above does.
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-filter</icon>
+          <title>Contact Form Funnel (30d)</title>
+          <label>Stage</label>
+          <value>Count</value>
+          <report>contact-form-funnel</report>
+          <days>30</days>
+        </widget>
+      </column>
+      -->
+    </section>
+
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">Content Engagement</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-hourglass-half</icon>
+          <title>Avg Time on Page</title>
+          <report>avg-time-on-page</report>
+          <label>Page</label>
+          <value>Avg Time</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-exclamation-triangle</icon>
+          <title>High Traffic, Low Engagement</title>
+          <report>high-traffic-low-engagement</report>
+          <label>Page</label>
+          <value>Hits / Avg Time</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-star</icon>
+          <title>Low Traffic, High Engagement</title>
+          <report>low-traffic-high-engagement</report>
+          <label>Page</label>
+          <value>Hits / Avg Time</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-briefcase</icon>
+          <title>Traffic by Solution Type</title>
+          <label>Page Views</label>
+          <report>solution-type-traffic</report>
+          <type>bar</type>
+          <days>30</days>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-briefcase</icon>
+          <title>Engagement by Solution Type</title>
+          <label>Solution Type</label>
+          <value>Avg Page Views / Session</value>
+          <report>solution-type-engagement</report>
+          <days>30</days>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/community/search-analytics" role="admin,community-manager" title="Search Analytics">
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<div class="callout primary radius">
+  <h4>What this page shows</h4>
+  <p>These reports come from two separate, independently-recorded systems that don't share a denominator -- don't try to reconcile their totals against each other.</p>
+  <p><strong>Top Search Terms</strong> counts page views that included a search query, logged once per page render regardless of what (if anything) was found.</p>
+  <p><strong>Zero-Result</strong> and <strong>Trending</strong> search terms count actual search executions across six content types (pages, content, blog, wiki, items, calendar), each with its own real result count. A single visitor search can produce multiple rows here -- one per content type searched.</p>
+  <p>The reports further down break those same search executions down by content type, originating page, and near-miss (low-but-nonzero) result counts, to help narrow down where to focus. Like the tiles above, these are a floor, not a full census -- searches from logged-in staff and DNT/GPC-opted-out visitors aren't recorded at all.</p>
+</div>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-search</icon>
+          <title>Top Search Terms</title>
+          <report>search-terms</report>
+          <label>Search Term</label>
+          <value>Searches</value>
+          <days>30</days>
+          <limit>10</limit>
+          <options>
+            <option name="30 Days" value="30d" />
+            <option name="90 Days" value="90d" />
+            <option name="180 Days" value="180d" />
+          </options>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-search-minus</icon>
+          <title>Zero-Result Search Terms</title>
+          <report>zero-result-terms</report>
+          <label>Search Term</label>
+          <value>Zero-Result Searches</value>
+          <days>30</days>
+          <limit>10</limit>
+          <options>
+            <option name="30 Days" value="30d" />
+            <option name="90 Days" value="90d" />
+            <option name="180 Days" value="180d" />
+          </options>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-chart-line</icon>
+          <title>Trending Search Terms</title>
+          <report>trending-search-terms</report>
+          <label>Search Term</label>
+          <value>Searches This Week</value>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-filter</icon>
+          <title>Facet Usage Breakdown</title>
+          <report>facet-usage-breakdown</report>
+          <label>Facet</label>
+          <value>Searches</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+    </section>
+
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[<h5 class="platform-dashboard-section-label">By Content Type &amp; Page</h5>]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-list-alt</icon>
+          <title>Search Volume by Content Type</title>
+          <report>search-volume-by-type</report>
+          <label>Content Type</label>
+          <value>Searches</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-percentage</icon>
+          <title>Zero-Result Rate by Content Type</title>
+          <report>zero-result-rate-by-type</report>
+          <label>Content Type</label>
+          <value>Zero-Result Rate %</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-map</icon>
+          <title>Top Pages Generating Searches</title>
+          <report>top-search-paths</report>
+          <label>Page</label>
+          <value>Searches</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-map-marker-alt</icon>
+          <title>Top Pages Generating Zero-Result Searches</title>
+          <report>top-zero-result-search-paths</report>
+          <label>Page</label>
+          <value>Zero-Result Searches</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-star-half-stroke</icon>
+          <title>Near-Miss Search Terms</title>
+          <report>near-miss-search-terms</report>
+          <label>Search Term</label>
+          <value>Low-Result Searches</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/users" role="admin,community-manager" capability="users:manage" title="Users">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Users" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="usersList">
+          <title>Users</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/user-details{?userId}" role="admin,community-manager" capability="users:manage" title="User Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="userDetails" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/unsuspend-requests" role="admin,community-manager" capability="users:manage" title="Unsuspend Requests">
+    <section>
+      <column class="small-12 cell">
+        <widget name="unsuspendRequestsList">
+          <title>Unsuspend Requests</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/modify-user{?userId}" role="admin,community-manager" capability="users:manage" title="Edit User">
+    <section>
+      <column class="small-12 cell">
+        <widget name="userForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/groups" role="admin" capability="users:manage" title="User Groups">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="User Groups" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 medium-7 cell">
+        <widget name="groupsList">
+          <title>User Groups</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-5 cell">
+        <widget name="groupForm" class="callout radius primary" sticky="true">
+          <title>Add a user group</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/group{?groupId}" role="admin" capability="users:manage" title="Edit Group">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="User Groups" value="/admin/groups" />
+            <link name="User Group Details" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-10 large-9 cell">
+        <widget name="groupForm">
+          <title>Edit this group</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/content/analytics" role="admin,content-manager" title="Content Analytics">
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-20">
+          <html><![CDATA[
+            <h4>Content Analytics</h4>
+            <p>Traffic and engagement across the site, grouped below by what each group of tiles is
+            actually trying to answer. <strong>Every number on this page already excludes known
+            bots and crawlers</strong> -- search engine crawlers, SEO/AI crawlers, and social-media
+            link-preview bots, identified by user agent against an admin-editable list, are filtered
+            out before these are calculated, so you don't need to mentally discount them.</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[
+            <h5 class="platform-dashboard-section-label">Traffic</h5>
+            <p>How much traffic, and to which pages. <strong>Top Pages</strong> and
+            <strong>Top Modules</strong> sound like the same thing but count differently: Top Pages
+            counts every hit to a raw URL path (minus admin/login/asset paths), whether or not that
+            path is a CMS-registered page; Top Modules only counts hits tied to an actual registered
+            "Web Page" record, with no path filtering of its own. A path that's never been turned
+            into a CMS page can show up in Top Pages but never in Top Modules, and vice versa for a
+            registered page whose path would otherwise have been filtered out. <strong>Web Page
+            Hits</strong> is a 30-day daily trend and, unlike the other tiles here, its window can't
+            be changed from this page -- only Top Pages' own dropdown lets you pick a different
+            range.</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-12 large-6 cell small-order-2 medium-order-1">
+        <widget name="siteStats" class="stats card">
+<!--          <icon>fa-sticky-note-o</icon>-->
+          <title>Top Pages</title>
+          <report>web-urls</report>
+          <label>Link</label>
+          <value>Hits</value>
+          <days>7</days>
+          <limit>20</limit>
+          <options>
+            <option name="7 Days" value="7d" />
+            <option name="2 Weeks" value="2w" />
+            <option name="1 Month" value="1m" />
+            <option name="6 Months" value="6m" />
+            <option name="Today" value="12h" />
+          </options>
+        </widget>
+      </column>
+      <column class="small-12 medium-12 large-6 cell small-order-1 medium-order-2">
+        <widget name="siteStats" class="stats card">
+          <title>Web Page Hits</title>
+          <label>Hits</label>
+          <label1>Hit</label1>
+          <report>daily-hits</report>
+        </widget>
+      </column>
+      <column class="small-12 medium-12 large-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-sticky-note-o</icon>
+          <title>Top Modules</title>
+          <report>web-pages</report>
+          <label>Module</label>
+          <value>Hits</value>
+          <limit>10</limit>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[
+            <h5 class="platform-dashboard-section-label">Where Visitors Come From</h5>
+            <p><strong>Referrals</strong> lists the site that sent someone here (the HTTP Referer
+            header), over the last 30 days. Two things it doesn't show: a visitor with no referrer
+            at all -- bookmarks, typed-in URLs, some mobile apps that strip the header -- isn't
+            bucketed as "Direct," they're simply left out of this list entirely; and visits from
+            this site back to itself are filtered out as self-referrals, but only when the site's
+            own URL is correctly set in Site Properties -- if it isn't, internal referrals could
+            show up here as if they were external traffic.</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="siteStats" class="stats card">
+          <title>Referrals</title>
+          <report>referrals</report>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+    </section>
+    <section class="grid-container">
+      <column class="small-12 cell">
+        <widget name="content" class="margin-bottom-0">
+          <html><![CDATA[
+            <h5 class="platform-dashboard-section-label">Engagement</h5>
+            <p>What visitors do once they're here, all over a 30-day window. <strong>Return Visitor
+            Rate</strong> is the trickiest of the three to read correctly: "active" is bounded to
+            the last 30 days (has this visitor had at least one session recently), but "returning"
+            checks that same visitor's <em>entire history</em>, not just the last 30 days -- so
+            someone whose only prior visit was months ago still counts as a returning visitor the
+            moment they come back, even though the actual return happened outside this window. A
+            flat 0% here means either genuinely no return visitors, or -- rarely -- that the
+            underlying query failed; the two aren't distinguishable from this tile alone.</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-book-open</icon>
+          <title>Pages per Session</title>
+          <report>pages-per-session</report>
+          <days>30</days>
+        </widget>
+      </column>
+      <column class="small-12 medium-6 large-3 cell callout">
+        <widget name="siteStats">
+          <icon>fa-user-clock</icon>
+          <title>Return Visitor Rate</title>
+          <report>return-visitor-rate</report>
+          <days>30</days>
+        </widget>
+      </column>
+      <column class="small-12 large-6 cell">
+        <widget name="siteStats" class="stats card">
+          <icon>fa-hourglass-half</icon>
+          <title>Avg Time on Page</title>
+          <report>avg-time-on-page</report>
+          <label>Page</label>
+          <value>Avg Time</value>
+          <days>30</days>
+          <limit>10</limit>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/sitemap" role="admin,content-manager" title="Navigation Menu Editor">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Site Map" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="siteMap">
+          <title>Navigation Menu Editor</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <!-- @todo Turn this into a menu, then link to additional config pages -->
+  <!-- @todo Turn this into a menu, then link to additional config pages, also sticky-footer-links -->
+
+  <page name="/admin/useful-links" role="admin,content-manager" title="Useful Links">
+    <section>
+      <column class="small-12 cell">
+        <widget name="content" class="callout">
+          <uniqueId>admin-content-FF54248C-71B7-4B3C-966F-9B343310F510</uniqueId>
+          <html><![CDATA[<h5>About Useful Links</h5>
+          <p>These two lists fill in the two link columns shown in the footer of every public page on the site &mdash; the left column (<strong>Company</strong>) and the right column (<strong>Support</strong>), as labeled in the site footer.</p>
+          <p>Each row needs a <strong>Name</strong> (the text visitors click) and a <strong>Link</strong>. A Link can be an internal path (e.g. <code>/contact</code>) or a full external URL (e.g. <code>https://example.com</code>) &mdash; both are supported.</p>
+          <p>To remove an entry, clear its <strong>Name</strong> field and save; a row left with no Name is dropped from the list.</p>
+          <p>Looking for the floating action buttons shown on every page instead? See <a href="/admin/sticky-footer-links">Sticky Page Buttons</a>.</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-6 cell">
+        <widget name="tableOfContentsEditor">
+          <title>Footer Useful Links Column 1</title>
+          <uniqueId>footer-useful-links-1</uniqueId>
+        </widget>
+      </column>
+      <column class="small-6 cell">
+        <widget name="tableOfContentsEditor">
+          <title>Footer Useful Links Column 2</title>
+          <uniqueId>footer-useful-links-2</uniqueId>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/sticky-footer-links" role="admin,content-manager" title="Sticky Footer Links">
+    <section>
+      <column class="small-12 cell">
+        <widget name="content" class="callout">
+          <uniqueId>admin-content-55EC31E9-5FA5-4A33-95DB-111B8755789F</uniqueId>
+          <html><![CDATA[<h5>About Sticky Page Buttons</h5>
+          <p>This list controls a small floating button bar shown in the bottom-right corner of every public page on the site (it does not appear on admin pages). Unlike <a href="/admin/useful-links">Useful Links</a>, these buttons are hard to miss &mdash; changes here are visible immediately and prominently on every page, so double-check each link before saving.</p>
+          <p>A button automatically hides itself on the exact page it links to, so visitors are never shown a button that just takes them to the page they're already on.</p>
+          <p>Looking for a calmer, footer-column option instead? See <a href="/admin/useful-links">Useful Links</a>.</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-6 cell">
+        <widget name="tableOfContentsEditor">
+          <title>Sticky Footer Buttons</title>
+          <uniqueId>footer-sticky-links</uniqueId>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/sitemap-editor" role="admin,content-manager" title="Navigation Menu Editor - Edit Links">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Site Map" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="siteMapEditor">
+          <title>Navigation Menu Editor - Edit Links</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/web-pages" role="admin,content-manager" title="Web Pages">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Web Pages" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="webPageList">
+          <title>Web Pages</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/web-page" role="admin,content-manager" title="Web Page Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Web Pages" value="/admin/web-pages" />
+            <link name="Web Page" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="webPageForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/content-versions" role="admin,content-manager" title="Content Version History">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Content" value="/admin/content-list" />
+            <link name="Version History" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="contentVersionsList">
+          <title>Version History</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/web-page-versions" role="admin,content-manager" title="Web Page Version History">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Web Pages" value="/admin/web-pages" />
+            <link name="Version History" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="webPageVersionsList">
+          <title>Version History</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/web-page-review" role="admin,content-manager" title="Web Page Review">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Web Pages" value="/admin/web-pages" />
+            <link name="Review" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="webPageReview">
+          <icon>fa-clipboard-check</icon>
+          <title>Web Page Review</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/web-redirects" role="admin,content-manager" title="Web Redirects">
+    <section>
+      <column class="small-12 cell">
+        <widget name="webRedirectList">
+          <title>Web Redirects</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/web-redirect{?webRedirectId}" role="admin,content-manager" title="Web Redirect">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Web Redirects" value="/admin/web-redirects" />
+            <link name="Web Redirect" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-10 large-8 cell">
+        <widget name="webRedirectForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/web-page-designer" role="admin,content-manager" title="Web Page Designer">
+    <section>
+      <column class="small-12 cell">
+        <widget name="webPageDesigner" />
+      </column>
+    </section>
+  </page>
+  <page name="/admin/web-container-designer" role="admin,content-manager" title="Container Editor">
+    <section>
+      <column class="small-12 cell">
+        <widget name="webContainerDesigner" />
+      </column>
+    </section>
+  </page>
+  <page name="/admin/css-editor" role="admin,content-manager" title="CSS Editor">
+    <section>
+      <column class="small-12 cell">
+        <widget name="cssEditor" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/content-list" role="admin,content-manager" title="Content">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Content" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 medium-10 large-9 cell">
+        <widget name="contentList">
+          <title>Content</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-2 large-3 cell">
+        <widget name="contentForm" class="callout radius primary" sticky="true">
+          <title>Add content</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/images" role="admin,content-manager" title="Images">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Images" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="adminImageBrowser"/>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/email-templates" role="admin,content-manager,community-manager" title="Email Templates">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Email Templates" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="content">
+          <html><![CDATA[<p>Here we'll show the email templates...</p>]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/blogs" role="admin,content-manager" title="Blogs">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Blogs" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-8 medium-4 large-6 cell">
+        <widget name="blogList">
+          <title>Blogs</title>
+        </widget>
+      </column>
+      <column class="small-8 medium-5 large-5 cell">
+        <widget name="blogPostList">
+          <!--<blogUniqueId>all... need to implement</blogUniqueId>-->
+          <view>overview</view>
+          <limit>10</limit>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/blog{?blogId}" role="admin,content-manager" title="Blog Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Blogs" value="/admin/blogs" />
+            <link name="Blog Details" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="blogForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/blog-tags{?blogId}" role="admin,content-manager" title="Blog Tags">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Blogs" value="/admin/blogs" />
+            <link name="Blog Details" value="/admin/blog?blogId=${request.blogId}" />
+            <link name="Tags" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-10 large-8 cell">
+        <widget name="blogTagsList" />
+      </column>
+      <column class="small-12 medium-2 large-4 cell">
+        <widget name="blogTagForm" class="callout radius primary">
+          <title>Add a tag</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/blog-tag{?tagId}" role="admin,content-manager" title="Edit Blog Tag">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Blogs" value="/admin/blogs" />
+            <link name="Blog Details" value="/admin/blog?blogId=${request.blogId}" />
+            <link name="Tag" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-11 large-10 cell">
+        <widget name="blogTagForm">
+          <title>Edit this tag</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/blog-post-review{?blogPostId}" role="admin,content-manager" title="Blog Post Review">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Blogs" value="/admin/blogs" />
+            <link name="Post Review" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-11 large-10 cell">
+        <widget name="blogPostReview">
+          <title>Review Blog Post</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/blog-posts{?blogId}" role="admin,content-manager" title="Blog Posts">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Blogs" value="/admin/blogs" />
+            <link name="Blog Posts" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="adminBlogPostList">
+          <title>Blog Posts</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/calendars" role="admin,content-manager,community-manager" title="Calendars">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Calendars" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="calendar">
+          <view>small</view>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-6 large-5 cell">
+        <widget name="calendarList" />
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="calendarEventList">
+          <title>Events</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/editorial-calendar" role="admin,content-manager,community-manager" title="Editorial Calendar">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Editorial Calendar" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="editorialCalendar">
+          <title>Editorial Calendar</title>
+          <icon>fa-calendar-check</icon>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/calendar{?calendarId}" role="admin,content-manager,community-manager" title="Calendar Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Calendars" value="/admin/calendars" />
+            <link name="Calendar Details" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="calendarForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/calendar-event{?calendarEventId}" role="admin,content-manager,community-manager" title="Calendar Event Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Calendars" value="/admin/calendars" />
+            <link name="Calendar Event Details" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="calendarEventForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/folders" role="admin,content-manager,community-manager" title="Files and Folders">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Folders" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="folderList">
+          <title>Folders</title>
+        </widget>
+      </column>
+      <!--
+      <column class="small-8 medium-4 large-5 cell">
+        <widget name="content">
+          <html><![CDATA[<p>Latest files</p>]]></html>
+        </widget>
+      </column>
+      -->
+    </section>
+  </page>
+
+  <page name="/admin/folder{?folderId}" role="admin" title="Folder Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="folderForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/folder-details{?folderId}" role="admin,content-manager,community-manager" title="Folder Files">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Folders" value="/admin/folders" />
+            <link name="Files" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-10 large-8 cell">
+        <widget name="folderDetails" />
+        <widget name="folderSubFoldersList" />
+        <widget name="folderFilesList" />
+      </column>
+      <column class="small-12 medium-2 large-4 cell">
+        <widget name="folderFileDropZone" class="callout radius primary">
+          <title>Add Files</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <!-- Mirrors the /assets/file -> downloadFile route shape: a dedicated page whose widget writes
+       raw bytes to the response and calls setHandledResponse(true), no JSP involved. -->
+  <page name="/admin/folder-zip-download" role="admin,content-manager,community-manager" title="Download Folder Files">
+    <widget name="folderZipDownload" />
+  </page>
+
+  <page name="/admin/sub-folder{?subFolderId}" role="admin,content-manager,community-manager" title="Sub-Folder Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="subFolderForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/sub-folder-details{?subFolderId}" role="admin,content-manager,community-manager" title="Sub-Folder Files">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Folders" value="/admin/folders" />
+            <link name="Sub-Folder" value="/admin/folder-details?folderId={param:folderId}" />
+            <link name="Files" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-10 large-8 cell">
+<!--        <widget name="folderDetails" />-->
+        <widget name="subFolderDetails" />
+<!--        <widget name="subFolderFilesList" />-->
+        <widget name="folderFilesList" />
+      </column>
+      <column class="small-12 medium-2 large-4 cell">
+        <widget name="folderFileDropZone" class="callout radius primary">
+          <title>Add Files To Sub-Folder</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/file-versions{?fileId}" role="admin,content-manager,community-manager" title="File Version History">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Folders" value="/admin/folders" />
+            <link name="Version History" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-10 large-8 cell">
+        <widget name="fileVersionsList">
+          <title>Version History</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/file-form{?subFolderId}" role="admin,content-manager,community-manager" title="File Form">
+    <section>
+      <column class="small-12 cell">
+        <widget name="folderFileForm">
+          <title>Add a Link</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/wikis" role="admin,content-manager,community-manager" title="Wikis">
+    <section>
+      <column class="small-12 medium-10 large-8 cell">
+        <widget name="wikiList">
+          <title>Wikis</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/wiki{?wikiId}" role="admin,content-manager,community-manager" title="Wiki Details">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Wikis" value="/admin/wikis" />
+            <link name="Wiki Details" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="wikiForm" />
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="wikiPageList" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/apis" role="admin" capability="admin:manage" title="APIs">
+    <section>
+      <column class="small-12 cell">
+        <widget name="content" class="callout">
+          <title>Example</title>
+          <html><![CDATA[
+<pre><code>http -a username:password POST http://localhost:8080/api/oauth2/authorize X-API-Key:&lt;secret_key&gt;</code></pre>
+<p style="font-size:0.875rem">This is a real human user login exchange (a username and password), not a machine-only credential flow. The <code>X-API-Key</code> header is the Client ID shown when editing an App on the <a href="/admin/apps">Apps</a> page -- it identifies which App is calling, but it isn't a secret.</p>
+<br />
+<pre><code>{
+  "access_token": "you-receive-this",
+  "expires_in": 2592000,
+  "first_name": "First", "last_name": "Last", "name": "First Last",
+  "scope": "create", "token_type": "bearer"
+}</code></pre>
+<p style="font-size:0.875rem">The <code>"scope": "create"</code> value above is a fixed literal returned on every token response -- it isn't currently configurable and nothing in the platform enforces it. The access token grants the full access of whatever role the authenticating user already has, not a narrower scope.</p>
+<br />
+<pre><code>http -A bearer -a &lt;access_token&gt; GET http://localhost:8080/api/me X-API-Key:&lt;secret_key&gt;</code></pre><br />
+<pre><code>http GET http://localhost:8080/api/collections?key=&lt;secret_key&gt;</code></pre>
+<p style="font-size:0.875rem">The APIs table below is a partial reference: it's generated by scanning this app's REST route configuration. <code>oauth2/authorize</code> is handled directly by the security filter rather than the scanned configuration, so it's added as a built-in row ("RestRequestFilter (built-in)") rather than a scanned one -- it does appear below, just not sourced the same way as the rest of the table.</p>
+]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="apisList">
+          <title>APIs</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/apps" role="admin" capability="admin:manage" title="Apps">
+    <!--<section>-->
+      <!--<column class="small-12 cell">-->
+        <!--<widget name="breadcrumbs">-->
+          <!--<links>-->
+            <!--<link name="Apps" value="" />-->
+          <!--</links>-->
+        <!--</widget>-->
+      <!--</column>-->
+    <!--</section>-->
+    <section>
+      <column class="small-12 cell">
+        <widget name="content" class="callout">
+          <title>About Apps</title>
+          <html><![CDATA[
+<p>An <strong>App</strong> is a credential record that lets outside software authenticate to this J-CMS instance's own REST API (inbound access). It has nothing to do with this CMS's own outbound connections to other services, such as payment processors -- those are configured elsewhere.</p>
+<p>The <strong>Client ID</strong> shown when editing an App is not a secret -- it's safe to embed in scripts or share with a vendor. It identifies the caller but doesn't authenticate it on its own; an actual user login via the flow documented on the <a href="/admin/apis">APIs</a> page is still required for anything beyond public/guest-level data.</p>
+<p>If a credential leaks or is otherwise compromised, use the <strong>Enabled</strong> toggle to disable the App immediately, then use <strong>Delete</strong> once you've confirmed nothing else still needs its history.</p>
+<p>There's no per-owner filtering on this list -- anyone with access to this page can see every App in the system, and now that access is limited to admins. Periodically review the list for Apps you don't recognize.</p>
+]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-7 large-8 cell">
+        <widget name="appsList">
+          <title>Apps</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-5 large-4 cell">
+        <widget name="appForm" class="callout radius primary" sticky="true">
+          <title>Add an app</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/app{?appId}" role="admin" capability="admin:manage" title="Edit App">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Apps" value="/admin/apps" />
+            <link name="App Details" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="appForm">
+          <title>Edit this app</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/blocked-ip-list" role="admin" capability="admin:manage" title="Blocked IP list">
+    <section>
+      <column class="small-12 medium-9 large-8 small-order-2 medium-order-1 small-margin-top-10 cell">
+        <widget name="blockedIP">
+          <title>Blocked IP List</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-3 large-4 small-order-1 medium-order-2 cell">
+        <widget name="blockedIPListForm" class="callout radius primary" sticky="true">
+          <title>Add to List</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/allowed-ip-list" role="admin" capability="admin:manage" title="Allowed IP list">
+    <section>
+      <column class="small-12 medium-9 large-8 small-order-2 medium-order-1 small-margin-top-10 cell">
+        <widget name="allowedIP">
+          <title>Allowed IP List</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-3 large-4 small-order-1 medium-order-2 cell">
+        <widget name="allowedIPListForm" class="callout radius primary" sticky="true">
+          <title>Add to List</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/bot-list" role="admin" capability="admin:manage" title="Bot User Agent List">
+    <section>
+      <column class="small-12 medium-9 large-8 small-order-2 medium-order-1 small-margin-top-10 cell">
+        <widget name="botUserAgent">
+          <title>Bot User Agent List</title>
+        </widget>
+      </column>
+      <column class="small-12 medium-3 large-4 small-order-1 medium-order-2 cell">
+        <widget name="botUserAgentForm" class="callout radius primary" sticky="true">
+          <title>Add to List</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/role-capabilities" role="admin" capability="admin:manage" title="Role Capabilities">
+    <section>
+      <column class="small-12 cell">
+        <widget name="roleCapabilitiesList">
+          <title>Role Capabilities</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/role-capabilities-form" role="admin" capability="admin:manage" title="Edit Role Capabilities">
+    <section>
+      <column class="small-12 medium-8 large-6 cell">
+        <widget name="roleCapabilitiesForm">
+          <title>Edit Role Capabilities</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/capability-grants{?userId}" role="admin" capability="admin:manage" title="Capability Grants">
+    <section>
+      <column class="small-12 medium-8 large-6 cell">
+        <widget name="capabilityGrants">
+          <title>Capability Grants</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/webhooks" role="admin" title="Webhooks">
+    <section>
+      <column class="small-12 cell">
+        <widget name="webhookSubscriptionList">
+          <title>Webhooks</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/integrations" role="admin" title="Integrations">
+    <section>
+      <column class="small-12 cell">
+        <widget name="integrationRegistry">
+          <icon>fa-puzzle-piece</icon>
+          <title>Integrations</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/integrations/secrets" role="admin" title="Integration Secrets">
+    <section>
+      <column class="small-12 cell">
+        <widget name="integrationsHub">
+          <icon>fa-key</icon>
+          <title>Integration Secrets</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/webhook-subscription{?webhookSubscriptionId}" role="admin" title="Webhook Subscription">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Webhooks" value="/admin/webhooks" />
+            <link name="Webhook Subscription" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 medium-10 large-8 cell">
+        <widget name="webhookSubscriptionForm" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/webhook-deliveries{?webhookSubscriptionId}" role="admin" title="Webhook Delivery Log">
+    <section>
+      <column class="small-12 cell">
+        <widget name="breadcrumbs">
+          <links>
+            <link name="Webhooks" value="/admin/webhooks" />
+            <link name="Delivery Log" value="" />
+          </links>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-12 cell">
+        <widget name="webhookDeliveryList" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/activity" role="admin,content-manager,community-manager,ecommerce-manager" title="Activity">
+    <section>
+      <column class="small-12 cell">
+        <widget name="activityFeed">
+          <title>Activity</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/web-vitals" role="admin" title="Web Vitals">
+    <section>
+      <column class="small-12 cell">
+        <widget name="webVitals">
+          <icon>fa-tachometer-alt</icon>
+          <title>Core Web Vitals</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/mfa-properties" role="admin" title="MFA Enforcement Settings">
+    <section>
+      <column class="small-12 medium-7 cell">
+        <widget name="sitePropertiesEditor">
+          <title>MFA Enforcement</title>
+          <prefix>mfa</prefix>
+        </widget>
+      </column>
+      <column class="medium-5 cell">
+        <widget name="content" class="callout primary radius">
+          <html><![CDATA[<h4>About MFA Enforcement</h4>
+          <p><strong>Roles that must enrol MFA</strong>: enter a comma-separated list of role codes (e.g. <code>admin</code>) whose members must have two-factor authentication enrolled before accessing any page. Role codes are matched case-sensitively. Leave blank to disable enforcement — no user is affected until a role is listed.</p>
+          <p><strong>MFA enrolment page</strong>: the URL users are redirected to for MFA setup. This page must be reachable without MFA; the default <code>/my-profile</code> contains the two-factor authentication settings widget. This field isn't checked to confirm the page actually exists, so a typo here can lock everyone out — see recovery options below.</p>
+          <p><strong>Saving requires re-authentication:</strong> because this is a security-sensitive page, Save will first ask for your password or authenticator code again if you haven't verified recently, then re-apply your changes once confirmed.</p>
+          <p class="callout warning radius" style="font-size:0.875rem"><strong>Before enabling:</strong> make sure at least one admin account already has MFA enrolled, and that the enrolment page URL is correct. Nothing enforces this automatically — enabling enforcement for the <code>admin</code> role while no admin has MFA enrolled will redirect every admin to the enrolment page on their next request.</p>
+          <p><strong>Recovery, if someone is locked out:</strong> a locked-out user can self-service with one of their MFA recovery codes (issued at enrolment). If those are lost too, another sufficiently-privileged admin can use the "Reset MFA" action on that user's page under <a href="/admin/users">Users</a>, which clears their TOTP secret and recovery codes. If the enrolment page URL itself is broken and no admin can reach it, the only remaining route is a direct database update clearing the <code>mfa.required.roles</code> value.</p>
+          <p>Changing this setting is recorded in the <a href="/admin/audit-log">Security Audit Log</a> as a <code>setting.update</code> event — that record is the governance evidence for SSP IA-2(1). Filter the log by event type <code>setting.update</code> and target type <code>site_property</code> to isolate MFA policy changes from every other settings page's saves.</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/audit-log" role="admin" capability="admin:manage" title="Security Audit Log">
+    <section>
+      <column class="small-12 cell">
+        <widget name="auditLogList">
+          <title>Security Audit Log</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/health-dashboard" role="admin" title="System Health">
+    <section>
+      <column class="small-12 cell">
+        <widget name="healthDashboard">
+          <icon>fa-heart-pulse</icon>
+          <title>System Health</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/database-maintenance" role="admin" title="Database Maintenance">
+    <section>
+      <column class="small-12 cell">
+        <widget name="databaseMaintenance">
+          <icon>fa-database</icon>
+          <title>Database Maintenance</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/cache-management" role="admin" title="Cache Management">
+    <section>
+      <column class="small-12 cell">
+        <widget name="cacheManagement">
+          <icon>fa-bolt</icon>
+          <title>Cache Management</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/job-queue-dashboard" role="admin" title="Job Queue Dashboard">
+    <section>
+      <column class="small-12 cell">
+        <widget name="jobQueueDashboard">
+          <icon>fa-list-check</icon>
+          <title>Job Queue Dashboard</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/admin/analytics-retention" role="admin" capability="admin:manage" title="Analytics Retention">
+    <section>
+      <column class="small-12 cell">
+        <widget name="analyticsRetention">
+          <icon>fa-trash-can</icon>
+          <title>Analytics Retention</title>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+</pages>

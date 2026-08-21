@@ -1,0 +1,118 @@
+/*
+ * Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.simisinc.platform.application.cms;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+/**
+ * @author matt rajkowski
+ * @created 5/8/2022 7:00 AM
+ */
+class UrlCommandTest {
+
+  @Test
+  void encode() {
+    Assertions.assertEquals("http://example.com", UrlCommand.encode("http://example.com"));
+    Assertions.assertEquals("http://example.com?name=value", UrlCommand.encode("http://example.com?name=value"));
+    Assertions.assertEquals("http://example.com?name=value&name1=value1", UrlCommand.encode("http://example.com?name=value&name1=value1"));
+    Assertions.assertEquals("#", UrlCommand.encode("http://example.com "));
+    Assertions.assertEquals("#", UrlCommand.encode("something"));
+  }
+
+  @Test
+  void encodeUri() {
+    Assertions.assertEquals("value1", UrlCommand.encodeUri("value1"));
+    Assertions.assertEquals("the%20value", UrlCommand.encodeUri("the value"));
+    Assertions.assertEquals("the%20value!", UrlCommand.encodeUri("the value!"));
+    Assertions.assertEquals("%22the%20value%22", UrlCommand.encodeUri("\"the value\""));
+    Assertions.assertEquals("'the%20value'", UrlCommand.encodeUri("'the value'"));
+  }
+
+  @Test
+  void isUrlValid() {
+    Assertions.assertTrue(UrlCommand.isUrlValid("http://www.example.com"));
+    Assertions.assertTrue(UrlCommand.isUrlValid("http://example.com"));
+    Assertions.assertTrue(UrlCommand.isUrlValid("http://example.com?name=value"));
+    Assertions.assertTrue(UrlCommand.isUrlValid("http://example.com?name=value&name1=value1"));
+    Assertions.assertFalse(UrlCommand.isUrlValid("http://example.com?\"name=value\""));
+    Assertions.assertFalse(UrlCommand.isUrlValid("http://example.com?name=\"value\""));
+    Assertions.assertFalse(UrlCommand.isUrlValid("http://example.com "));
+    Assertions.assertFalse(UrlCommand.isUrlValid("file:///web/index.html"));
+    Assertions.assertFalse(UrlCommand.isUrlValid("ftp://ftp.example.com"));
+  }
+
+  @Test
+  void getValidReturnPage() {
+    Assertions.assertNull(UrlCommand.getValidReturnPage(""));
+    Assertions.assertNull(UrlCommand.getValidReturnPage(" "));
+    Assertions.assertNull(UrlCommand.getValidReturnPage(null));
+    Assertions.assertNull(UrlCommand.getValidReturnPage("http://example.com"));
+    Assertions.assertEquals("/web-page", UrlCommand.getValidReturnPage("/web-page"));
+  }
+
+  @Test
+  void getValidReturnPageAcceptsLegitimatePaths() {
+    Assertions.assertEquals("/admin/blog", UrlCommand.getValidReturnPage("/admin/blog"));
+    Assertions.assertEquals("/admin/collection-details?collectionId=5",
+        UrlCommand.getValidReturnPage("/admin/collection-details?collectionId=5"));
+    Assertions.assertEquals("/show/my-page?a=b&c=d", UrlCommand.getValidReturnPage("/show/my-page?a=b&c=d"));
+    Assertions.assertEquals("/page#section", UrlCommand.getValidReturnPage("/page#section"));
+  }
+
+  @Test
+  void sanitizeUrlAllowsSafeUrls() {
+    Assertions.assertEquals("/web/page", UrlCommand.sanitizeUrl("/web/page"));
+    Assertions.assertEquals("/web/page?a=b&c=d", UrlCommand.sanitizeUrl("/web/page?a=b&c=d"));
+    Assertions.assertEquals("#section", UrlCommand.sanitizeUrl("#section"));
+    Assertions.assertEquals("https://example.com/x", UrlCommand.sanitizeUrl("https://example.com/x"));
+    Assertions.assertEquals("http://example.com", UrlCommand.sanitizeUrl("http://example.com"));
+    Assertions.assertEquals("mailto:someone@example.com", UrlCommand.sanitizeUrl("mailto:someone@example.com"));
+    Assertions.assertEquals("tel:+15551234567", UrlCommand.sanitizeUrl("tel:+15551234567"));
+    Assertions.assertEquals("page", UrlCommand.sanitizeUrl("page"));
+  }
+
+  @Test
+  void sanitizeUrlRejectsActiveSchemesAndBreakout() {
+    Assertions.assertNull(UrlCommand.sanitizeUrl("javascript:alert(1)"));
+    Assertions.assertNull(UrlCommand.sanitizeUrl("JavaScript:alert(1)"));
+    Assertions.assertNull(UrlCommand.sanitizeUrl("data:text/html,<script>alert(1)</script>"));
+    Assertions.assertNull(UrlCommand.sanitizeUrl("vbscript:msgbox(1)"));
+    // Attribute breakout characters cannot appear in a safe url
+    Assertions.assertNull(UrlCommand.sanitizeUrl("/x\" onclick=alert(1)"));
+    Assertions.assertNull(UrlCommand.sanitizeUrl("https://x/'><img src=x onerror=alert(1)>"));
+    // Protocol-relative targets are not allowed
+    Assertions.assertNull(UrlCommand.sanitizeUrl("//evil.example.com"));
+    Assertions.assertNull(UrlCommand.sanitizeUrl(""));
+    Assertions.assertNull(UrlCommand.sanitizeUrl(null));
+  }
+
+  @Test
+  void getValidReturnPageRejectsAttributeBreakoutAndSchemes() {
+    // Attribute breakout: the payload has no ':' but would break out of href="..." if not rejected
+    Assertions.assertNull(UrlCommand.getValidReturnPage("/x\" onmouseover=alert(document.cookie) x=\""));
+    Assertions.assertNull(UrlCommand.getValidReturnPage("/x\"><img src=x onerror=alert(1)>"));
+    Assertions.assertNull(UrlCommand.getValidReturnPage("/x' onclick='alert(1)"));
+    // Whitespace and backslash cannot appear in a return path
+    Assertions.assertNull(UrlCommand.getValidReturnPage("/path with space"));
+    Assertions.assertNull(UrlCommand.getValidReturnPage("/path\\x"));
+    // Must be site-relative: no scheme, no protocol-relative host
+    Assertions.assertNull(UrlCommand.getValidReturnPage("javascript:alert(1)"));
+    Assertions.assertNull(UrlCommand.getValidReturnPage("//evil.example.com/path"));
+    Assertions.assertNull(UrlCommand.getValidReturnPage("relative/no/leading/slash"));
+  }
+}

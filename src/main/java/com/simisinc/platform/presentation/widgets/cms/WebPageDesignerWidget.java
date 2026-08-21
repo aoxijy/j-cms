@@ -1,0 +1,428 @@
+/*
+ * Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.simisinc.platform.presentation.widgets.cms;
+
+import com.simisinc.platform.application.DataException;
+import com.simisinc.platform.application.FeatureFlagCommand;
+import com.simisinc.platform.application.admin.LoadSitePropertyCommand;
+import com.simisinc.platform.application.cms.ContentReviewCommand;
+import com.simisinc.platform.application.cms.MakeContentUniqueIdCommand;
+import com.simisinc.platform.application.cms.SaveWebPageCommand;
+import com.simisinc.platform.application.cms.UrlCommand;
+import com.simisinc.platform.application.cms.WebPageDesignerToXmlCommand;
+import com.simisinc.platform.domain.model.cms.WebPage;
+import com.simisinc.platform.domain.model.cms.WebPageTemplate;
+import com.simisinc.platform.infrastructure.persistence.cms.WebPageRepository;
+import com.simisinc.platform.infrastructure.persistence.cms.WebPageTemplateRepository;
+import com.simisinc.platform.presentation.controller.WidgetContext;
+import com.simisinc.platform.presentation.controller.XMLWebPageTemplateLoader;
+import com.simisinc.platform.presentation.widgets.GenericWidget;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
+import jakarta.servlet.ServletContext;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.InputStream;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * Description
+ *
+ * @author matt rajkowski
+ * @created 5/6/18 1:12 PM
+ */
+public class WebPageDesignerWidget extends GenericWidget {
+
+  static final long serialVersionUID = -8484048371911908893L;
+
+  protected static Log LOG = LogFactory.getLog(WebPageDesignerWidget.class);
+
+  static String TEMPLATES_JSP = "/cms/web-page-templates.jsp";
+  static String DESIGNER_JSP = "/cms/web-page-designer.jsp";
+  static String RAW_XML_JSP = "/cms/web-page-editor.jsp";
+  static String ACE_XML_EDITOR_JSP = "/cms/web-page-xml-editor.jsp";
+  static String CODE_MIRROR_XML_EDITOR_JSP = "/cms/web-page-code-mirror-xml-editor.jsp";
+  static String WIDGET_SCHEMA_RESOURCE = "/WEB-INF/widgets/widget-schema.json";
+
+  // Issue #410: gates offering the P4 composition-canvas designer. Defaults to true (see
+  // NEW_10150__new_feature_flag_properties.sql) so upgrading installs keep today's always-on
+  // behavior; turning it off stops *offering* the designer going forward without touching any
+  // page's already-persisted XML -- see the isEnabled() call sites below.
+  static final String LAYOUT_EDITOR_FLAG = "layout-editor";
+
+  // Loaded once and cached; the file is static content shipped with the app, not per-request data.
+  private static String widgetSchemaJson = null;
+
+  public WidgetContext execute(WidgetContext context) {
+
+    // The default JSP
+    // @note the ACE editor is unstable for XML, CPU gets out of control; might be fixed
+    context.setJsp(ACE_XML_EDITOR_JSP);
+//    context.setJsp(CODE_MIRROR_XML_EDITOR_JSP);
+
+    // See if an editor is specified. The flag is checked second so a normal request (no "editor"
+    // param, the overwhelming common case) never pays for a site-property lookup. When the flag is
+    // off, a "designer" request simply falls back to the default (raw XML) JSP above instead of
+    // opening the composition canvas -- this is the "offer no more" branch point; it never rewrites
+    // webPage.getPageXml(), so a page that already has editor="designer" stored keeps that XML
+    // exactly as-is.
+    String editor = context.getParameter("editor");
+    boolean useDesigner = "designer".equals(editor) && FeatureFlagCommand.isEnabled(LAYOUT_EDITOR_FLAG);
+    if (useDesigner) {
+      context.setJsp(DESIGNER_JSP);
+    }
+
+    // Specify the return page
+    String returnPage = UrlCommand.getValidReturnPage(context.getParameter("returnPage"));
+    context.getRequest().setAttribute("returnPage", returnPage);
+
+    WebPage webPage = null;
+
+    // The POST was triggered
+    if (context.getRequestObject() != null) {
+      // Determine the reason...
+      webPage = (WebPage) context.getRequestObject();
+      context.getRequest().setAttribute("webPage", webPage);
+      // #957: post() left the just-submitted content in whichever field the governed-review gate
+      // routed it to -- pageXml when it published directly, draftPageXml when review diverted it.
+      // Reading getPageXml() unconditionally here would NPE for a brand-new page saved entirely as a
+      // draft (pageXml is still null), and would redisplay stale live content instead of the draft
+      // the user just typed and needs to correct, once a page does have prior live content.
+      String content = effectiveContent(webPage, mayPublishDirectly());
+      if (content != null && content.contains("editor=\"designer\"") && FeatureFlagCommand.isEnabled(LAYOUT_EDITOR_FLAG)) {
+        // An editor was specified, so use it
+        context.setJsp(DESIGNER_JSP);
+      } else {
+        // There was a post error (or the flag is off, in which case this falls back to the default
+        // ACE_XML_EDITOR_JSP set above, showing the same content for correction instead of the canvas)
+        return context;
+      }
+    }
+
+    // webPage must be specified, even if it doesn't exist
+    String webPageLinkValue = context.getParameter("webPage");
+    if (webPage == null) {
+      // Determine the page being edited
+      if (StringUtils.isEmpty(webPageLinkValue)) {
+        LOG.warn("Missing webPage value");
+        return context;
+      }
+      webPage = WebPageRepository.findByLink(webPageLinkValue);
+//      webPage = LoadWebPageCommand.loadByLink(webPageLinkValue);
+    }
+    if (webPage == null) {
+      LOG.debug("Could not find an existing page, ready to create a new one");
+      webPage = new WebPage();
+      webPage.setLink(webPageLinkValue);
+    }
+    // Show some templates
+    // #957: "is this page blank" must check BOTH fields, not just whichever one a save would write
+    // to -- an existing live page (pageXml set, no pending draftPageXml) is not blank just because
+    // governed review means a save right now would target draftPageXml. Checking only that field
+    // would show the template picker for an existing page instead of the raw XML editor with its
+    // real content. A brand-new page whose only content is a just-redisplayed gated draft (pageXml
+    // still null, draftPageXml set) is correctly NOT blank here either, so it isn't clobbered by the
+    // generic default scaffold below.
+    boolean mayPublishDirectly = mayPublishDirectly();
+    if (StringUtils.isBlank(webPage.getPageXml()) && StringUtils.isBlank(webPage.getDraftPageXml())) {
+
+      if (useDesigner) {
+        // @todo use WebPageDesignerCommand.convertFromPageLayoutToBootstrap();
+        // Default to a single column template
+        applyNewPageContent(webPage, "<page>\n" +
+            "  <section>\n" +
+            "    <column class=\"small-12 cell\">\n" +
+            "      <widget name=\"content\">\n" +
+            "        <uniqueId>" + MakeContentUniqueIdCommand.parseToValidValue(webPageLinkValue.substring(1)) + "-hello</uniqueId>\n" +
+            "      </widget>\n" +
+            "    </column>\n" +
+            "  </section>\n" +
+            "</page>", mayPublishDirectly);
+        // Which will be... MakeContentUniqueIdCommand.getId(webPageLinkValue.substring(1)) + "-hello
+        // <div class="row">
+        //    <div class="column col-sm-12" data-unique-id="">
+        //      <p>Write your content</p>
+        //    </div>
+        //  </div>
+      } else {
+        // Load web templates from the filesystem and database
+        List<WebPageTemplate> webPageTemplateList = XMLWebPageTemplateLoader.retrieveTemplateList(context.getRequest().getServletContext());
+        if (!webPageTemplateList.isEmpty()) {
+          LOG.debug("Found templates...");
+
+          // Look for additional database templates
+          List<WebPageTemplate> webPageTemplateList2 = WebPageTemplateRepository.findAll();
+          if (!webPageTemplateList2.isEmpty()) {
+            webPageTemplateList.addAll(webPageTemplateList2);
+          }
+
+          // Issue #410: stop *offering* the designer template ("Webpage Designer.xml", which tags
+          // new pages with editor="designer") from the picker when the flag is off. Filtering the
+          // combined list (rather than special-casing the filesystem template) also covers any
+          // database-authored template that happens to carry the same marker. The flag is only
+          // consulted when a designer-tagged template is actually present, so a page whose template
+          // list has none of these stays a no-op.
+          boolean hasDesignerTemplate = webPageTemplateList.stream()
+              .anyMatch(template -> template.getPageXml() != null && template.getPageXml().contains("editor=\"designer\""));
+          if (hasDesignerTemplate && !FeatureFlagCommand.isEnabled(LAYOUT_EDITOR_FLAG)) {
+            webPageTemplateList.removeIf(template -> template.getPageXml() != null
+                && template.getPageXml().contains("editor=\"designer\""));
+          }
+
+          // Sort the list
+          webPageTemplateList.sort(Comparator.comparing(WebPageTemplate::getName));
+          webPageTemplateList.sort(Comparator.comparing(WebPageTemplate::getTemplateOrder));
+          webPageTemplateList.sort(Comparator.comparing(WebPageTemplate::getCategory));
+
+          context.getRequest().setAttribute("webPageTemplateList", webPageTemplateList);
+          context.setJsp(TEMPLATES_JSP);
+        }
+      }
+    }
+    context.getRequest().setAttribute("webPage", webPage);
+    if (DESIGNER_JSP.equals(context.getJsp())) {
+      context.getRequest().setAttribute("widgetSchemaJson", loadWidgetSchemaJson(context.getRequest().getServletContext()));
+    }
+    return context;
+  }
+
+  /**
+   * Whether a save from this widget may write straight to the live {@code pageXml} column right now
+   * (#957): the same {@code webPage.review.required} gate {@code PageServlet}'s {@code publishDraft}
+   * action enforces for the P4 layout builder.
+   */
+  private static boolean mayPublishDirectly() {
+    boolean webPageReviewRequired = LoadSitePropertyCommand.loadByNameAsBoolean("webPage.review.required");
+    return ContentReviewCommand.mayPublishDirectly(webPageReviewRequired);
+  }
+
+  /**
+   * Applies newly-authored page content to the correct field per the governed publish gate (#957):
+   * straight to the live {@code pageXml} when direct publishing is allowed, or into
+   * {@code draftPageXml} (leaving whatever is currently live untouched) when it is not. A null
+   * {@code newContent} clears whichever field it would have landed in.
+   */
+  private static void applyNewPageContent(WebPage webPage, String newContent, boolean mayPublishDirectly) {
+    if (mayPublishDirectly) {
+      webPage.setPageXml(newContent);
+    } else {
+      webPage.setDraftPageXml(newContent);
+    }
+  }
+
+  /**
+   * The page content this widget is currently authoritative over, per the same gate (#957): the live
+   * {@code pageXml} when direct publishing is allowed, or the pending {@code draftPageXml} when
+   * governed review diverted new content there. Used everywhere this widget needs to inspect or
+   * redisplay "what the user is looking at" -- both the fresh save in {@code post()} and a
+   * previously-rejected save redisplayed by {@code execute()} -- so a rejected draft's own content
+   * (not stale live content, and not a null pageXml on a brand-new page) is what gets validated,
+   * checked for the designer-canvas marker, and shown back to the user.
+   */
+  private static String effectiveContent(WebPage webPage, boolean mayPublishDirectly) {
+    return mayPublishDirectly ? webPage.getPageXml() : webPage.getDraftPageXml();
+  }
+
+  private static synchronized String loadWidgetSchemaJson(ServletContext servletContext) {
+    if (widgetSchemaJson == null) {
+      try (InputStream is = servletContext.getResourceAsStream(WIDGET_SCHEMA_RESOURCE)) {
+        widgetSchemaJson = IOUtils.toString(is, "UTF-8");
+      } catch (Exception e) {
+        LOG.error("Could not load " + WIDGET_SCHEMA_RESOURCE, e);
+        widgetSchemaJson = "{}";
+      }
+    }
+    return widgetSchemaJson;
+  }
+
+  public WidgetContext post(WidgetContext context) {
+
+    // Determine the web page being edited
+    String webPageLinkValue = context.getParameter("webPage");
+    if (StringUtils.isEmpty(webPageLinkValue)) {
+      LOG.warn("Missing webPage value");
+      return context;
+    }
+    String contentUniqueIdValue = webPageLinkValue.substring(1);
+
+    WebPage webPage = WebPageRepository.findByLink(webPageLinkValue);
+    if (webPage == null) {
+      LOG.info("Could not find an existing page, ready to create a new one: " + webPageLinkValue);
+      webPage = new WebPage();
+      webPage.setLink(webPageLinkValue);
+    }
+    String title = context.getParameter("title");
+    if (StringUtils.isNotBlank(title)) {
+      webPage.setTitle(title);
+    }
+    webPage.setCreatedBy(context.getUserId());
+    webPage.setModifiedBy(context.getUserId());
+
+    // Governed publish workflow (#957): this legacy editor writes page content directly, with none
+    // of the draftPageXml/submit/approve machinery the P4 layout builder (PageServlet) uses. When
+    // webPage.review.required is on, it must not be a way to skip review -- so new content is routed
+    // into draftPageXml (leaving whatever is already live untouched) instead of straight to pageXml,
+    // exactly as ContentReviewCommand.mayPublishDirectly() already governs for Content and blog
+    // posts. When review is not required this is a no-op and behavior is unchanged.
+    boolean webPageReviewRequired = LoadSitePropertyCommand.loadByNameAsBoolean("webPage.review.required");
+    boolean mayPublishDirectly = ContentReviewCommand.mayPublishDirectly(webPageReviewRequired);
+
+    // Determine the source of the page content
+    // Database Template
+    String templateIdValue = context.getRequest().getParameter("templateId");
+
+    // Filesystem Template
+    String templateUniqueIdValue = context.getRequest().getParameter("templateUniqueId");
+    // Designer Content
+    String pageDesignHtml = context.getParameter("content");
+    // Text Field
+    String pageXmlValue = context.getParameter("pageXml");
+
+    // Determine the source of the page XML
+    WebPageTemplate webPageTemplate = null;
+    if (StringUtils.isNumeric(templateIdValue)) {
+      // Database
+      webPageTemplate = WebPageTemplateRepository.findById(Long.parseLong(templateIdValue));
+    } else if (StringUtils.isNumeric(templateUniqueIdValue)) {
+      // Filesystem template
+      List<WebPageTemplate> webPageTemplateList = XMLWebPageTemplateLoader.retrieveTemplateList(context.getRequest().getServletContext());
+      webPageTemplate = webPageTemplateList.stream()
+          .filter(template -> Long.parseLong(templateUniqueIdValue) == template.getUniqueId())
+          .findFirst()
+          .orElse(null);
+    }
+    if (webPageTemplate != null) {
+      // A template exists
+      String template = webPageTemplate.getPageXml();
+      String webPageName = MakeContentUniqueIdCommand.parseToValidValue(contentUniqueIdValue);
+      if (StringUtils.isBlank(webPageName)) {
+        webPageName = "home";
+      }
+      template = StringUtils.replace(template, "${webPageName}", webPageName);
+      applyNewPageContent(webPage, template, mayPublishDirectly);
+      webPage.setTemplate(webPageTemplate.getName());
+    } else if (pageDesignHtml != null) {
+      // Page designer
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Found designer content...");
+        LOG.debug("Content found: " + pageDesignHtml);
+      }
+      try {
+        String pageXml = WebPageDesignerToXmlCommand.convertFromBootstrapHtml(webPage, pageDesignHtml);
+        LOG.debug("Converted to: " + pageXml);
+        applyNewPageContent(webPage, pageXml, mayPublishDirectly);
+        if (mayPublishDirectly) {
+          SaveWebPageCommand.saveWebPage(webPage);
+        } else {
+          WebPageRepository.save(webPage);
+        }
+        context.setJson("[{\"status\":\"0\"}]");
+      } catch (Exception e) {
+        context.setJson("[{\"message\":\"The web page could not be saved: " + e.getMessage() + "\"}]");
+      }
+      return context;
+    } else {
+      // Check for raw content
+      if (StringUtils.isEmpty(pageXmlValue)) {
+        // Content is being removed
+        applyNewPageContent(webPage, null, mayPublishDirectly);
+      } else {
+        // Content is being updated
+        String webPageName = MakeContentUniqueIdCommand.parseToValidValue(contentUniqueIdValue);
+        pageXmlValue = StringUtils.replace(pageXmlValue, "${webPageName}", webPageName);
+        applyNewPageContent(webPage, pageXmlValue, mayPublishDirectly);
+      }
+    }
+
+    // The new content just applied above -- in pageXml when it can go live directly, or in
+    // draftPageXml when governed review diverted it there. Validation and the designer-canvas
+    // redirect check must look at wherever it actually landed.
+    String newPageContent = mayPublishDirectly ? webPage.getPageXml() : webPage.getDraftPageXml();
+
+    // Validate the XML before saving and alert the user
+    if (!StringUtils.isEmpty(newPageContent)) {
+      try {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        factory.setXIncludeAware(false);
+        factory.setExpandEntityReferences(false);
+
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = null;
+        try (InputStream is = IOUtils.toInputStream(newPageContent, "UTF-8")) {
+          document = builder.parse(is);
+        }
+        NodeList pageTags = document.getElementsByTagName("page");
+        if (pageTags.getLength() != 1) {
+          context.setRequestObject(webPage);
+          context.setWarningMessage("<page></page> element is required");
+          return context;
+        }
+      } catch (Exception e) {
+        LOG.error("User input: pageXml did not validate: " + e.getMessage());
+        context.setRequestObject(webPage);
+        context.setErrorMessage("The XML could not be validated. Use <page><section><column><widget> notation. Error reported: " + e.getMessage());
+        return context;
+      }
+
+      // If the designer is specified in the template, no need to save... unless the flag is off, in
+      // which case fall through to the normal save below instead of bouncing to the canvas -- the
+      // editor="designer" text in the XML is preserved verbatim either way, this only decides
+      // whether the redirect opens the canvas or the page just saves and returns normally.
+      if (newPageContent.contains("editor=\"designer\"") && FeatureFlagCommand.isEnabled(LAYOUT_EDITOR_FLAG)) {
+        context.setRequestObject(webPage);
+        context.setRedirect("/admin/web-page-designer?editor=designer&webPage=" + webPage.getLink());
+        return context;
+      }
+    }
+
+    // Save the page
+    webPage.setSearchable(true);
+    try {
+      if (mayPublishDirectly) {
+        webPage = SaveWebPageCommand.saveWebPage(webPage);
+      } else {
+        webPage = WebPageRepository.save(webPage);
+      }
+    } catch (DataException de) {
+      LOG.warn("Web page record was not saved!");
+      context.setErrorMessage("An error occurred");
+      return context;
+    }
+
+    // Check for final errors
+    if (webPage == null) {
+      LOG.warn("Web page record was not saved!");
+      context.setErrorMessage("An error occurred");
+      return context;
+    }
+
+    // Determine the page to return to
+    String returnPage = UrlCommand.getValidReturnPage(context.getParameter("returnPage"));
+    if (StringUtils.isEmpty(returnPage)) {
+      returnPage = webPageLinkValue;
+    }
+    context.setRedirect(returnPage);
+    return context;
+  }
+}

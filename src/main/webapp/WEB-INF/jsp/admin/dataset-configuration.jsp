@@ -1,0 +1,55 @@
+<%--
+  ~ Copyright 2022 SimIS Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="text" uri="/WEB-INF/tlds/text-functions.tld" %>
+<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="dataset" class="com.simisinc.platform.domain.model.datasets.Dataset" scope="request"/>
+<jsp:useBean id="columnConfiguration" class="java.lang.String" scope="request"/>
+<c:if test="${!empty title}">
+  <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
+</c:if>
+<%@include file="../page_messages.jspf" %>
+<div class="callout primary radius">
+  <p style="margin-bottom:0">This tab only applies to JSON-family sources (<strong>JSON</strong>, <strong>JSON API</strong>, and <strong>GeoJSON</strong>) -- it configures where in the response body the array of records lives, and any JSON dot-notation column mappings, before field mapping happens on the Map Fields tab. For CSV, TSV, RSS+XML, and other non-JSON source types this tab is intentionally empty -- that's expected, not a bug.</p>
+</div>
+<form method="post" enctype="multipart/form-data">
+  <%-- Required by controller --%>
+  <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
+  <input type="hidden" name="token" value="${userSession.formToken}"/>
+  <%-- Form values --%>
+  <input type="hidden" name="id" value="${dataset.id}"/>
+  <%-- Form --%>
+  <p>
+    <c:out value="${dataset.fileType}" />
+  </p>
+  <c:if test="${fn:contains(dataset.fileType, 'json')}">
+    <label>JSON Records Path
+      <input type="text" placeholder="/" name="recordsPath" value="<c:out value="${dataset.recordsPath}"/>">
+    </label>
+    <label>JSON Paging URL Path
+      <input type="text" placeholder="/next" name="pagingUrlPath" value="<c:out value="${dataset.pagingUrlPath}"/>">
+    </label>
+    <label>JSON Columns Configuration
+      <textarea name="columnConfiguration" rows="12"><c:out value="${columnConfiguration}"/></textarea>
+    </label>
+    <div class="button-container">
+      <input type="submit" class="button radius success" name="process" value="Save"/>
+    </div>
+  </c:if>
+</form>

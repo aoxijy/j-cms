@@ -1,0 +1,62 @@
+# This workflow will build a Java project with Ant
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-ant
+
+name: Java CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      with:
+        # detect_unsafe_migrations.py (next step) diffs origin/<base>...HEAD to find
+        # Java field removals across the whole PR. That needs the base branch ref
+        # and full commit history, which the default depth-1 shallow clone doesn't
+        # provide -- fetch-depth: 0 fetches everything. See issue #399: under the
+        # old shallow clone, the diff command failed and was silently swallowed,
+        # so the gate always reported "no unsafe migrations" regardless of the PR.
+        fetch-depth: 0
+    - name: Check for unsafe migrations
+      # Gate destructive schema changes (DROP COLUMN/TABLE, RENAME) that appear
+      # in the same version as Java field removals. The expand/contract pattern
+      # requires these to be split: expand migration, code release, then contract
+      # migration. See the "Expand/Contract Migrations" runbook in the private
+      # j-cms-runbooks repo (J-CMS-runbooks).
+      run: python3 tools/detect_unsafe_migrations.py
+    - name: Set up JDK
+      uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+      with:
+        # setup-java v2+ requires an explicit distribution (v1 did not)
+        distribution: 'temurin'
+        java-version: 21
+    - name: Compile the source
+      run: ant -noinput -buildfile build.xml clean compile
+    - name: Precompile the JSPs
+      # Gate JSP syntax (unbalanced tags, unresolvable taglibs, bad EL) before the test suite.
+      # lib/war supplies the Tomcat 9 / javax Jasper used by the compile-jsp target.
+      run: ant -noinput -buildfile build.xml -lib lib/war compile-jsp
+    - name: Run unit tests
+      run: ant -noinput -buildfile build.xml -lib lib/tests ci-test
+    - name: Upload code coverage report
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      with:
+        name: jacoco-coverage-report
+        path: target/coverage-reports/
+        if-no-files-found: warn
+    - name: Enforce security-critical test coverage
+      # Fail the build if a hardened security/privacy class lost its unit-test
+      # coverage (silent test deletion/regression). Runs after the report is
+      # uploaded above, so the coverage artifact is published even when this
+      # gate trips. See .github/scripts/check-security-coverage.sh for the list.
+      run: bash .github/scripts/check-security-coverage.sh
+    - name: Package the web application
+      run: ant -noinput -buildfile build.xml -lib lib/war package

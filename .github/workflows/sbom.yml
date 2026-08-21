@@ -1,0 +1,94 @@
+# Generates a CycloneDX SBOM from the BUILT WAR, signs it keylessly with
+# Sigstore/cosign, and attaches it to each published release.
+#
+# The SBOM is produced by scanning the built WAR with Syft rather than by
+# reading pom.xml. The shipped WAR is assembled by Ant from the vendored
+# lib/build/*.jar files, and those can differ from the pom's declared versions
+# -- so a pom-derived SBOM would describe an artifact that was never shipped.
+# Scanning the actual WAR makes the SBOM an accurate manifest of what ships.
+# The WAR name is set by the build.xml "project" property (j-cms.war).
+name: SBOM
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # attach the SBOM + WAR to the release
+      id-token: write      # keyless signing via Sigstore OIDC
+      attestations: write  # record the WAR build-provenance attestation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      # Build the same artifact that ships, so the SBOM describes exactly it
+      - name: Package the web application
+        run: ant -noinput -buildfile build.xml -lib lib/war package
+
+      # Build provenance for the WAR itself (SLSA provenance): proves this
+      # exact artifact came from this workflow and commit -- the same story the
+      # container images already have, extended to the artifact inside them.
+      # The WAR is attached to the release below so the attested subject is
+      # retrievable; an attestation for an unfetchable artifact proves nothing.
+      - name: Attest WAR build provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-path: target/j-cms.war
+
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610 # v0
+
+      # Scan the built WAR (its WEB-INF/lib/*.jar) and emit CycloneDX json + xml
+      - name: Generate the CycloneDX SBOM from the built WAR
+        run: |
+          syft target/j-cms.war \
+            -o cyclonedx-json=target/bom.json \
+            -o cyclonedx-xml=target/bom.xml
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      # cosign 3.x writes verification material as a single Sigstore bundle
+      # (--bundle); the separate --output-signature/--output-certificate flags
+      # were removed (they errored under cosign 3.0.6, installed via the
+      # cosign-installer v4 bump). The bundle carries the signature,
+      # certificate, and Rekor entry together -- verify with
+      # `cosign verify-blob --bundle` (see VERIFYING.md).
+      - name: Sign the SBOM (keyless)
+        run: |
+          for f in target/bom.json target/bom.xml; do
+            cosign sign-blob --yes "$f" --bundle "$f.sigstore.json"
+          done
+
+      - name: Upload the SBOM as a build artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: sbom
+          path: |
+            target/bom.json
+            target/bom.xml
+            target/bom.json.sigstore.json
+            target/bom.xml.sigstore.json
+
+      - name: Attach the signed SBOM to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            target/j-cms.war \
+            target/bom.json target/bom.json.sigstore.json \
+            target/bom.xml target/bom.xml.sigstore.json \
+            --clobber

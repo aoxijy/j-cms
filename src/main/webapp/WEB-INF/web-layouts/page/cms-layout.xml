@@ -1,0 +1,289 @@
+<?xml version="1.0" ?>
+<pages>
+  <!-- Default Template -->
+  <page name="_page_content_not_ready_" role="admin,content-manager">
+    <section>
+      <column>
+        <widget name="content">
+          <html><![CDATA[
+          <h3>${webPage.link}</h3>
+          <div class="callout alert">
+          <h5>This is a new page and is not available to users yet.</h5>
+          <p>You can edit the page design if you wish to create the page.</p>
+          </div>
+          <p><a class="button tiny radius primary" href="${ctx}/admin/web-page-designer?webPage=${webPage.link}"><i class="fa fa-code"></i> Set a Page Layout</a></p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <!-- Default Template -->
+  <page name="_new_install_" role="guest">
+    <section class="align-center">
+      <column class="small-9 medium-3 large-4 cell margin-top-100 small-margin-top-0">
+        <widget name="content" class="text-center">
+          <html><![CDATA[
+          <div class="padding-25">
+            <h5><i class="fa fa-2x fa-rocket" style="color:red"></i> Hang on!</h5>
+          </div>
+          <p>
+            <h5>This is a new site and<br />it&#8217;s not available to users just yet.</h5>
+          </p>
+          <p>
+            <small><i class="fa fa-angle-double-left"></i> Please wait while the web team finishes the site <i class="fa fa-angle-double-right"></i></small>
+          </p>
+          <p>&nbsp;</p>
+          <p>
+            Powered by ${platform.name}<br />
+            <a target="_blank" href="${platform.url}">${platform.url}</a>
+          </p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <!-- Login -->
+  <page name="/login" role="guest,admin,content-manager" title="Login" class="platform-dialog">
+    <section id="platform-login" class="align-center">
+      <column class="small-12 medium-6 large-5 cell">
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          &nbsp;
+          ]]></html>
+        </widget>
+        <widget name="content" class="text-center">
+          <uniqueId>login-hello</uniqueId>
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <small>&nbsp;</small>
+          ]]></html>
+        </widget>
+        <widget name="login" class="callout box radius">
+          <title>Sign In</title>
+          <!--<redirect-success>/profile</redirect-success>-->
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <p>&nbsp;</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/logout" title="Logout">
+    <section>
+      <column>
+        <widget name="logout">
+          <!--<redirect-success>/</redirect-success>-->
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/register" role="guest,admin,content-manager" title="Create Your Account" class="platform-dialog">
+    <section id="platform-register" class="align-center">
+      <column class="small-12 medium-7 large-6 cell">
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          &nbsp;
+          ]]></html>
+        </widget>
+        <widget name="content" class="text-center">
+          <uniqueId>register-hello</uniqueId>
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          &nbsp;
+          ]]></html>
+        </widget>
+        <widget name="register" class="callout box radius">
+          <title>Create Your Account</title>
+          <showLegalLinks>true</showLegalLinks>
+          <useCaptcha>true</useCaptcha>
+          <!--<redirect-success>/profile</redirect-success>-->
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <p>&nbsp;</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/validation-sent" role="guest,admin,content-manager" title="Validate Account">
+    <section class="align-center">
+      <column class="small-12 medium-8 large-6 text-center cell">
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <p>&nbsp;</p>
+          ]]></html>
+        </widget>
+        <widget name="content">
+          <uniqueId>validate-account-hello</uniqueId>
+          <html><![CDATA[<h3>Welcome to our site</h3>]]></html>
+        </widget>
+        <widget name="content" class="callout box">
+          <html><![CDATA[
+          <p class="show-for-medium">&nbsp;</p>
+          <p><i class="fa fa-5x fa-envelope-open-o"></i></p>
+          <h3>Confirm Email</h3>
+          <p>Confirm your email by clicking the verification link we just sent to your inbox.</p>
+          ]]></html>
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <p>&nbsp;</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/validate-account" title="Validate Account">
+    <section class="align-center">
+      <column class="small-12 medium-6 cell">
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <p>&nbsp;</p>
+          ]]></html>
+        </widget>
+        <widget name="content" class="text-center">
+          <uniqueId>validation-hello</uniqueId>
+          <html><![CDATA[<h1>Account Validation</h1>]]></html>
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <small>&nbsp;</small>
+          ]]></html>
+        </widget>
+        <widget name="accountValidation" class="callout box radius" />
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <p>&nbsp;</p>
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/unsubscribe" title="Unsubscribe">
+    <section class="align-center">
+      <column class="small-12 medium-6 cell">
+        <widget name="newsletterUnsubscribe" class="callout box radius" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/confirm-subscription" title="Confirm Subscription">
+    <section class="align-center">
+      <column class="small-12 medium-6 cell">
+        <widget name="mailingListConfirmSubscription" class="callout box radius" />
+      </column>
+    </section>
+  </page>
+
+  <page name="/forgot-password" role="guest,admin,content-manager" title="Forgot Password" class="platform-dialog">
+    <section id="platform-forgot-password" class="align-center">
+      <column class="small-12 medium-7 large-5 cell">
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          &nbsp;
+          ]]></html>
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          &nbsp;
+          ]]></html>
+        </widget>
+        <widget name="forgotPassword" class="callout box radius">
+          <title>Password Reset</title>
+          <content>Reset my password</content>
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          <p>&nbsp;</p>
+          ]]></html>
+        </widget>
+        <widget name="content" class="show-for-medium">
+          <html><![CDATA[
+          &nbsp;
+          ]]></html>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <!-- Content Editing -->
+  <page name="/content-editor" role="admin,content-manager,content-editor" title="Content Editor" class="full-page">
+    <section>
+      <column class="small-12 cell">
+        <widget name="contentEditor" />
+      </column>
+    </section>
+  </page>
+  <page name="/blog-editor" role="admin,content-manager" title="Blog Editor">
+    <section>
+      <column class="small-12 cell">
+        <widget name="blogEditor" />
+      </column>
+    </section>
+  </page>
+  <page name="/table-of-contents-editor" role="admin,content-manager" title="Table of Contents Editor" class="full-page">
+    <section>
+      <column class="small-12 cell">
+        <widget name="tableOfContentsEditor" />
+      </column>
+    </section>
+  </page>
+  <page name="/wiki-editor" role="admin,content-manager,community-manager" title="Wiki Editor" class="full-page">
+    <section>
+      <column class="small-12 cell">
+        <widget name="wikiEditor" />
+      </column>
+    </section>
+  </page>
+
+  <!-- Editing Features -->
+  <page name="/image-browser" role="admin,content-manager" title="Image Browser">
+    <widget name="imageBrowser" />
+  </page>
+  <page name="/video-browser" role="admin,content-manager" title="Video Browser">
+    <widget name="videoBrowser" />
+  </page>
+  <page name="/file-browser" role="admin,content-manager" title="File Browser">
+    <widget name="fileBrowser" />
+  </page>
+  <page name="/image-upload" role="admin,content-manager">
+    <widget name="imageUpload" />
+  </page>
+  <!-- Assets -->
+  <page name="/assets/img">
+    <widget name="streamImage" />
+  </page>
+  <page name="/assets/file">
+    <widget name="downloadFile" />
+  </page>
+  <page name="/assets/view">
+    <widget name="downloadFile">
+      <view>true</view>
+    </widget>
+  </page>
+  <page name="/assets/captcha">
+    <widget name="captchaImage" />
+  </page>
+
+  <!-- Calendar Events Page -->
+  <page name="/calendar-event{/event-unique-id}" title="Calendar">
+    <section class="align-center">
+      <column class="medium-8 cell">
+        <widget name="calendarEventDetails" class="margin-25" />
+      </column>
+    </section>
+  </page>
+
+</pages>

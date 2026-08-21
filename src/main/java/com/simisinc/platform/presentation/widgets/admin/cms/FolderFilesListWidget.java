@@ -1,0 +1,571 @@
+/*
+ * Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.simisinc.platform.presentation.widgets.admin.cms;
+
+import java.lang.reflect.InvocationTargetException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.simisinc.platform.application.AppException;
+import com.simisinc.platform.application.DataException;
+import com.simisinc.platform.application.cms.CheckFolderPermissionCommand;
+import com.simisinc.platform.application.cms.DeleteFileCommand;
+import com.simisinc.platform.application.cms.LoadFileCommand;
+import com.simisinc.platform.application.cms.LoadFolderCommand;
+import com.simisinc.platform.application.cms.SaveFileCommand;
+import com.simisinc.platform.application.cms.SaveFilePartCommand;
+import com.simisinc.platform.application.cms.ValidateFileCommand;
+import com.simisinc.platform.domain.model.cms.FileItem;
+import com.simisinc.platform.domain.model.cms.Folder;
+import com.simisinc.platform.domain.model.cms.FolderCategory;
+import com.simisinc.platform.domain.model.cms.SubFolder;
+import com.simisinc.platform.infrastructure.database.DataConstraints;
+import com.simisinc.platform.infrastructure.persistence.cms.FileItemRepository;
+import com.simisinc.platform.infrastructure.persistence.cms.FileSpecification;
+import com.simisinc.platform.infrastructure.persistence.cms.FileVersionRepository;
+import com.simisinc.platform.infrastructure.persistence.cms.FolderCategoryRepository;
+import com.simisinc.platform.infrastructure.persistence.cms.FolderRepository;
+import com.simisinc.platform.infrastructure.persistence.cms.SubFolderRepository;
+import com.simisinc.platform.infrastructure.persistence.cms.SubFolderSpecification;
+import com.simisinc.platform.presentation.controller.RequestConstants;
+import com.simisinc.platform.presentation.widgets.GenericWidget;
+import com.simisinc.platform.presentation.controller.AuditEventCommand;
+import com.simisinc.platform.presentation.controller.WidgetContext;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * Description
+ *
+ * @author matt rajkowski
+ * @created 12/12/18 4:33 PM
+ */
+public class FolderFilesListWidget extends GenericWidget {
+
+  static final long serialVersionUID = -8484048371911908893L;
+
+  static String JSP = "/admin/folder-files-list.jsp";
+
+  // A bulk delete request is rejected outright above this many ids, rather than silently
+  // truncated -- truncation could apply the delete to a different subset than the admin reviewed
+  // and confirmed. Mirrors AdminImageBrowserWidget's MAX_BULK_SELECTION (see image-browser.jsp's
+  // bulk delete, PR #834).
+  static final int MAX_BULK_SELECTION = 100;
+
+  public WidgetContext execute(WidgetContext context) {
+
+    // Use the folder for permissions
+    Folder folder;
+
+    // Check for a sub-folder
+    long folderId = -1;
+    long subFolderId = context.getParameterAsLong("subFolderId");
+    if (subFolderId > -1) {
+      SubFolder subFolder = SubFolderRepository.findById(subFolderId);
+      if (subFolder == null) {
+        context.setErrorMessage("Error. Sub-Folder was not found.");
+        return context;
+      }
+      folderId = subFolder.getFolderId();
+      context.getRequest().setAttribute("subFolder", subFolder);
+    } else {
+      // Determine the folder
+      folderId = context.getParameterAsLong("folderId");
+    }
+
+    if (context.hasRole("admin")) {
+      folder = FolderRepository.findById(folderId);
+    } else {
+      folder = LoadFolderCommand.loadFolderByIdForAuthorizedUser(folderId, context.getUserId());
+    }
+    if (folder == null) {
+      context.setErrorMessage("Error. Folder was not found.");
+      return context;
+    }
+    context.getRequest().setAttribute("folder", folder);
+
+    // Determine permissions for UI
+    boolean canEdit = CheckFolderPermissionCommand.userHasEditPermission(folder.getId(), context.getUserId());
+    boolean canDelete = CheckFolderPermissionCommand.userHasDeletePermission(folder.getId(), context.getUserId());
+    // FolderFileFormWidget's actual permission check for adding a file/link is admin OR
+    // userHasAddPermission(folderId, userId) -- canAdd mirrors that exactly so the "Add File Link"
+    // button in the JSP can be shown to anyone who can really use the feature, not just
+    // admin/content-manager (issue: a community-manager or other role with real per-folder add
+    // permission via the folder's own group ACL previously had no button to find it).
+    boolean canAdd = CheckFolderPermissionCommand.userHasAddPermission(folder.getId(), context.getUserId());
+    if (context.hasRole("admin")) {
+      canEdit = true;
+      canDelete = true;
+      canAdd = true;
+    }
+    context.getRequest().setAttribute("canEdit", canEdit ? "true" : "false");
+    context.getRequest().setAttribute("canDelete", canDelete ? "true" : "false");
+    context.getRequest().setAttribute("canAdd", canAdd ? "true" : "false");
+
+    // Load the folders for the drop-down so user can move file to different folder
+    List<Folder> folderList;
+    if (context.hasRole("admin")) {
+      folderList = FolderRepository.findAll();
+    } else {
+      folderList = LoadFolderCommand.findAllAuthorizedForUser(context.getUserId());
+    }
+    context.getRequest().setAttribute("folderList", folderList);
+
+    // Load the sub-folders for the drop-down so user can move file to different sub-folder
+    SubFolderSpecification subFolderSpecification = new SubFolderSpecification();
+    subFolderSpecification.setFolderId(folder.getId());
+    List<SubFolder> subFolderList = SubFolderRepository.findAll(subFolderSpecification, null);
+    context.getRequest().setAttribute("subFolderList", subFolderList);
+
+    // Load the categories for the drop-down
+    List<FolderCategory> folderCategoryList = FolderCategoryRepository.findAllByFolderId(folder.getId());
+    context.getRequest().setAttribute("folderCategoryList", folderCategoryList);
+
+    // Determine the files to show
+    FileSpecification specification = new FileSpecification();
+    specification.setFolderId(folder.getId());
+    if (subFolderId > -1) {
+      specification.setSubFolderId(subFolderId);
+    } else {
+      specification.setInASubFolder(false);
+    }
+
+    // Search by filename/title (issue #502)
+    String query = context.getParameter(RequestConstants.RECORD_QUERY);
+    context.getRequest().setAttribute(RequestConstants.RECORD_QUERY, query);
+    if (StringUtils.isNotBlank(query)) {
+      specification.setSearchTerm(query.trim());
+    }
+
+    // Sort by name/date/size/downloads (issue #502) -- an invalid or missing value falls back to
+    // "date", which maps to the same "created DESC" order this list used before sorting existed,
+    // so a plain page load (no sortBy param) keeps its prior ordering.
+    String sortBy = context.getParameter(RequestConstants.RECORD_SORT_BY, "date");
+
+    // Paging -- previously this built a DataConstraints with no page size at all, so the entire
+    // file list rendered unpaginated regardless of folder size. Mirrors AdminBlogPostListWidget /
+    // FileVersionsListWidget's page/items request params + DataConstraints(page, itemsPerPage)
+    // pattern.
+    int limit = Integer.parseInt(context.getPreferences().getOrDefault("limit", "25"));
+    int page = context.getParameterAsInt("page", 1);
+    int itemsPerPage = context.getParameterAsInt("items", limit);
+    DataConstraints constraints = new DataConstraints(page, itemsPerPage);
+    switch (sortBy) {
+      case "name":
+        constraints.setColumnToSortBy("title");
+        break;
+      case "size":
+        constraints.setColumnToSortBy("file_length", "desc");
+        break;
+      case "downloads":
+        constraints.setColumnToSortBy("download_count", "desc");
+        break;
+      case "date":
+      default:
+        sortBy = "date";
+        constraints.setColumnToSortBy("created", "desc");
+        break;
+    }
+    context.getRequest().setAttribute(RequestConstants.RECORD_SORT_BY, sortBy);
+    context.getRequest().setAttribute(RequestConstants.RECORD_PAGING, constraints);
+
+    // Carry folderId/subFolderId plus the search/sort criteria through pagination links
+    // (paging_control.jspf appends this to each page's href as "?" + recordPagingParams + "&page=N").
+    StringBuilder pagingParams = new StringBuilder();
+    appendPagingParam(pagingParams, "folderId", String.valueOf(folder.getId()));
+    if (subFolderId > -1) {
+      appendPagingParam(pagingParams, "subFolderId", String.valueOf(subFolderId));
+    }
+    appendPagingParam(pagingParams, RequestConstants.RECORD_QUERY, query);
+    appendPagingParam(pagingParams, RequestConstants.RECORD_SORT_BY, sortBy);
+    context.getRequest().setAttribute("recordPagingParams", pagingParams.toString());
+
+    // Load the files
+    List<FileItem> fileList = FileItemRepository.findAll(specification, constraints);
+    context.getRequest().setAttribute("fileList", fileList);
+
+    // Determine how many versions each file has on record, so the UI only offers a "Version
+    // History" link when there's actually a prior version to show/restore (issue #502). The
+    // files.version_count column exists but is never populated by any writer, so it can't be
+    // trusted for this -- count file_versions directly instead.
+    Map<Long, Long> versionCountMap = new HashMap<>();
+    for (FileItem fileItem : fileList) {
+      versionCountMap.put(fileItem.getId(), FileVersionRepository.countByFileId(fileItem.getId()));
+    }
+    context.getRequest().setAttribute("versionCountMap", versionCountMap);
+
+    // Standard request items
+    context.getRequest().setAttribute("icon", context.getPreferences().get("icon"));
+    context.getRequest().setAttribute("title", context.getPreferences().get("title"));
+
+    // Show the JSP
+    context.setJsp(JSP);
+    return context;
+  }
+
+  /**
+   * A file is being updated
+   *
+   * @param context
+   * @return
+   * @throws InvocationTargetException
+   * @throws IllegalAccessException
+   */
+  public WidgetContext post(WidgetContext context) throws InvocationTargetException, IllegalAccessException {
+
+    // Bulk delete (multi-select checkboxes + bulk actions bar, see folder-files-list.jsp) has its
+    // own per-folder delete-permission check below, deliberately not gated by the admin/content-manager
+    // role check that follows -- it must stay reachable by any user the folder's own delete_permission
+    // group grants delete access to, the same authorization the JSP already uses to decide whether to
+    // render the bulk-delete controls at all (see the canDelete computation in execute()).
+    String command = context.getParameter("command");
+    if ("bulkDelete".equals(command)) {
+      return bulkDeleteAction(context);
+    }
+
+    // Permission is required
+    if (!(context.hasRole("admin") || context.hasRole("content-manager"))) {
+      LOG.warn("No permission to update the file");
+      return context;
+    }
+
+    // Don't accept multiple form posts
+    context.getUserSession().renewFormToken();
+
+    // Determine the return page
+    long currentFolderId = Long.parseLong(context.getRequest().getParameter("currentFolderId"));
+    if (!context.hasRole("admin")) {
+      if (!CheckFolderPermissionCommand.userHasAddPermission(currentFolderId, context.getUserId())) {
+        LOG.warn("No permission to update modify the folder");
+        return null;
+      }
+    }
+    long currentSubFolderId = Long.parseLong(context.getRequest().getParameter("currentSubFolderId"));
+
+    // Determine if there is a new file version
+    FileItem fileItemBean = null;
+    boolean isNewVersion = false;
+    try {
+      // Check for a file
+      fileItemBean = SaveFilePartCommand.saveFile(context);
+      isNewVersion = (fileItemBean != null);
+      if (isNewVersion) {
+        // There's a new document version
+        fileItemBean.setId(context.getParameterAsLong("id"));
+        fileItemBean.setFolderId(context.getParameterAsLong("folderId"));
+        fileItemBean.setSubFolderId(context.getParameterAsLong("subFolderId"));
+        fileItemBean.setCategoryId(context.getParameterAsLong("categoryId"));
+        fileItemBean.setVersion(context.getParameter("version"));
+        fileItemBean.setTitle(context.getParameter("title"));
+        fileItemBean.setSummary(context.getParameter("summary"));
+        fileItemBean.setExpirationDate(parseExpirationDate(context));
+        fileItemBean.setCreatedBy(context.getUserId());
+        fileItemBean.setModifiedBy(context.getUserId());
+        // Validate the file
+        ValidateFileCommand.checkFile(fileItemBean);
+        // Insert a version record, then update the file item to the latest details
+        FileItem fileItem = SaveFileCommand.saveNewVersionOfFile(fileItemBean);
+        if (fileItem == null) {
+          throw new DataException("Your information could not be saved due to a system error. Please try again.");
+        }
+        AuditEventCommand.record(context, AuditEventCommand.CONTENT, "folder_file.version", AuditEventCommand.SUCCESS,
+            "folder_file", String.valueOf(fileItem.getId()), fileItem.getFilename(), "version=" + fileItem.getVersion());
+      } else {
+        // It's a form update of an old version.
+        // folder-file-form.jsp always operates on an existing record and renders both `id` and
+        // `folderId` as plain hidden fields. Only `currentFolderId` (checked at line 260) has
+        // actually had its add-permission verified -- so before trusting anything else the
+        // client submits, confirm the record this request claims to update really belongs to
+        // that permission-checked folder. Without this, a user with add-permission on Folder A
+        // could submit another folder's file id plus folderId=A and hijack that file into A.
+        long requestedFileId = context.getParameterAsLong("id");
+        FileItem existingFileItem = FileItemRepository.findById(requestedFileId);
+        if (existingFileItem == null || existingFileItem.getFolderId() != currentFolderId) {
+          LOG.warn("No permission to update this file, or file not found in the current folder");
+          return null;
+        }
+        // Populate the fields
+        fileItemBean = new FileItem();
+        BeanUtils.populate(fileItemBean, context.getParameterMap());
+        // Re-assert the authorized id/folderId after populate -- mass-assignment must not be
+        // able to move the file to a folder other than the one just verified above.
+        fileItemBean.setId(existingFileItem.getId());
+        fileItemBean.setFolderId(currentFolderId);
+        // BeanUtils cannot reliably convert a raw datetime-local string ("expirationDate") to a
+        // java.sql.Timestamp, so parse it explicitly and overwrite whatever BeanUtils did with it
+        // (mirrors WebPageFormWidget.post()'s handling of publishAt/expiresAt)
+        fileItemBean.setExpirationDate(parseExpirationDate(context));
+        fileItemBean.setCreatedBy(context.getUserId());
+        fileItemBean.setModifiedBy(context.getUserId());
+        // Update the file item
+        FileItem fileItem = SaveFileCommand.saveFile(fileItemBean);
+        if (fileItem == null) {
+          throw new AppException("The information could not be saved due to a system error. Please try again.");
+        }
+        AuditEventCommand.record(context, AuditEventCommand.CONTENT, "folder_file.update", AuditEventCommand.SUCCESS,
+            "folder_file", String.valueOf(fileItem.getId()), fileItem.getFilename(), null);
+      }
+    } catch (AppException | DataException data) {
+      LOG.debug("An exception occurred: " + data.getMessage());
+      // Clean up the file if it exists
+      SaveFilePartCommand.cleanupFile(fileItemBean);
+      // Let the user know
+      context.setErrorMessage(data.getMessage());
+      context.setRequestObject(fileItemBean);
+      AuditEventCommand.record(context, AuditEventCommand.CONTENT,
+          isNewVersion ? "folder_file.version" : "folder_file.update", AuditEventCommand.FAILURE,
+          "folder_file", fileItemBean != null ? String.valueOf(fileItemBean.getId()) : "-1",
+          fileItemBean != null ? fileItemBean.getFilename() : null, data.getMessage());
+    }
+
+    // Determine the page to return to
+    if (currentSubFolderId > 0) {
+      context.setRedirect("/admin/sub-folder-details?folderId=" + currentFolderId + "&subFolderId=" + currentSubFolderId);
+    } else {
+      context.setRedirect("/admin/folder-details?folderId=" + currentFolderId);
+    }
+    return context;
+  }
+
+  /**
+   * Parses the optional "expirationDate" form field (a datetime-local input, e.g.
+   * "2026-09-01T14:30") into a Timestamp. Mirrors WebPageFormWidget.post()'s handling of
+   * publishAt/expiresAt.
+   *
+   * @param context
+   * @return the parsed Timestamp, or null when the field was left blank
+   * @throws DataException when the value is present but not a valid date/time
+   */
+  private static Timestamp parseExpirationDate(WidgetContext context) throws DataException {
+    String expirationDateValue = context.getParameter("expirationDate");
+    if (StringUtils.isBlank(expirationDateValue)) {
+      return null;
+    }
+    try {
+      return Timestamp.valueOf(expirationDateValue.replace("T", " ") + ":00");
+    } catch (IllegalArgumentException e) {
+      throw new DataException("Expiration date format is not valid");
+    }
+  }
+
+  /**
+   * A file is being deleted
+   *
+   * @param context
+   * @return
+   */
+  public WidgetContext delete(WidgetContext context) {
+
+    // Check for file to be deleted
+    long fileId = context.getParameterAsLong("fileId", -1);
+    FileItem record;
+    if (context.hasRole("admin")) {
+      record = LoadFileCommand.loadItemById(fileId);
+    } else {
+      record = LoadFileCommand.loadFileByIdForAuthorizedUser(fileId, context.getUserId());
+    }
+    if (record == null) {
+      LOG.warn("File record does not exist or no access: " + fileId);
+      AuditEventCommand.record(context, AuditEventCommand.CONTENT, "folder_file.delete", AuditEventCommand.FAILURE,
+          "folder_file", String.valueOf(fileId), null, "not found or access denied");
+      return null;
+    }
+
+    String targetId = String.valueOf(record.getId());
+    String targetLabel = record.getFilename();
+
+    // The delete icon is already hidden in the UI for a user without delete permission on this
+    // folder, but that's UI-only -- the action itself must independently enforce it, or anyone who
+    // can merely view this page (any role the page's own admin-layout.xml role gate allows) could
+    // delete a file by requesting this action directly, regardless of this specific folder's own
+    // delete-permission ACL. Mirrors FolderDetailsWidget#delete's folder-delete permission check,
+    // using this class's own admin-bypass convention (see bulkDeleteAction's canDelete).
+    boolean canDelete = context.hasRole("admin")
+        || CheckFolderPermissionCommand.userHasDeletePermission(record.getFolderId(), context.getUserId());
+    if (!canDelete) {
+      LOG.warn("No permission to delete file " + fileId + " in folder " + record.getFolderId());
+      AuditEventCommand.record(context, AuditEventCommand.CONTENT, "folder_file.delete", AuditEventCommand.FAILURE,
+          "folder_file", targetId, targetLabel, "no permission to delete in this folder");
+      context.setErrorMessage("Error. You do not have permission to delete this file.");
+      return context;
+    }
+
+    try {
+      boolean removed = DeleteFileCommand.deleteFile(record);
+      AuditEventCommand.record(context, AuditEventCommand.CONTENT, "folder_file.delete",
+          removed ? AuditEventCommand.SUCCESS : AuditEventCommand.FAILURE, "folder_file", targetId, targetLabel, null);
+      if (removed) {
+        context.setSuccessMessage("File deleted");
+        if (record.getSubFolderId() > -1) {
+          context.setRedirect("/admin/sub-folder-details?folderId=" + record.getFolderId() + "&subFolderId=" + record.getSubFolderId());
+        } else {
+          context.setRedirect("/admin/folder-details?folderId=" + record.getFolderId());
+        }
+      } else {
+        context.setErrorMessage("Error. File could not be deleted.");
+      }
+      return context;
+    } catch (Exception e) {
+      AuditEventCommand.record(context, AuditEventCommand.CONTENT, "folder_file.delete", AuditEventCommand.FAILURE,
+          "folder_file", targetId, targetLabel, e.getMessage());
+      context.setErrorMessage("Error. File could not be deleted.");
+//        context.setRedirect("/admin/collections");
+    }
+
+    return context;
+  }
+
+  /**
+   * Bulk delete (multi-select checkboxes + bulk actions bar + confirmation reveal, see
+   * folder-files-list.jsp), following the same command=bulkDelete convention and per-file-loop
+   * shape as AdminImageBrowserWidget#bulkDeleteAction (image-browser.jsp, PR #834).
+   */
+  private WidgetContext bulkDeleteAction(WidgetContext context) {
+
+    context.getUserSession().renewFormToken();
+
+    long currentFolderId = context.getParameterAsLong("currentFolderId", -1);
+    long currentSubFolderId = context.getParameterAsLong("currentSubFolderId", -1);
+
+    Folder folder;
+    if (context.hasRole("admin")) {
+      folder = FolderRepository.findById(currentFolderId);
+    } else {
+      folder = LoadFolderCommand.loadFolderByIdForAuthorizedUser(currentFolderId, context.getUserId());
+    }
+    if (folder == null) {
+      context.setErrorMessage("Error. Folder was not found.");
+      return context;
+    }
+
+    boolean canDelete = context.hasRole("admin")
+        || CheckFolderPermissionCommand.userHasDeletePermission(folder.getId(), context.getUserId());
+    if (!canDelete) {
+      LOG.warn("No permission to bulk delete files in folder " + folder.getId());
+      context.setErrorMessage("Error. You do not have permission to delete these files.");
+      context.setRedirect(redirectTo(currentFolderId, currentSubFolderId));
+      return context;
+    }
+
+    List<Long> fileIds = resolveSelectedFileIds(context);
+    if (fileIds == null) {
+      context.setErrorMessage("Too many files were selected (maximum " + MAX_BULK_SELECTION
+          + "). Select fewer files and try again.");
+      context.setRedirect(redirectTo(currentFolderId, currentSubFolderId));
+      return context;
+    }
+    if (fileIds.isEmpty()) {
+      context.setErrorMessage("No files were selected");
+      context.setRedirect(redirectTo(currentFolderId, currentSubFolderId));
+      return context;
+    }
+
+    int succeeded = 0;
+    int notFound = 0;
+    int failed = 0;
+    for (Long fileId : fileIds) {
+      // Scoped to this folder/sub-folder -- a file id belonging to a different folder (even one the
+      // user can otherwise access) must not be reachable through this batch
+      FileItem record = LoadFileCommand.loadItemById(fileId);
+      if (record == null || record.getFolderId() != folder.getId()
+          || (currentSubFolderId > 0 && record.getSubFolderId() != currentSubFolderId)) {
+        ++notFound;
+        continue;
+      }
+      try {
+        if (DeleteFileCommand.deleteFile(record)) {
+          ++succeeded;
+        } else {
+          ++failed;
+        }
+      } catch (Exception e) {
+        LOG.error("Error deleting file " + fileId, e);
+        ++failed;
+      }
+    }
+
+    StringBuilder message = new StringBuilder();
+    message.append(succeeded).append(" of ").append(fileIds.size()).append(" selected file")
+        .append(fileIds.size() == 1 ? "" : "s").append(" deleted.");
+    if (notFound > 0) {
+      message.append(" ").append(notFound).append(" were already gone.");
+    }
+    if (failed > 0) {
+      message.append(" ").append(failed).append(" could not be deleted.");
+    }
+    if (succeeded > 0) {
+      context.setSuccessMessage(message.toString());
+    } else {
+      context.setErrorMessage(message.toString());
+    }
+    context.setRedirect(redirectTo(currentFolderId, currentSubFolderId));
+    return context;
+  }
+
+  /**
+   * Parses and dedupes the selected file ids from the repeated {@code fileId} checkbox inputs,
+   * silently dropping any non-numeric entry. Returns {@code null} when the selection exceeds
+   * {@link #MAX_BULK_SELECTION} -- see that field's comment for why this rejects rather than truncates.
+   */
+  private List<Long> resolveSelectedFileIds(WidgetContext context) {
+    String[] rawIds = context.getParameterMap().get("fileId");
+    Set<Long> ids = new LinkedHashSet<>();
+    if (rawIds != null) {
+      for (String rawId : rawIds) {
+        try {
+          ids.add(Long.parseLong(rawId.trim()));
+        } catch (NumberFormatException e) {
+          // Dropped, not treated as a batch-ending error
+        }
+      }
+    }
+    if (ids.size() > MAX_BULK_SELECTION) {
+      LOG.warn("Bulk file delete rejected: " + ids.size() + " ids exceeds MAX_BULK_SELECTION (" + MAX_BULK_SELECTION + ")");
+      return null;
+    }
+    return new ArrayList<>(ids);
+  }
+
+  private String redirectTo(long folderId, long subFolderId) {
+    if (subFolderId > 0) {
+      return "/admin/sub-folder-details?folderId=" + folderId + "&subFolderId=" + subFolderId;
+    }
+    return "/admin/folder-details?folderId=" + folderId;
+  }
+
+  /**
+   * Appends {@code name=urlEncoded(value)} to the paging query string when the value is present.
+   * Mirrors AdminBlogPostListWidget#appendParam.
+   */
+  private void appendPagingParam(StringBuilder sb, String name, String value) {
+    if (StringUtils.isBlank(value)) {
+      return;
+    }
+    if (sb.length() > 0) {
+      sb.append("&");
+    }
+    sb.append(name).append("=").append(URLEncoder.encode(value, StandardCharsets.UTF_8));
+  }
+}

@@ -1,0 +1,473 @@
+#!/usr/bin/env python3
+"""Report classes the shipped WAR references but does not contain.
+
+Background
+----------
+``check-dependency-drift.py`` answers "does the vendored jar match the version
+the pom declares?". It cannot answer "is the jar's own runtime actually in the
+WAR?", because it only compares TOP-LEVEL pom dependencies -- a transitive that
+nobody declared is invisible to it.
+
+That gap shipped a real bug. ``okhttp`` is written in Kotlin, the pom carried an
+explicit ``<exclusion>`` for ``kotlin-stdlib``, and no Kotlin jar existed
+anywhere in the repository. Constructing an ``OkHttpClient`` -- the first thing
+the Square SDK does -- threw::
+
+    java.lang.NoClassDefFoundError: kotlin/jvm/internal/Intrinsics
+
+The version numbers were all perfectly consistent. Nothing in CI noticed,
+because Ant compiles against the vendored jars and the compiler never needed the
+Kotlin runtime; only the JVM did, at request time.
+
+What it does
+------------
+Explodes every ``WEB-INF/lib/*.jar`` from the built WAR into one class tree and
+runs ``jdeps --missing-deps`` over it. Anything reported is a class that
+something in the WAR references and that is present neither in the WAR nor in
+the JDK.
+
+It also checks the opposite failure: FORBIDDEN below lists packages that must
+be supplied only by the servlet container and must NEVER be bundled into the
+WAR at all (see that dict for why -- for the SSRF connect-time DNS pin
+resolver specifically, a duplicated copy inside WEB-INF/lib silently breaks
+the pin instead of merely being redundant, because Tomcat's webapp
+classloader is child-first). This is a positive presence check against the
+exploded class tree itself, independent of jdeps and the ALLOWLIST/missing-
+class logic above.
+
+Most such references are legitimate. Java libraries routinely reference optional
+integrations they never load (jobrunr names MongoDB, okhttp names Android), and
+a servlet container supplies ``jakarta.servlet`` at runtime rather than the WAR.
+Those live in ALLOWLIST below, each with the reason it is expected. Anything NOT
+allowlisted is a class the application can reach but the JVM cannot load.
+
+Why the whole tree at once
+--------------------------
+Running jdeps per jar looks tidier but is wrong here: a jar containing
+``module-info.class`` puts jdeps into module mode, where it aborts with
+``FindException: Module ... not found`` on the first absent module. That is an
+ABORT, not a finding -- an earlier draft of this script consumed those failures
+and cheerfully reported zero missing classes for a WAR that was provably broken.
+Exploding to a flat class tree (and dropping ``module-info.class``) keeps jdeps
+on the classpath code path, so every jar is analysed in a single pass.
+
+Modes
+-----
+Report-only by default: prints findings, always exits 0. Pass ``--strict`` (or
+set ``STRICT=1``) to exit 1 when a non-allowlisted class is missing.
+
+This is a read-only reporter. It changes no files.
+"""
+from __future__ import annotations
+
+import argparse
+import collections
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import zipfile
+
+# Package prefixes whose absence from the WAR is EXPECTED, each with the reason.
+# Keyed on the missing package, matched as a dotted prefix. Add entries as:
+#   "package.prefix": "why it is legitimately absent"
+# Before adding one, confirm the reference really is optional or container-
+# provided. If application code can reach it at runtime, it is a bug, not an
+# allowlist entry.
+ALLOWLIST: dict[str, str] = {
+    # --- supplied by the servlet container, must NOT be in the WAR ---
+    # NOTE: javax.servlet / javax.el are deliberately NOT allowlisted. Tomcat 11 supplies the
+    # jakarta.* namespace and nothing under javax.*, so a surviving javax reference is a real
+    # runtime failure and must be reported rather than waved through.
+    "jakarta.servlet": "provided by Tomcat; bundling it breaks deployment",
+    "jakarta.el": "provided by Tomcat (Expression Language)",
+    "org.apache.catalina": "Tomcat internals, provided by the container",
+    "org.apache.jasper": "Tomcat JSP engine, provided by the container",
+    "org.apache.tomcat": "Tomcat internals, provided by the container",
+    "com.simisinc.platform.provided.net": (
+        "the SSRF connect-time DNS pin resolver (issue #760, ssrf-pin-resolver/) -- "
+        "compiled against by HttpGetCommand and HttpDownloadFileCommand but deliberately "
+        "excluded from the WAR and supplied instead on Tomcat's shared classloader "
+        "(CATALINA_HOME/lib, wired in docker/app/Dockerfile), the same provided-scope "
+        "treatment jakarta.servlet gets above. It MUST be absent from WEB-INF/lib/classes "
+        "-- see ssrf-pin-resolver/README.md for why a duplicated copy would silently "
+        "break the pin instead of merely being redundant."
+    ),
+    # --- optional integrations the app never configures ---
+    "android": "okhttp's optional Android platform support; server-side only here",
+    "org.conscrypt": "okhttp optional TLS provider; the JDK provider is used",
+    "org.bouncycastle": "okhttp optional TLS provider; the JDK provider is used",
+    "org.openjsse": "okhttp optional TLS provider; the JDK provider is used",
+    "com.mongodb": "jobrunr optional MongoDB backend; this app uses PostgreSQL",
+    "org.bson": "jobrunr optional MongoDB backend; this app uses PostgreSQL",
+    "io.lettuce": "jobrunr optional Redis backend; not configured",
+    "redis.clients": "jobrunr optional Redis backend; not configured",
+    "org.elasticsearch": "jobrunr optional Elasticsearch backend; not configured",
+    "io.micrometer": "optional metrics facade (jobrunr, amqp-client); not configured",
+    "com.codahale.metrics": "amqp-client optional metrics; not configured",
+    "io.opentelemetry": "amqp-client optional tracing; not configured",
+    "io.netty": "amqp-client optional NIO transport; the blocking transport is used",
+    "oracle.sql": "jobrunr optional Oracle support; this app uses PostgreSQL",
+    "waffle.windows": "postgresql driver optional Windows SSPI auth; Linux deployment",
+    "org.osgi": "OSGi metadata hooks; this app is not an OSGi container",
+    "org.jboss": "flyway optional JBoss VFS support",
+    "com.openhtmltopdf": "flexmark optional PDF renderer; not used",
+    "org.nibor": "flexmark optional autolink extension; not used",
+    "org.jaxen": "jdom2 optional XPath engine; not used",
+    "org.joni": "json-schema-validator optional regex engine; not used",
+    "org.jcodings": "json-schema-validator optional encoding support; not used",
+    "com.ethlo": "json-schema-validator optional date-time validator; not used",
+    "javax.enterprise": "johnzon optional CDI integration; no CDI container",
+    "javax.ws": "johnzon optional JAX-RS integration; not used",
+    "jakarta.json": "jobrunr optional Jakarta JSON-B binding; Jackson is used",
+    # --- compile-time-only annotations, never loaded at runtime ---
+    "javax.annotation": "compile-time annotations, not required at runtime",
+    "org.checkerframework": "compile-time nullness annotations",
+    "org.jspecify": "compile-time nullness annotations",
+    "net.jcip": "compile-time concurrency annotations",
+    "com.google.errorprone": "compile-time static-analysis annotations",
+    "com.google.j2objc": "compile-time annotations",
+    # com.google.common (Guava) is NOT a global allowlist entry: it is referenced
+    # only by jackson-coreutils and is a genuine runtime failure from anywhere
+    # else, so it lives in JAR_SCOPED_ALLOWLIST below. com.google.gson is NOT
+    # allowlisted at all: gson IS vendored and is mandatory on the Stripe path, so
+    # a missing com.google.gson.* reference is a real bug that must be reported.
+    "com.google.protobuf": "optional protobuf support; not used",
+    "org.apache.log4j": "legacy log4j 1.x bridge (flyway); slf4j is used",
+    "org.apache.logging": "log4j2 bridge (flyway); slf4j is used",
+    "org.apache.avalon": "legacy commons-logging bridge",
+    "org.apache.commons.logging": "commons-logging API is PROVIDED by jcl-over-slf4j (present in the WAR), not absent; that bridge reimplements the API on top of slf4j",
+    "org.slf4j.impl": "slf4j binding lookup; the binding is present",
+    # --- optional metrics/ORM integrations in the connection pool ---
+    "io.dropwizard": "HikariCP optional Dropwizard metrics; not configured",
+    "io.prometheus": "HikariCP optional Prometheus metrics; not configured",
+    "org.hibernate": "HikariCP optional Hibernate integration; this app uses plain JDBC",
+    # --- optional codecs behind commons-compress' format registry ---
+    "org.tukaani": "commons-compress optional XZ/LZMA codec; not used",
+    "org.brotli": "commons-compress optional Brotli codec; not used",
+    "com.github.luben": "commons-compress optional Zstandard codec; not used",
+    # --- other optional library backends ---
+    "org.apache.commons.digester": "commons-validator optional XML config loader; not used",
+    "org.apache.pdfbox": "flexmark optional PDF output; not used",
+    "org.apache.xerces": "JSTL optional SAX parser; the JDK parser is used",
+    "org.eclipse.tags": "JSTL's shaded Xalan, reached only by the <x:*> XML tags; those are unused",
+    "com.google.re2j": "jsoup optional RE2 regex engine; java.util.regex is used",
+    # Narrowed from a bare "com.sun.jna": JNA *core* (com.sun.jna.*) IS vendored
+    # (jna-*.jar) because argon2 reaches com.sun.jna.Native/Memory/Pointer on the
+    # login/password path (de.mkammerer.argon2 <- UserPasswordCommand), so a bare
+    # prefix would silently absorb a future removal of that runtime-critical core.
+    # Only the un-vendored jna-platform win32 helpers are legitimately absent.
+    "com.sun.jna.platform": "postgresql driver's optional Windows SSPI auth (only com.sun.jna.platform.win32.*, e.g. Sspi/Win32Exception); Linux deployment, so jna-platform is not vendored",
+    # NOTE: bare prefixes org.apache.http / org.apache.xml / org.apache.xpath /
+    # org.apache.commons.pool2 were removed. They matched nothing in the current
+    # WAR, so as bare entries they only stood to mask a FUTURE real gap (an
+    # unshaded Xalan or an Apache HttpClient/pool2 transport actually being
+    # reached). If such a reference reappears it must surface as UNEXPECTED; add a
+    # jar-scoped entry then, keyed on the jar that legitimately provides it.
+}
+
+# Package prefixes that must NEVER be present inside the WAR at all -- the mirror image of
+# ALLOWLIST above. ALLOWLIST excuses a class being ABSENT (still reachable, just supplied by the
+# container); FORBIDDEN flags the opposite failure, a class that is supposed to be
+# container-supplied showing up bundled into WEB-INF/lib anyway. jdeps has nothing to say about
+# this -- it never runs on classes that ARE present -- so this is checked directly against the
+# exploded class tree's `owner` index instead.
+#
+# Before adding an entry here, make sure the reason it must be absent is a genuine deployment
+# hazard (like the classloader-identity trap below), not just tidiness.
+FORBIDDEN: dict[str, str] = {
+    "com.simisinc.platform.provided.net": (
+        "the SSRF connect-time DNS pin resolver (issue #760, ssrf-pin-resolver/) -- must be "
+        "supplied ONLY from Tomcat's shared classloader (CATALINA_HOME/lib, wired in "
+        "docker/app/Dockerfile), never from WEB-INF/lib. Tomcat's webapp classloader is "
+        "child-first, so a duplicate copy here would not be merely redundant: the webapp would "
+        "load and read/write ITS OWN copy of ConnectAddressPin, a different class-identity "
+        "object from the one the CATALINA_HOME/lib-bound ConnectAddressResolverProvider "
+        "actually reads, silently reopening the DNS-rebinding gap this module exists to close. "
+        "See ssrf-pin-resolver/README.md's 'Do not duplicate these classes into the WAR'."
+    ),
+}
+
+
+def forbidden_present(owner: dict[str, str]) -> dict[str, list[str]]:
+    """Classes present in the exploded WAR that must never ship there, grouped by FORBIDDEN prefix."""
+    hits: dict[str, list[str]] = collections.defaultdict(list)
+    for name in owner:
+        best = ""
+        for prefix in FORBIDDEN:
+            if (name == prefix or name.startswith(prefix + ".")) and len(prefix) > len(best):
+                best = prefix
+        if best:
+            hits[best].append(name)
+    return hits
+
+
+# Allowlist entries that apply to ONE library only.
+#
+# Use this instead of a global ALLOWLIST entry whenever a reference is harmless from a
+# particular jar but would be a genuine runtime failure coming from anywhere else. A global
+# "javax.servlet" entry, for instance, would also wave through a jar that really does depend
+# on the pre-Jakarta namespace -- which Tomcat 11 does not provide.
+#
+# Rule of thumb: this jar-scoped form is the right home for any suppression that is only
+# legitimate because ONE specific jar provides or needs the class (thymeleaf's dual servlet
+# bridge, jackson-coreutils' unused Guava margin). Reserve bare-prefix ALLOWLIST entries for
+# namespaces that are genuinely container-provided (jakarta.servlet, org.apache.catalina/
+# jasper/tomcat) or optional across a whole family of libraries -- never for a class only one
+# jar happens to reference, because a bare prefix would then also mask a real gap elsewhere.
+#
+# Format: (jar filename prefix, class-name prefix): reason
+JAR_SCOPED_ALLOWLIST: dict[tuple[str, str], str] = {
+    ("thymeleaf-", "javax.servlet"): (
+        "thymeleaf ships both servlet bridges in one jar; this app builds "
+        "JakartaServletWebApplication, so the javax path is never loaded "
+        "(revisit if thymeleaf stops shipping both)"
+    ),
+    ("jackson-coreutils-", "com.google.common"): (
+        "jackson-coreutils references a small Guava margin (Equivalence, "
+        "Preconditions, Immutable* collections) that the JSON-Schema paths this "
+        "app exercises (Square / TaxJar / OAuth) never reach; Guava itself is not "
+        "vendored. Scoped to this one jar on purpose: a com.google.common.* "
+        "reference from any OTHER jar is a real missing-dependency bug and must "
+        "still be reported, not waved through by a bare prefix."
+    ),
+    # AFD purge (issue #420): azure-identity's DefaultAzureCredential pulls in msal4j, which uses
+    # nimbus-jose-jwt/oauth2-oidc-sdk for its OAuth2/OIDC client message classes only -- the
+    # confidential/managed-identity token flows this app actually calls. Each entry below is an
+    # optional algorithm or integration inside those two jars that path never reaches.
+    ("nimbus-jose-jwt-", "com.google.crypto"): (
+        "Google Tink, used only by nimbus-jose-jwt's EdDSA (Ed25519) signer/verifier. Azure AD "
+        "access/ID tokens are RS256-signed, so msal4j's token parsing never reaches this signer; "
+        "Tink itself is not vendored."
+    ),
+    ("oauth2-oidc-sdk-", "javax.servlet"): (
+        "legacy javax.servlet request/response helpers for framework integration; this app is "
+        "Jakarta EE (jakarta.servlet), and msal4j's OAuth2 client flows never touch oauth2-oidc-sdk's "
+        "servlet-binding helpers (same shape as the thymeleaf entry above)."
+    ),
+    ("oauth2-oidc-sdk-", "net.shibboleth"): (
+        "Shibboleth utilities backing oauth2-oidc-sdk's SAML 2.0 federation support; msal4j only "
+        "uses this library's plain OAuth2/OIDC client message classes (authorization requests, "
+        "token responses), never its SAML assertion path."
+    ),
+    ("oauth2-oidc-sdk-", "org.opensaml"): (
+        "OpenSAML, likewise only reachable via oauth2-oidc-sdk's SAML 2.0 support -- see the "
+        "net.shibboleth entry above; not vendored."
+    ),
+    ("oauth2-oidc-sdk-", "org.cryptomator"): (
+        "AES-SIV support for oauth2-oidc-sdk's JWE encryption helpers; msal4j's token requests/"
+        "responses are JWS-signed, not JWE-encrypted, so this path is never reached."
+    ),
+    ("oauth2-oidc-sdk-", "org.joda"): (
+        "legacy Joda-Time date handling in a few oauth2-oidc-sdk helper classes, superseded by "
+        "java.time elsewhere in the library; not reached by the OAuth2 client message classes "
+        "msal4j uses."
+    ),
+    ("reactor-core-", "reactor.blockhound"): (
+        "opt-in blocking-call detector for Reactor debugging (same shape as the io.micrometer/"
+        "io.opentelemetry entries above) -- never added to the classpath, so this integration is "
+        "inert."
+    ),
+}
+
+_CLASS_RE = re.compile(r"^\s*(\S+)\s+->\s+(\S+)\s+not found\s*$")
+
+
+def explode(war: str, dest: str) -> tuple[dict[str, str], int]:
+    """Unpack WEB-INF/lib/*.jar into one class tree. Returns class->jar index."""
+    owner: dict[str, str] = {}
+    jars = 0
+    with zipfile.ZipFile(war) as w:
+        libs = [n for n in w.namelist()
+                if n.startswith("WEB-INF/lib/") and n.endswith(".jar")]
+        if not libs:
+            sys.exit("error: no WEB-INF/lib/*.jar entries in %s" % war)
+        jardir = os.path.join(dest, "_jars")
+        os.makedirs(jardir, exist_ok=True)
+        for name in libs:
+            w.extract(name, jardir)
+        for name in libs:
+            jars += 1
+            jarname = os.path.basename(name)
+            path = os.path.join(jardir, name)
+            try:
+                with zipfile.ZipFile(path) as j:
+                    for entry in j.namelist():
+                        if not entry.endswith(".class"):
+                            continue
+                        # Multi-release overlays and module descriptors both push
+                        # jdeps into module mode; neither is needed to answer
+                        # "is this class present somewhere in the WAR".
+                        if entry.startswith("META-INF/versions/"):
+                            continue
+                        if os.path.basename(entry) == "module-info.class":
+                            continue
+                        j.extract(entry, dest)
+                        owner.setdefault(entry[:-len(".class")].replace("/", "."),
+                                         jarname)
+            except zipfile.BadZipFile:
+                print("warning: %s is not a readable jar, skipped" % jarname)
+    return owner, jars
+
+
+def run_jdeps(tree: str) -> str:
+    java_home = os.environ.get("JAVA_HOME")
+    jdeps = os.path.join(java_home, "bin", "jdeps") if java_home else "jdeps"
+    try:
+        proc = subprocess.run([jdeps, "--missing-deps", "-cp", tree, tree],
+                              capture_output=True, text=True)
+    except (FileNotFoundError, NotADirectoryError):
+        sys.exit("error: jdeps not found at '%s' -- set JAVA_HOME to a JDK 21 "
+                 "installation (a JRE does not include jdeps)" % jdeps)
+    # A crashed analysis must never read as a clean WAR. This is the exact trap
+    # the per-jar version of this script fell into.
+    if proc.returncode != 0:
+        sys.exit("error: jdeps failed (exit %d)\n%s"
+                 % (proc.returncode, proc.stderr.strip()))
+    if "Exception in thread" in proc.stderr:
+        sys.exit("error: jdeps aborted\n%s" % proc.stderr.strip())
+    return proc.stdout
+
+
+def allowed_for(name: str) -> str | None:
+    """Reason this class is expected to be absent, or None. Longest prefix wins."""
+    best, reason = "", None
+    for prefix, why in ALLOWLIST.items():
+        if (name == prefix or name.startswith(prefix + ".")) and len(prefix) > len(best):
+            best, reason = prefix, why
+    return reason
+
+
+def matched_prefix(name: str) -> str:
+    best = ""
+    for prefix in ALLOWLIST:
+        if (name == prefix or name.startswith(prefix + ".")) and len(prefix) > len(best):
+            best = prefix
+    return best
+
+
+def allowed_for_jar(jar: str, name: str) -> tuple[str, str] | None:
+    """Reason this class is expected to be absent *from this jar alone*, with its label.
+
+    Returns None when nothing in JAR_SCOPED_ALLOWLIST covers this (jar, class) pair.
+    """
+    best, hit = "", None
+    for (jar_prefix, class_prefix), why in JAR_SCOPED_ALLOWLIST.items():
+        if not jar.startswith(jar_prefix):
+            continue
+        if (name == class_prefix or name.startswith(class_prefix + ".")) and len(class_prefix) > len(best):
+            best, hit = class_prefix, ("%s* needs %s" % (jar_prefix, class_prefix), why)
+    return hit
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--war", default="target/j-cms.war")
+    ap.add_argument("--strict", action="store_true",
+                    default=os.environ.get("STRICT") == "1")
+    args = ap.parse_args()
+
+    if not os.path.exists(args.war):
+        sys.exit("error: %s not found -- run `ant -lib lib/war package` first"
+                 % args.war)
+
+    tree = tempfile.mkdtemp(prefix="warcheck-")
+    try:
+        owner, jars = explode(args.war, tree)
+        out = run_jdeps(tree)
+        forbidden = forbidden_present(owner)
+
+        allowed: collections.Counter = collections.Counter()
+        scoped: collections.Counter = collections.Counter()
+        scoped_reasons: dict[str, str] = {}
+        unexpected: dict[tuple[str, str], list[str]] = collections.defaultdict(list)
+        for line in out.splitlines():
+            m = _CLASS_RE.match(line)
+            if not m:
+                continue
+            src, missing = m.group(1), m.group(2)
+            if "." not in missing:
+                continue
+            jar = owner.get(src, owner.get(src.split("$")[0], "?"))
+            # Match the allowlist against the FULL class name, never a truncated
+            # group: "org.apache.jasper.*" is container-provided while
+            # "org.apache.commons.digester.*" is an optional library, and both
+            # collapse to "org.apache" if you group first and match second.
+            reason = allowed_for(missing)
+            if reason:
+                allowed[matched_prefix(missing)] += 1
+                continue
+            # Fall back to a per-library exemption before calling it a finding
+            hit = allowed_for_jar(jar, missing)
+            if hit:
+                label, why = hit
+                scoped[label] += 1
+                scoped_reasons[label] = why
+            else:
+                unexpected[(jar, ".".join(missing.split(".")[:3]))].append(missing)
+
+        print("WAR completeness report  (%s, %d jars, %d classes)"
+              % (args.war, jars, len(owner)))
+        print("=" * 72)
+        print()
+
+        if forbidden:
+            print("FORBIDDEN -- provided-scope classes bundled into the WAR (%d package(s), %d classes):"
+                  % (len(forbidden), sum(len(v) for v in forbidden.values())))
+            for prefix, names in sorted(forbidden.items()):
+                jars_hit = sorted({owner[n] for n in names})
+                print("  %-40s %5d classes in %s" % (prefix, len(names), ", ".join(jars_hit)))
+                print("       %s" % FORBIDDEN[prefix])
+                for n in sorted(names)[:3]:
+                    print("       e.g. %s (in %s)" % (n, owner[n]))
+        else:
+            print("FORBIDDEN: (none present -- provided-scope classes correctly excluded)")
+        print()
+        print("Classes referenced but not present in the WAR or the JDK.")
+        print()
+
+        if unexpected:
+            print("UNEXPECTED -- reachable at runtime, absent from the artifact (%d):"
+                  % len(unexpected))
+            for (jar, pkg) in sorted(unexpected):
+                names = unexpected[(jar, pkg)]
+                print("  %-34s needs %-28s (%d refs)" % (jar, pkg, len(names)))
+                for n in sorted(set(names))[:3]:
+                    print("       e.g. %s" % n)
+        else:
+            print("UNEXPECTED: (none)")
+        print()
+        if scoped:
+            print("JAR-SCOPED ALLOWLIST -- exempt for this library only (%d, %d refs):"
+                  % (len(scoped), sum(scoped.values())))
+            for label, count in sorted(scoped.items()):
+                print("  %-46s %5d  %s" % (label, count, scoped_reasons[label]))
+            print()
+        print("ALLOWLISTED -- optional or container-provided (%d packages, %d refs):"
+              % (len(allowed), sum(allowed.values())))
+        for pkg, count in sorted(allowed.items()):
+            print("  %-32s %5d  %s" % (pkg, count, allowed_for(pkg)))
+        print()
+        print("Summary: %d unexpected, %d forbidden, %d allowlisted packages."
+              % (len(unexpected), len(forbidden), len(allowed)))
+
+        if (unexpected or forbidden) and args.strict:
+            print()
+            if unexpected:
+                print("FAIL: the WAR is missing classes it can reach at runtime.")
+                print("Vendor the missing jar into lib/build, or add an ALLOWLIST")
+                print("entry in this script explaining why the reference is optional.")
+            if forbidden:
+                print("FAIL: the WAR bundles class(es) that must be provided-scope only.")
+                print("Check build.xml's jar/package/webapp filesets for a change that")
+                print("pulled these back into WEB-INF/lib -- see the FORBIDDEN section above.")
+            return 1
+        return 0
+    finally:
+        shutil.rmtree(tree, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

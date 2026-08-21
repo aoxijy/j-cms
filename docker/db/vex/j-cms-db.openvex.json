@@ -1,0 +1,1112 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/J-CMS/docker/db/vex/j-cms-db",
+  "author": "J-CMS Maintainers",
+  "timestamp": "2026-08-06T16:00:00+00:00",
+  "version": 6,
+  "tooling": "tools/generate-db-vex.py",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2018-11205"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libhdf5-103-1"
+            },
+            {
+              "@id": "pkg:deb/debian/libhdf5-hl-100"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-2953"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libldap-2.5-0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "impact_statement": "The server binary links libldap, but the vulnerable code runs only during LDAP client operations, and LDAP authentication is not configured in this image (SCRAM password authentication; no ldap method in the active auth configuration). Configuring LDAP authentication would void this claim.",
+      "justification": "vulnerable_code_not_in_execute_path"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-33204"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/sysstat"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "impact_statement": "sysstat's collectors (sar/sadc) are launched only by cron, and the image contains no cron daemon, so they never execute; the read-only root filesystem additionally prevents staging the crafted data files the flaw requires.",
+      "justification": "vulnerable_code_not_in_execute_path"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-39616"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libaom3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-45853"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/zlib1g"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "This vulnerability is in zlib's MiniZip contrib component (zipOpenNewFileInZip4_64), which Debian does not build into the shared libz shipped in this image - which is why Debian classifies it will-not-fix. The vulnerable code is not present in the delivered library."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-52355"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libtiff6"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-6879"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libaom3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-59375"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-68431"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libheif1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69720"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libncursesw6"
+            },
+            {
+              "@id": "pkg:deb/debian/libtinfo6"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-base"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-bin"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "impact_statement": "The overflow is in the infocmp diagnostic binary (progs/infocmp.c), which no service in the image ever invokes; database operation processes no terminfo input. Debian rates the issue minor (no-DSA).",
+      "justification": "vulnerable_code_not_in_execute_path"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-7458"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-12064"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libcurl3-gnutls"
+            },
+            {
+              "@id": "pkg:deb/debian/libcurl4"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-12912"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libtiff6"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-13221"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libperl5.36"
+            },
+            {
+              "@id": "pkg:deb/debian/perl"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-base"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-modules-5.36"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl is present as a Debian base/tooling dependency but is never executed at runtime: the image does not install postgresql-17-plperl, so the database engine cannot invoke Perl, and the container entrypoint is the stock postgres shell entrypoint, not a Perl script. No process in the running container executes these modules."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-25210"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-32740"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libheif1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-32741"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libheif1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-32882"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libheif1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-33164"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libde265-0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-36849"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libtiff6"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-41071"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libheif1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-41992"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gzip"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "impact_statement": "gzip executes only to decompress *.sql.gz initialization scripts on first boot; this image ships a single plain-text init.sql, and initialization content is operator-baked image content, not adversary-supplied input. Adding compressed init scripts from untrusted sources would void this claim.",
+      "justification": "vulnerable_code_not_in_execute_path"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-42496"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libperl5.36"
+            },
+            {
+              "@id": "pkg:deb/debian/perl"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-base"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-modules-5.36"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl is present as a Debian base/tooling dependency but is never executed at runtime: the image does not install postgresql-17-plperl, so the database engine cannot invoke Perl, and the container entrypoint is the stock postgres shell entrypoint, not a Perl script. No process in the running container executes these modules."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-42497"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libperl5.36"
+            },
+            {
+              "@id": "pkg:deb/debian/perl"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-base"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-modules-5.36"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl is present as a Debian base/tooling dependency but is never executed at runtime: the image does not install postgresql-17-plperl, so the database engine cannot invoke Perl, and the container entrypoint is the stock postgres shell entrypoint, not a Perl script. No process in the running container executes these modules."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-45186"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-48962"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libperl5.36"
+            },
+            {
+              "@id": "pkg:deb/debian/perl"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-base"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-modules-5.36"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl is present as a Debian base/tooling dependency but is never executed at runtime: the image does not install postgresql-17-plperl, so the database engine cannot invoke Perl, and the container entrypoint is the stock postgres shell entrypoint, not a Perl script. No process in the running container executes these modules."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-49014"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gdal-data"
+            },
+            {
+              "@id": "pkg:deb/debian/gdal-plugins"
+            },
+            {
+              "@id": "pkg:deb/debian/libgdal32"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-53615"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1"
+            },
+            {
+              "@id": "pkg:deb/debian/libfdisk1"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux-extra"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "impact_statement": "The flaw is in libblkid's DOS partition-table prober; nothing in the container probes or mounts block devices, and with all Linux capabilities dropped (CapEff 0000000000000000, PR #230) the container cannot perform mount or device-probe operations at all.",
+      "justification": "vulnerable_code_not_in_execute_path"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54369"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libacl1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "impact_statement": "Exploitation requires a privileged process performing pathname-based ACL operations on attacker-influenced paths; no process in this single-user container manipulates POSIX ACLs, and the root filesystem is read-only.",
+      "justification": "vulnerable_code_not_in_execute_path"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-55199"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssh2-1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-55200"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssh2-1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56131"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56208"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libaom3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56209"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libaom3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56210"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libaom3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56211"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libaom3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56407"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56408"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-57432"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libperl5.36"
+            },
+            {
+              "@id": "pkg:deb/debian/perl"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-base"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-modules-5.36"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl is present as a Debian base/tooling dependency but is never executed at runtime: the image does not install postgresql-17-plperl, so the database engine cannot invoke Perl, and the container entrypoint is the stock postgres shell entrypoint, not a Perl script. No process in the running container executes these modules."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6276"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libcurl3-gnutls"
+            },
+            {
+              "@id": "pkg:deb/debian/libcurl4"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6653"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libxml2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "PostgreSQL only enters libxml2 through the `xml` data type and the xpath()/xmltable() family. The shipped schema declares no xml columns and the application issues no XML functions, so the parser is never invoked. (GDAL's XML drivers are likewise unreachable - see the PostGIS/GDAL rationale.)"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-7598"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssh2-1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8086"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gdal-data"
+            },
+            {
+              "@id": "pkg:deb/debian/gdal-plugins"
+            },
+            {
+              "@id": "pkg:deb/debian/libgdal32"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8087"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gdal-data"
+            },
+            {
+              "@id": "pkg:deb/debian/gdal-plugins"
+            },
+            {
+              "@id": "pkg:deb/debian/libgdal32"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8286"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libcurl3-gnutls"
+            },
+            {
+              "@id": "pkg:deb/debian/libcurl4"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8376"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libperl5.36"
+            },
+            {
+              "@id": "pkg:deb/debian/perl"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-base"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-modules-5.36"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl is present as a Debian base/tooling dependency but is never executed at runtime: the image does not install postgresql-17-plperl, so the database engine cannot invoke Perl, and the container entrypoint is the stock postgres shell entrypoint, not a Perl script. No process in the running container executes these modules."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8458"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libcurl3-gnutls"
+            },
+            {
+              "@id": "pkg:deb/debian/libcurl4"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8927"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libcurl3-gnutls"
+            },
+            {
+              "@id": "pkg:deb/debian/libcurl4"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8932"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libcurl3-gnutls"
+            },
+            {
+              "@id": "pkg:deb/debian/libcurl4"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-9538"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libperl5.36"
+            },
+            {
+              "@id": "pkg:deb/debian/perl"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-base"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-modules-5.36"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl is present as a Debian base/tooling dependency but is never executed at runtime: the image does not install postgresql-17-plperl, so the database engine cannot invoke Perl, and the container entrypoint is the stock postgres shell entrypoint, not a Perl script. No process in the running container executes these modules."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-57433"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libperl5.36"
+            },
+            {
+              "@id": "pkg:deb/debian/perl"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-base"
+            },
+            {
+              "@id": "pkg:deb/debian/perl-modules-5.36"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl is present only as package-management dependency; no runtime component invokes it, the image contains no plperl library (so PL/Perl cannot be enabled), and nothing deserializes Storable blobs. The flaw is a deserialization panic (denial of service) even where reachable. Consistent with the six existing perl statements."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-47178"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libheif1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-26197"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/j-cms-db",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libhdf5-103-1"
+            },
+            {
+              "@id": "pkg:deb/debian/libhdf5-hl-100"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Present only as a transitive dependency of the PostGIS package's GDAL stack. The database enables vector PostGIS only (`CREATE EXTENSION postgis`); postgis_raster is never created, so GDAL's raster/image decoders, its remote-dataset (curl/ssh2) drivers and its embedded SQLite/HDF5/XML readers are never loaded or reachable from SQL. The CVE's out-of-bounds read requires opening a corrupted HDF5 file through libhdf5's own reader, which is only reachable via GDAL's HDF5 driver -- never loaded here, consistent with the existing CVE-2018-11205 statement for these same two packages."
+    }
+  ],
+  "last_updated": "2026-07-29T23:20:00Z"
+}

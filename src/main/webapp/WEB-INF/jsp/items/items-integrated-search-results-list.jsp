@@ -1,0 +1,156 @@
+<%--
+  ~ Copyright 2022 SimIS Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="font" uri="/WEB-INF/tlds/font-functions.tld" %>
+<%@ taglib prefix="html" uri="/WEB-INF/tlds/html-functions.tld" %>
+<%@ taglib prefix="text" uri="/WEB-INF/tlds/text-functions.tld" %>
+<%@ taglib prefix="category" uri="/WEB-INF/tlds/category-functions.tld" %>
+<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="collection" class="com.simisinc.platform.domain.model.items.Collection" scope="request"/>
+<jsp:useBean id="searchResultList" class="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="itemList" class="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="recordPaging" class="com.simisinc.platform.infrastructure.database.DataConstraints" scope="request"/>
+<jsp:useBean id="activeFilters" class="java.util.ArrayList" scope="request"/>
+<c:if test="${!empty title}">
+  <h4 class="margin-bottom-20"><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
+</c:if>
+
+<c:if test="${!empty activeFilters}">
+  <div class="margin-bottom-10">
+    <c:forEach items="${activeFilters}" var="activeFilter">
+      <span class="label secondary" style="margin-right:5px">
+        <c:out value="${activeFilter.facetLabel}"/>: <c:out value="${activeFilter.valueLabel}"/>
+        <%-- clearUrl is server-built from the request path + UrlCommand.encodeUri()'d params, so it cannot carry HTML metacharacters --%>
+        <a href="${activeFilter.clearUrl}" style="color:inherit" title="Remove this filter"><i class="fa fa-times"></i></a>
+      </span>
+    </c:forEach>
+  </div>
+</c:if>
+
+<div class="grid-x grid-margin-x">
+  <c:if test="${!empty categoryFacets || !empty tagFacets || !empty dateFacets}">
+    <div class="cell medium-3">
+      <c:if test="${!empty categoryFacets}">
+        <h6><c:out value="${categoryFacetLabel}"/></h6>
+        <%-- Checkbox-style multi-select (issue #636): each option's link toggles it in/out of the
+             current categoryId selection -- clicking a checked one unchecks just it, clicking an
+             unchecked one adds it alongside whatever else is already checked. Plain <a> links, not
+             <input type="checkbox"> in a <form>, since a normal navigation (no JS, no AJAX library
+             vendored in this codebase) already produces the right multi-value URL on its own. --%>
+        <ul class="no-bullet" style="text-indent: -11px; margin-left: 21px !important;">
+          <c:forEach items="${categoryFacets}" var="facet">
+            <li>
+              <%-- facet.url is server-built from the request path + UrlCommand.encodeUri()'d params, so it cannot carry HTML metacharacters --%>
+              <a href="${facet.url}">
+                <c:choose>
+                  <c:when test="${facet.selected}"><i class="${font:fas()} fa-square-check"></i></c:when>
+                  <c:otherwise><i class="${font:far()} fa-square"></i></c:otherwise>
+                </c:choose>
+                <c:out value="${facet.label}"/>
+              </a>&nbsp;<small class="subheader"><fmt:formatNumber value="${facet.count}"/></small>
+            </li>
+          </c:forEach>
+        </ul>
+      </c:if>
+      <c:if test="${!empty tagFacets}">
+        <h6><c:out value="${tagFacetLabel}"/></h6>
+        <%-- Checkbox-style multi-select (issue #632), same toggle-link pattern as the category
+             facet above -- each option's link toggles it in/out of the current tagId selection. --%>
+        <ul class="no-bullet" style="text-indent: -11px; margin-left: 21px !important;">
+          <c:forEach items="${tagFacets}" var="facet">
+            <li>
+              <%-- facet.url is server-built from the request path + UrlCommand.encodeUri()'d params, so it cannot carry HTML metacharacters --%>
+              <a href="${facet.url}">
+                <c:choose>
+                  <c:when test="${facet.selected}"><i class="${font:fas()} fa-square-check"></i></c:when>
+                  <c:otherwise><i class="${font:far()} fa-square"></i></c:otherwise>
+                </c:choose>
+                <c:out value="${facet.label}"/>
+              </a>&nbsp;<small class="subheader"><fmt:formatNumber value="${facet.count}"/></small>
+            </li>
+          </c:forEach>
+        </ul>
+      </c:if>
+      <c:if test="${!empty dateFacets}">
+        <h6><c:out value="${dateFacetLabel}"/></h6>
+        <ul class="no-bullet" style="text-indent: -11px; margin-left: 21px !important;">
+          <c:forEach items="${dateFacets}" var="facet">
+            <li>
+              <a href="${facet.url}">
+                <c:choose>
+                  <c:when test="${facet.selected}"><i class="${font:fas()} fa-circle-check"></i></c:when>
+                  <c:otherwise><i class="${font:far()} fa-circle"></i></c:otherwise>
+                </c:choose>
+                <c:out value="${facet.label}"/>
+              </a>&nbsp;<small class="subheader"><fmt:formatNumber value="${facet.count}"/></small>
+            </li>
+          </c:forEach>
+        </ul>
+      </c:if>
+    </div>
+  </c:if>
+  <div class="cell ${(!empty categoryFacets || !empty tagFacets || !empty dateFacets) ? 'medium-9' : 'medium-12'}">
+    <c:choose>
+      <c:when test="${empty searchResultList}">
+        <c:choose>
+          <c:when test="${!empty activeFilters}">
+            <p>No items match the current filters.</p>
+            <ul class="no-bullet">
+              <c:forEach items="${activeFilters}" var="activeFilter">
+                <li><a href="${activeFilter.clearUrl}">Remove "<c:out value="${activeFilter.valueLabel}"/>"</a></li>
+              </c:forEach>
+            </ul>
+          </c:when>
+          <c:otherwise>
+            <p>No items found.</p>
+          </c:otherwise>
+        </c:choose>
+      </c:when>
+      <c:otherwise>
+        <c:forEach items="${searchResultList}" var="searchResult" varStatus="status">
+          <c:set var="item" scope="request" value="${itemList[status.index]}"/>
+          <div class="platform-content-search-result margin-top-10">
+            <h5>
+              <c:choose>
+                <c:when test="${fn:startsWith(searchResult.link, 'http://') || fn:startsWith(searchResult.link, 'https://')}">
+                  <a target="_blank" href="${searchResult.link}"><c:out value="${searchResult.pageTitle}"/></a>
+                </c:when>
+                <c:otherwise>
+                  <a href="${searchResult.link}"><c:out value="${searchResult.pageTitle}"/></a>
+                </c:otherwise>
+              </c:choose>
+              <c:if test="${!empty item.city}"><small class="subheader"><c:out value="${item.city}" /></small></c:if>
+              <c:if test="${item.categoryId gt 0}">
+                <span class="label" style="${category:headerColorCSS(item.categoryId)}"><c:out value="${category:name(item.categoryId)}" /></span>
+              </c:if>
+            </h5>
+            <c:choose>
+              <c:when test="${!empty searchResult.htmlExcerpt}">
+                <p>${searchResult.htmlExcerpt}</p>
+              </c:when>
+              <c:when test="${!empty searchResult.pageDescription}">
+                <p><c:out value="${searchResult.pageDescription}" /></p>
+              </c:when>
+            </c:choose>
+          </div>
+        </c:forEach>
+      </c:otherwise>
+    </c:choose>
+  </div>
+</div>

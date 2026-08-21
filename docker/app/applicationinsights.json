@@ -1,0 +1,12 @@
+{
+  "role": {
+    "name": "j-cms"
+  },
+  "sampling": {
+    "percentage": 100
+  },
+  "selfDiagnostics": {
+    "level": "warn",
+    "destination": "console"
+  }
+}

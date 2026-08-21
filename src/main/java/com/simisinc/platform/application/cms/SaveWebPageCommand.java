@@ -1,0 +1,166 @@
+/*
+ * Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.simisinc.platform.application.cms;
+
+import com.simisinc.platform.application.DataException;
+import com.simisinc.platform.domain.events.cms.WebPagePublishedEvent;
+import com.simisinc.platform.domain.events.cms.WebPageUpdatedEvent;
+import com.simisinc.platform.domain.model.cms.SitemapChangeFrequencyOptions;
+import com.simisinc.platform.domain.model.cms.SolutionTypeOptions;
+import com.simisinc.platform.domain.model.cms.WebPage;
+import com.simisinc.platform.infrastructure.cache.PublishEventCachePurgeHandler;
+import com.simisinc.platform.infrastructure.persistence.cms.WebPageRepository;
+import com.simisinc.platform.infrastructure.workflow.WorkflowManager;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.util.Date;
+
+/**
+ * Validates and saves web page objects
+ *
+ * @author matt rajkowski
+ * @created 5/4/18 6:21 PM
+ */
+public class SaveWebPageCommand {
+
+  private static Log LOG = LogFactory.getLog(SaveWebPageCommand.class);
+
+  public static WebPage saveWebPage(WebPage webPageBean) throws DataException {
+
+    // Validate the required fields
+    StringBuilder errorMessages = new StringBuilder();
+    if (StringUtils.isBlank(webPageBean.getLink())) {
+      errorMessages.append("A link is required");
+    }
+
+    // Link requirements
+    if (StringUtils.isNotBlank(webPageBean.getLink())) {
+      // remove whitespace
+      webPageBean.setLink(webPageBean.getLink().trim());
+      // validate external links
+      if (webPageBean.getLink().startsWith("http:") || webPageBean.getLink().startsWith("https:")) {
+        if (UrlCommand.isUrlValid(webPageBean.getLink())) {
+          errorMessages.append("The link cannot be external");
+        }
+      } else if (!webPageBean.getLink().startsWith("/")) {
+        errorMessages.append("Link must start with a /");
+      }
+    }
+
+    // Redirect requirements
+    if (StringUtils.isNotBlank(webPageBean.getRedirectUrl())) {
+      // remove whitespace
+      webPageBean.setRedirectUrl(webPageBean.getRedirectUrl().trim());
+      // validate external links
+      if (webPageBean.getRedirectUrl().startsWith("http:") || webPageBean.getRedirectUrl().startsWith("https:")) {
+        if (!UrlCommand.isUrlValid(webPageBean.getRedirectUrl())) {
+          errorMessages.append("The redirect link formatting did not validate");
+        }
+      } else if (!webPageBean.getRedirectUrl().startsWith("/")) {
+        errorMessages.append("Redirect must start with a /");
+      }
+      // Compare the link and redirect
+      if (StringUtils.isNotBlank(webPageBean.getLink()) &&
+          StringUtils.isNotBlank(webPageBean.getRedirectUrl()) &&
+          webPageBean.getLink().equals(webPageBean.getRedirectUrl())) {
+        errorMessages.append("A link cannot redirect to itself");
+      }
+    }
+
+    // Sitemap priority
+    if (webPageBean.getSitemapPriority() != null &&
+        (webPageBean.getSitemapPriority().doubleValue() > 1.0
+            || webPageBean.getSitemapPriority().doubleValue() < 0.0)) {
+      errorMessages.append("Sitemap priority must be in the rang 0.0 - 1.0 (0.5 is the default)");
+    }
+
+    // Sitemap change frequency
+    if (StringUtils.isNotBlank(webPageBean.getSitemapChangeFrequency())
+        && !SitemapChangeFrequencyOptions.map.containsKey(webPageBean.getSitemapChangeFrequency())) {
+      errorMessages.append("Sitemap change frequency choice is unavailable");
+    }
+
+    // Solution type (issue #570) -- same validation shape as sitemap change frequency above: the
+    // admin form offers a fixed dropdown, so a non-blank value must be one of the real options
+    if (StringUtils.isNotBlank(webPageBean.getSolutionType())
+        && !SolutionTypeOptions.map.containsKey(webPageBean.getSolutionType())) {
+      errorMessages.append("Solution type choice is unavailable");
+    }
+
+    if (errorMessages.length() > 0) {
+      throw new DataException("Please check the form and try again:\n" + errorMessages.toString());
+    }
+
+    // Transform the fields and store...
+    WebPage webPage;
+    if (webPageBean.getId() > -1) {
+      LOG.debug("Saving an existing record... ");
+      webPage = WebPageRepository.findById(webPageBean.getId());
+      if (webPage == null) {
+        throw new DataException("The existing record could not be found");
+      }
+      // createdBy is set once, below, only for a genuinely new record -- an edit must not
+      // reassign the original creator to whoever happens to be editing it today
+    } else {
+      LOG.debug("Saving a new record... ");
+      webPage = new WebPage();
+      webPage.setCreatedBy(webPageBean.getCreatedBy());
+    }
+    webPage.setModifiedBy(webPageBean.getModifiedBy());
+    webPage.setLink(webPageBean.getLink());
+    webPage.setRedirectUrl(webPageBean.getRedirectUrl());
+    webPage.setTitle(webPageBean.getTitle());
+    webPage.setKeywords(webPageBean.getKeywords());
+    webPage.setDescription(webPageBean.getDescription());
+    webPage.setImageUrl(webPageBean.getImageUrl());
+    webPage.setComments(webPageBean.getComments());
+    webPage.setPageXml(webPageBean.getPageXml());
+    webPage.setSearchable(webPageBean.getSearchable());
+    webPage.setShowInSitemap(webPageBean.getShowInSitemap());
+    webPage.setDraft(webPageBean.getDraft());
+    webPage.setSitemapPriority(webPageBean.getSitemapPriority());
+    webPage.setSitemapChangeFrequency(webPageBean.getSitemapChangeFrequency());
+    webPage.setPublishAt(webPageBean.getPublishAt());
+    webPage.setExpiresAt(webPageBean.getExpiresAt());
+    webPage.setSolutionType(webPageBean.getSolutionType());
+    WebPage result = WebPageRepository.save(webPage);
+
+    if (result != null) {
+      // Check for events
+      boolean isNewWebPage = (webPageBean.getId() == -1 || webPageBean.getModified() == null);
+      boolean justUpdatedInTheLastDay = !isNewWebPage &&
+          webPage.getModified() != null &&
+          DateCommand.isHoursOld(webPage.getModified(), 10);
+      // Trigger events (the "just updated in the last day" debounce below is specific to the
+      // activity-feed workflow event, not cache correctness -- the AFD purge is deliberately NOT
+      // gated by it, since every save changes the live page and needs its cached response
+      // invalidated, whether or not this is the first save of the day)
+      if (isNewWebPage) {
+        WorkflowManager.triggerWorkflowForEvent(new WebPagePublishedEvent(result));
+        PublishEventCachePurgeHandler.onPagePublished(result);
+      } else {
+        if (justUpdatedInTheLastDay) {
+          WorkflowManager.triggerWorkflowForEvent(new WebPageUpdatedEvent(result));
+        }
+        PublishEventCachePurgeHandler.onPageUpdated(result);
+      }
+    }
+    return result;
+  }
+}

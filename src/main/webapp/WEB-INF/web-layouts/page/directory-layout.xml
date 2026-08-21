@@ -1,0 +1,99 @@
+<?xml version="1.0" ?>
+<pages>
+
+  <page name="/directory{/collectionUniqueId}" collectionUniqueId="/directory/*" class="full-page">
+    <section class="grid-x grid-margin-x platform-no-margin">
+      <column class="small-12 cell">
+        <widget name="content" class="text-center padding-10">
+          <html><![CDATA[
+<h1>${collection.name}</h1>
+<p>Make a selection for more information</p>
+]]></html>
+        </widget>
+      </column>
+    </section>
+    <section>
+      <column class="small-order-3 hide-for-small-only medium-order-1 small-3 medium-3 cell">
+        <widget name="categoriesList" class="callout secondary">
+          <title>Categories</title>
+          <collectionUniqueId>${collection.uniqueId}</collectionUniqueId>
+          <basedOnItems>true</basedOnItems>
+        </widget>
+        <widget name="itemsSearchForm" class="callout secondary">
+          <title>${collection.name}</title>
+          <icon>fa-search</icon>
+          <useLocation>true</useLocation>
+          <redirectTo>/directory/${collection.uniqueId}</redirectTo>
+        </widget>
+        <widget name="addItemButton" class="text-center">
+          <buttonName>Add an Item</buttonName>
+          <collectionUniqueId>${collection.uniqueId}</collectionUniqueId>
+        </widget>
+      </column>
+      <column class="small-order-1 medium-order-2 auto cell">
+        <widget name="itemsList">
+          <showWhenEmpty>true</showWhenEmpty>
+          <collectionUniqueId>${collection.uniqueId}</collectionUniqueId>
+<!--          <columns>3</columns>-->
+<!--          <limit>42</limit>-->
+        </widget>
+        <!--
+        <widget name="itemsList">
+          <view>cards</view>
+          <showCategory>true</showCategory>
+          <showImage>true</showImage>
+          <showIcon>true</showIcon>
+          <showLink>false</showLink>
+          <useItemLink>true</useItemLink>
+          <showWhenEmpty>true</showWhenEmpty>
+          <collectionUniqueId>${collection.uniqueId}</collectionUniqueId>
+          <smallGridCount>6</smallGridCount>
+          <mediumGridCount>6</mediumGridCount>
+          <largeGridCount>4</largeGridCount>
+        </widget>
+        -->
+      </column>
+    </section>
+  </page>
+
+  <page name="/add-an-item{?collectionUniqueId}" collectionUniqueId="?collectionUniqueId">
+    <section>
+      <column class="small-12 cell">
+        <widget name="addItemForm">
+          <title>Creating an item</title>
+          <collectionUniqueId>${collection.uniqueId}</collectionUniqueId>
+          <form>full</form>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+  <page name="/edit{/uniqueId}" itemUniqueId="/edit/*" title="Edit" role="admin,data-manager">
+    <section>
+      <column class="small-12 medium-9 small-order-2 medium-order-1 cell">
+        <widget name="editItemForm">
+          <title>Editing an item</title>
+          <uniqueId>${item.uniqueId}</uniqueId>
+        </widget>
+      </column>
+      <column class="small-12 medium-3 small-order-1 medium-order-2 cell">
+        <widget name="approveItemButton">
+          <title>Approve this listing</title>
+          <buttonClass>success expanded</buttonClass>
+          <uniqueId>${item.uniqueId}</uniqueId>
+        </widget>
+        <widget name="hideItemButton">
+          <title>Hide this listing</title>
+          <buttonClass>warning expanded</buttonClass>
+          <uniqueId>${item.uniqueId}</uniqueId>
+        </widget>
+        <widget name="deleteItemButton">
+          <buttonName>Delete this listing</buttonName>
+          <buttonClass>alert expanded</buttonClass>
+          <uniqueId>${item.uniqueId}</uniqueId>
+        </widget>
+      </column>
+    </section>
+  </page>
+
+</pages>

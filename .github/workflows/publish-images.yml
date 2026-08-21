@@ -1,0 +1,379 @@
+# Publishes J-CMS-owned container images to the SimIS container registry, so
+# deployments no longer depend on any individual's personal registry. Runs on
+# the built-in GITHUB_TOKEN -- no personal credentials are stored or used.
+#
+# The first publish has to be kicked off by hand (workflow_dispatch) to create
+# the packages; after that it runs on every push to main, each release, and
+# monthly on a schedule so the images pick up base-image security fixes.
+name: Publish container images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+  schedule:
+    # Monthly rebuild + re-scan so the published images adopt Debian security
+    # fixes as they ship, without waiting for a code push (06:00 UTC on the 1st).
+    - cron: '0 6 1 * *'
+
+# Default token: read-only. The write grants live at the job level below, so
+# any job added later starts from least privilege instead of inheriting writes.
+permissions:
+  contents: read
+
+# Serialize publishes: without this, two overlapping runs can race and an older
+# commit's build could finish last and win the :latest tag. Queue instead of
+# cancel so an in-flight publish is never interrupted mid-push.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  # ACR_REGISTRY is the full login-server hostname (e.g. jcms.azurecr.io).
+  # Set via a repository variable so the same workflow runs in forks without
+  # touching ACR. When the variable is absent the ACR steps are skipped.
+  ACR_REGISTRY: ${{ vars.ACR_LOGIN_SERVER }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read          # read the source to build from
+      packages: write         # publish to the SimIS container registry
+      security-events: write  # send image scan results to the Security tab
+      id-token: write         # keyless OIDC identity for build provenance
+      attestations: write     # record the signed provenance + SBOM attestations
+    steps:
+      # fetch-depth: 0 (full history) is required by the TruffleHog step below --
+      # the default shallow (depth-1) checkout only has the single commit being
+      # built, so "scans git history" would otherwise only ever see that one
+      # commit rather than genuinely scanning history for a leaked secret.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      # base/head are deliberately left unset for push/workflow_dispatch/schedule -- at
+      # scan time HEAD *is* the default branch (this workflow only runs against main),
+      # so an explicit base/head there pins them to the same commit and TruffleHog
+      # refuses to scan ("BASE and HEAD commits are the same"). Leaving them unset lets
+      # the action fall back to its own event-aware detection for those three triggers.
+      #
+      # That built-in detection has no case for the "release" event, though: its bundled
+      # script only branches on push/workflow_dispatch/schedule/pull_request, so on a
+      # release BASE/HEAD silently stay empty and it falls back to an unbounded, full
+      # git-history scan -- surfacing years-old, already-shipped content (vendored jar
+      # bytes, test fixture strings, checksum files) as "new" findings instead of just
+      # what changed since the prior release. The step below computes that explicitly.
+      - name: Determine the previous release tag for an incremental scan range
+        if: github.event_name == 'release'
+        id: scan-range
+        run: |
+          git fetch --tags --force --quiet
+          # 'v[0-9]*' (not 'v*.10000'): the project's own versioning convention
+          # bumps the decimal on a same-day re-release (e.g. v20260807.10001),
+          # so a glob anchored to ".10000" fails to match the *current* release
+          # tag against itself, silently empties PREV, and reintroduces the
+          # exact unbounded-scan problem this step exists to prevent. Confirmed
+          # by hand: v20260807.10001 hit this exact bug before this fix.
+          mapfile -t TAGS < <(git tag --list 'v[0-9]*' | sort -V)
+          CURRENT="${{ github.event.release.tag_name }}"
+          PREV=""
+          for i in "${!TAGS[@]}"; do
+            if [ "${TAGS[$i]}" = "$CURRENT" ] && [ "$i" -gt 0 ]; then
+              PREV="${TAGS[$((i-1))]}"
+            fi
+          done
+          echo "base=$PREV" >> "$GITHUB_OUTPUT"
+
+      # Secret scanning: detect hardcoded credentials (passwords, API keys, tokens)
+      # before they reach the image. TruffleHog scans git history and the checked-out
+      # code; a finding blocks the workflow to prevent secret leaks.
+      #
+      # --exclude-globs suppresses two confirmed false positives, verified by hand
+      # against the real content each one matches:
+      #   - lib/PROVENANCE.sha256: a manifest of vendored-jar checksums (dependency-drift.yml's
+      #     provenance check). Every line is a SHA-256 hash by design, which any
+      #     entropy/pattern-based scanner will always read as a plausible secret.
+      #   - tools/tests/test_check_xml_well_formed.py: one pytest function's name (an
+      #     underscore-joined description of a nested-glob web-template test case) is
+      #     misidentified by TruffleHog's "Lob" detector as a verified Lob API key --
+      #     there is no Lob integration anywhere in this codebase. Deliberately not
+      #     quoting the exact identifier here -- spelling it out would just make this
+      #     comment itself the next false-positive match.
+      - name: Scan for secrets in code and history
+        uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
+        with:
+          path: ./
+          base: ${{ steps.scan-range.outputs.base }}
+          # The action already runs with --fail internally; adding it again in
+          # extra_args trips its "flag 'fail' cannot be repeated" error.
+          extra_args: --json --exclude-globs=lib/PROVENANCE.sha256,tools/tests/test_check_xml_well_formed.py
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # docker/app/Dockerfile is runtime-only -- it copies target/j-cms.war
+      # into Tomcat -- so the .war must be built before the image.
+      - name: Package the web application
+        run: ant -noinput -buildfile build.xml -lib lib/war package
+
+      - name: Resolve the lowercase image prefix
+        run: echo "IMAGE_PREFIX=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
+      - name: Sign in to the registry
+        run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login "$REGISTRY" -u '${{ github.actor }}' --password-stdin
+
+      # Resolve the version tag used for ACR pushes: the release tag name on a
+      # release event (e.g. v1.2.3), the commit SHA for every other trigger.
+      # Stored in VERSION_TAG so both image push steps can reference it.
+      - name: Resolve image version tag
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "release" ]]; then
+            echo "VERSION_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+          else
+            echo "VERSION_TAG=$GITHUB_SHA" >> "$GITHUB_ENV"
+          fi
+
+      # Workload-identity federation: no client secret is stored anywhere.
+      # Requires a federated credential in Azure AD scoped to this repo and the
+      # 'publish' environment (or branch/tag, per the federation subject).
+      # The three identifiers are non-sensitive and live as repository variables.
+      # Skip when ACR_REGISTRY is not set (forks, local branches).
+      - name: Sign in to Azure (OIDC)
+        if: env.ACR_REGISTRY != ''
+        uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3.0.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign in to ACR
+        if: env.ACR_REGISTRY != ''
+        run: az acr login --name "$ACR_REGISTRY"
+
+      # Syft generates the per-image SBOMs below (the same tool sbom.yml uses for
+      # the WAR). Installed once here, before the images are built and scanned.
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610 # v0
+
+      # --- Application image (docker/app/Dockerfile, built from repo root) ---
+      - name: Build the application image
+        run: >-
+          docker build -f docker/app/Dockerfile
+          -t "$IMAGE_PREFIX/j-cms:latest"
+          -t "$IMAGE_PREFIX/j-cms:$GITHUB_SHA" .
+
+      - name: Scan the application image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE_PREFIX }}/j-cms:${{ github.sha }}
+          format: sarif
+          output: trivy-j-cms.sarif
+          severity: CRITICAL,HIGH
+          limit-severities-for-sarif: true
+          # --ignore-unfixed: report only actionable CVEs with available fixes.
+          # Reduces noise by filtering out will_not_fix findings (typically in base OS).
+          # The scan gate below enforces the zero-baseline on what remains.
+          args: --ignore-unfixed
+          # Report scan: always exit 0 so the SARIF below reaches the Security
+          # tab on every run. Enforcement is the separate gate step after the
+          # upload -- splitting them means a failing gate never costs visibility.
+          exit-code: '0'
+
+      - name: Publish the application scan results
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
+        with:
+          sarif_file: trivy-j-cms.sarif
+          category: image-j-cms
+
+      # Blocking gate: the application image's CRITICAL/HIGH baseline is zero,
+      # so any finding is new -- fail before the image is pushed, so a
+      # vulnerable image is never published. Runs after the SARIF upload and
+      # reuses the trivy binary the report scan's action installed on PATH.
+      - name: Enforce the application image scan gate
+        run: trivy image --scanners vuln --severity CRITICAL,HIGH --exit-code 1 "$IMAGE_PREFIX/j-cms:$GITHUB_SHA"
+
+      - name: Push the application image
+        run: |
+          docker push "$IMAGE_PREFIX/j-cms:latest"
+          docker push "$IMAGE_PREFIX/j-cms:$GITHUB_SHA"
+
+      # Mirror to ACR with a version tag (release tag or commit SHA) plus
+      # :latest. App Service follows :latest via its managed identity pull;
+      # the version tag lets a rollback pin to a known-good image without
+      # rebuilding. Skipped when ACR_REGISTRY is not set.
+      - name: Push the application image to ACR
+        if: env.ACR_REGISTRY != ''
+        run: |
+          docker tag "$IMAGE_PREFIX/j-cms:$GITHUB_SHA" "$ACR_REGISTRY/j-cms:$VERSION_TAG"
+          docker tag "$IMAGE_PREFIX/j-cms:$GITHUB_SHA" "$ACR_REGISTRY/j-cms:latest"
+          docker push "$ACR_REGISTRY/j-cms:$VERSION_TAG"
+          docker push "$ACR_REGISTRY/j-cms:latest"
+
+      # Signed build provenance: proves this exact image was built by this
+      # workflow, from this commit -- verifiable with `gh attestation verify`.
+      - name: Capture the application image digest
+        id: app_digest
+        run: |
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_PREFIX/j-cms:$GITHUB_SHA" | cut -d@ -f2)
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Attest the application image
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-name: ${{ env.IMAGE_PREFIX }}/j-cms
+          subject-digest: ${{ steps.app_digest.outputs.digest }}
+          push-to-registry: true
+
+      # Software Bill of Materials: enumerate what is actually inside the image
+      # -- base OS, JRE, and app layers. Provenance proves who built it; an SBOM
+      # says what is in it. Scans the just-built image, so the SBOM describes the
+      # same digest the attestation above is bound to. Purely additive -- the
+      # provenance step above is unchanged.
+      - name: Generate the CycloneDX SBOM for the application image
+        run: syft "$IMAGE_PREFIX/j-cms:$GITHUB_SHA" -o cyclonedx-json=sbom-j-cms.cdx.json
+
+      - name: Attest the application image SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        with:
+          subject-name: ${{ env.IMAGE_PREFIX }}/j-cms
+          subject-digest: ${{ steps.app_digest.outputs.digest }}
+          sbom-path: sbom-j-cms.cdx.json
+          push-to-registry: true
+
+      # --- Database image ---------------------------------------------------
+      # docker/db/Dockerfile references ./docker/db/init.sql, so it builds from
+      # the repository root (not the docker/db directory).
+      - name: Build the database image
+        run: >-
+          docker build -f docker/db/Dockerfile
+          -t "$IMAGE_PREFIX/j-cms-db:latest"
+          -t "$IMAGE_PREFIX/j-cms-db:$GITHUB_SHA" .
+
+      - name: Scan the database image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE_PREFIX }}/j-cms-db:${{ github.sha }}
+          format: sarif
+          output: trivy-j-cms-db.sarif
+          severity: CRITICAL,HIGH
+          limit-severities-for-sarif: true
+          # --ignore-unfixed: report only actionable CVEs with available fixes.
+          # The VEX + .trivyignore gate below handles triaged not_affected findings.
+          args: --ignore-unfixed
+          # Report scan, exit 0 -- same split as the application image above.
+          exit-code: '0'
+
+      - name: Publish the database scan results
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
+        with:
+          sarif_file: trivy-j-cms-db.sarif
+          category: image-j-cms-db
+
+      # The commit tag goes up first so the gate below can scan the registry
+      # artifact. :latest -- the tag deployments follow -- is pushed only after
+      # the gate passes, so a failing gate never advances what gets deployed.
+      - name: Push the database image commit tag
+        run: docker push "$IMAGE_PREFIX/j-cms-db:$GITHUB_SHA"
+
+      - name: Capture the database image digest
+        id: db_digest
+        run: |
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_PREFIX/j-cms-db:$GITHUB_SHA" | cut -d@ -f2)
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      # Blocking gate for the database image: the published OpenVEX suppresses
+      # the triaged Debian will-not-fix set (not_affected), and .trivyignore
+      # carries the under_investigation set with expiry dates -- so pending
+      # triage cannot be forgotten silently. Anything else (a new/unexpected
+      # CRITICAL/HIGH) fails the publish before :latest moves.
+      #
+      # The gate scans the pushed artifact BY REGISTRY DIGEST (--image-src
+      # remote): a locally built image has no repo digest on the runner's
+      # Docker engine, so Trivy cannot derive the pkg:oci purl the VEX products
+      # match against, and every VEX statement is silently inert -- verified by
+      # reproducing both conditions against trivy 0.70. Raw CLI because
+      # trivy-action v0.36.0 exposes no vex input. The VEX claims hold for the
+      # image as configured: enabling PL/Perl, postgis_raster, or xml-handling
+      # voids them (see the VEX impact statements).
+      - name: Enforce the database image scan gate
+        run: >-
+          trivy image --image-src remote --scanners vuln
+          --severity CRITICAL,HIGH --exit-code 1
+          --vex docker/db/vex/j-cms-db.openvex.json
+          --ignorefile docker/db/.trivyignore
+          "$IMAGE_PREFIX/j-cms-db@${{ steps.db_digest.outputs.digest }}"
+
+      - name: Publish the database image latest tag
+        run: docker push "$IMAGE_PREFIX/j-cms-db:latest"
+
+      # Same version-tag + :latest pattern as the application image above.
+      - name: Push the database image to ACR
+        if: env.ACR_REGISTRY != ''
+        run: |
+          docker tag "$IMAGE_PREFIX/j-cms-db:$GITHUB_SHA" "$ACR_REGISTRY/j-cms-db:$VERSION_TAG"
+          docker tag "$IMAGE_PREFIX/j-cms-db:$GITHUB_SHA" "$ACR_REGISTRY/j-cms-db:latest"
+          docker push "$ACR_REGISTRY/j-cms-db:$VERSION_TAG"
+          docker push "$ACR_REGISTRY/j-cms-db:latest"
+
+      - name: Attest the database image
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-name: ${{ env.IMAGE_PREFIX }}/j-cms-db
+          subject-digest: ${{ steps.db_digest.outputs.digest }}
+          push-to-registry: true
+
+      # SBOM for the database image -- the image whose base-OS layers carry the
+      # findings the application image does not, so enumerating its contents
+      # matters most here. Same additive pattern as the application image above.
+      - name: Generate the CycloneDX SBOM for the database image
+        run: syft "$IMAGE_PREFIX/j-cms-db:$GITHUB_SHA" -o cyclonedx-json=sbom-j-cms-db.cdx.json
+
+      - name: Attest the database image SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        with:
+          subject-name: ${{ env.IMAGE_PREFIX }}/j-cms-db
+          subject-digest: ${{ steps.db_digest.outputs.digest }}
+          sbom-path: sbom-j-cms-db.cdx.json
+          push-to-registry: true
+
+      # SBOM dependency scanning: check both generated SBOMs for known vulnerable
+      # packages. The SBOM enumerates what is actually in the images (base OS, JRE,
+      # app dependencies); this scan matches against known CVE databases. Auditable
+      # trail for compliance/audit: what versions are in the image and what known
+      # vulnerabilities exist. Uses Trivy's SBOM scanning mode for consistency with
+      # the image scanning gate above.
+      - name: Scan the application image SBOM for vulnerable packages
+        run: >-
+          trivy sbom --severity CRITICAL,HIGH --exit-code 0
+          sbom-j-cms.cdx.json
+
+      - name: Scan the database image SBOM for vulnerable packages
+        run: >-
+          trivy sbom --severity CRITICAL,HIGH --exit-code 0
+          sbom-j-cms-db.cdx.json
+
+      # Rolling deploy: zero-downtime update to Azure App Service using deployment slots.
+      # Triggered only on pushes to main (not on schedule). Requires:
+      #   - ACR_APP_SERVICE_NAME (repository variable): App Service instance name
+      #   - ACR_APP_RESOURCE_GROUP (repository variable): Azure resource group name
+      # If not set, the deploy is skipped (e.g., forks, pre-production branches).
+      - name: Deploy to Azure App Service (rolling update)
+        if: |
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          env.ACR_REGISTRY != '' &&
+          vars.ACR_APP_SERVICE_NAME != ''
+        run: |
+          bash tools/rolling-deploy.sh \
+            --resource-group "${{ vars.ACR_APP_RESOURCE_GROUP }}" \
+            --app-service-name "${{ vars.ACR_APP_SERVICE_NAME }}" \
+            --image-uri "${{ env.ACR_REGISTRY }}/j-cms:${{ env.VERSION_TAG }}" \
+            --health-check-timeout 300 \
+            --drain-timeout 60

@@ -1,0 +1,976 @@
+<%--
+  ~ Copyright 2022 SimIS Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  --%>
+<%@ page import="static com.simisinc.platform.ApplicationInfo.PRODUCT_NAME" %>
+<%@ page import="static com.simisinc.platform.ApplicationInfo.VERSION" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="font" uri="/WEB-INF/tlds/font-functions.tld" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="image" uri="/WEB-INF/tlds/image-functions.tld" %>
+<%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
+<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="masterWebPage" class="com.simisinc.platform.domain.model.cms.WebPage" scope="request"/>
+<jsp:useBean id="pageRenderInfo" class="com.simisinc.platform.presentation.controller.PageRenderInfo" scope="request"/>
+<jsp:useBean id="PageBody" class="java.lang.String" scope="request"/>
+<jsp:useBean id="systemPropertyMap" class="java.util.HashMap" scope="request"/>
+<jsp:useBean id="sitePropertyMap" class="java.util.HashMap" scope="request"/>
+<jsp:useBean id="themePropertyMap" class="java.util.HashMap" scope="request"/>
+<jsp:useBean id="analyticsPropertyMap" class="java.util.HashMap" scope="request"/>
+<jsp:useBean id="ecommercePropertyMap" class="java.util.HashMap" scope="request"/>
+<%-- Color scheme. The site property theme.ui.mode selects it:
+       light  forced light, and no toggle (the default, so an existing site is unchanged)
+       dark   forced dark, and no toggle
+       auto   follows the visitor's operating system setting, no toggle
+       user   follows the operating system, plus a toggle the visitor can override with
+     The value is mapped through a whitelist rather than written to the attribute directly, so
+     a malformed site property can never inject into the markup. --%>
+<c:set var="colorSchemeMode" value="${empty themePropertyMap['theme.ui.mode'] ? 'light' : themePropertyMap['theme.ui.mode']}" />
+<c:choose>
+  <c:when test="${colorSchemeMode eq 'dark'}"><c:set var="colorScheme" value="dark" /></c:when>
+  <c:when test="${colorSchemeMode eq 'auto' || colorSchemeMode eq 'user'}"><c:set var="colorScheme" value="auto" /></c:when>
+  <c:otherwise><c:set var="colorScheme" value="light" /></c:otherwise>
+</c:choose>
+<!doctype html>
+<html class="no-js" lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" data-theme="${colorScheme}">
+<head>
+  <meta charset="UTF-8" />
+  <c:if test="${colorSchemeMode eq 'user'}">
+    <%-- Applies a stored visitor preference before the first paint, so switching schemes does not
+         flash the other one. Rendered only when the site offers the toggle, so it can never
+         override an administrator who forced light or dark. Kept inline and tiny on purpose: an
+         external script would arrive too late. If script-src is ever tightened in PageServlet,
+         this needs a nonce. --%>
+    <script nonce="${cspNonce}">(function(){try{var s=window.localStorage.getItem('j-cms-color-scheme');if(s==='light'||s==='dark'){document.documentElement.setAttribute('data-theme',s);}}catch(e){}})();</script>
+  </c:if>
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Language" content="en">
+  <!--
+  ========================================================================
+  J-CMS
+  https://www.jcms.com
+  ========================================================================
+  -->
+<c:choose>
+  <c:when test="${!empty sitePropertyMap['site.header.line1'] || userSession.hasRole('admin')}">
+    <c:if test="${!empty themePropertyMap['theme.utilitybar.backgroundColor']}">
+      <meta name="theme-color" content="<c:out value="${themePropertyMap['theme.utilitybar.backgroundColor']}" />" media="(prefers-color-scheme: light)">
+      <meta name="theme-color" content="<c:out value="${themePropertyMap['theme.utilitybar.backgroundColor']}" />" media="(prefers-color-scheme: dark)">
+    </c:if>
+  </c:when>
+  <c:otherwise>
+    <c:if test="${!empty themePropertyMap['theme.topbar.backgroundColor']}">
+      <meta name="theme-color" content="<c:out value="${themePropertyMap['theme.topbar.backgroundColor']}" />" media="(prefers-color-scheme: light)">
+      <meta name="theme-color" content="<c:out value="${themePropertyMap['theme.topbar.backgroundColor']}" />" media="(prefers-color-scheme: dark)">
+    </c:if>
+  </c:otherwise>
+</c:choose>
+  <link rel="apple-touch-icon" type="image/png" href="${systemPropertyMap['system.www.context']}/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" id="favicon-link" href="${ctx}/images/favicon.png">
+  <%-- Prefers an admin-uploaded favicon at system.www.context when one actually loads; otherwise
+       stays on the bundled default above, so a fresh install (nothing uploaded yet) never 404s
+       on this request. A <link rel="icon">'s own load/error events are not reliably dispatched
+       across browsers, so existence is probed with an Image() object instead, whose events are. --%>
+  <script nonce="${cspNonce}">(function(){var u='${js:escape(systemPropertyMap['system.www.context'])}/images/favicon.png';var i=new Image();i.onload=function(){document.getElementById('favicon-link').href=u;};i.src=u;})();</script>
+  <c:choose>
+    <c:when test="${!empty pageRenderInfo.title}"><title><c:out value="${pageRenderInfo.title}"/> | <c:out value="${sitePropertyMap['site.name']}"/><c:if test="${!empty sitePropertyMap['site.name.keyword']}"> - <c:out value="${sitePropertyMap['site.name.keyword']}"/></c:if></title></c:when>
+    <c:when test="${!empty masterWebPage.title}"><title><c:out value="${masterWebPage.title}"/> | <c:out value="${sitePropertyMap['site.name']}"/><c:if test="${!empty sitePropertyMap['site.name.keyword']}"> - <c:out value="${sitePropertyMap['site.name.keyword']}"/></c:if></title></c:when>
+    <c:otherwise><title><c:out value="${sitePropertyMap['site.name']}"/><c:if test="${!empty sitePropertyMap['site.name.keyword']}"> - <c:out value="${sitePropertyMap['site.name.keyword']}"/></c:if></title></c:otherwise>
+  </c:choose>
+  <c:choose>
+    <c:when test="${!empty pageRenderInfo.keywords}"><meta name="keywords" content="<c:out value="${pageRenderInfo.keywords}"/>"></c:when>
+    <c:when test="${!empty masterWebPage.keywords}"><meta name="keywords" content="<c:out value="${masterWebPage.keywords}"/>"></c:when>
+    <c:otherwise><meta name="keywords" content="<c:out value="${sitePropertyMap['site.keywords']}"/>"></c:otherwise>
+  </c:choose>
+  <c:choose>
+    <c:when test="${!empty pageRenderInfo.description}"><meta name="description" content="<c:out value="${pageRenderInfo.description}"/>"></c:when>
+    <c:when test="${!empty masterWebPage.description}"><meta name="description" content="<c:out value="${masterWebPage.description}"/>"></c:when>
+    <c:otherwise><meta name="description" content="<c:out value="${sitePropertyMap['site.description']}"/>"></c:otherwise>
+  </c:choose>
+  <%-- Open Graph + Twitter Card metadata (issue #402). Title/description use the same
+       widget-provided -> web page -> site-default cascade as the <title>/description tags above,
+       instead of only checking pageRenderInfo directly -- otherwise any page without a widget that
+       explicitly sets a page title/description (i.e. most pages that aren't a blog post or similar)
+       got no og:title/og:description at all, even though the primary tags rendered fine. --%>
+  <c:choose>
+    <c:when test="${!empty pageRenderInfo.title}"><c:set var="socialTitle" value="${pageRenderInfo.title}"/></c:when>
+    <c:when test="${!empty masterWebPage.title}"><c:set var="socialTitle" value="${masterWebPage.title}"/></c:when>
+    <c:otherwise><c:set var="socialTitle" value="${sitePropertyMap['site.name']}"/></c:otherwise>
+  </c:choose>
+  <c:choose>
+    <c:when test="${!empty pageRenderInfo.description}"><c:set var="socialDescription" value="${pageRenderInfo.description}"/></c:when>
+    <c:when test="${!empty masterWebPage.description}"><c:set var="socialDescription" value="${masterWebPage.description}"/></c:when>
+    <c:otherwise><c:set var="socialDescription" value="${sitePropertyMap['site.description']}"/></c:otherwise>
+  </c:choose>
+  <c:if test="${!empty pageRenderInfo.pageType}">
+    <meta name="og:type" content="<c:out value="${pageRenderInfo.pageType}"/>" />
+  </c:if>
+  <c:if test="${!empty pageRenderInfo.pageUrl}">
+    <meta name="og:url" content="<c:out value="${pageRenderInfo.pageUrl}"/>" />
+  </c:if>
+  <c:if test="${!empty socialTitle}">
+    <meta name="og:title" content="<c:out value="${socialTitle}"/>" />
+  </c:if>
+  <c:if test="${!empty socialDescription}">
+    <meta name="og:description" content="<c:out value="${socialDescription}"/>" />
+  </c:if>
+  <c:choose>
+    <c:when test="${!empty pageRenderInfo.imageUrl && fn:startsWith(pageRenderInfo.imageUrl, '/')}">
+      <meta name="og:image" content="<c:out value="${sitePropertyMap['site.url']}"/><c:out value="${pageRenderInfo.imageUrl}"/>">
+    </c:when>
+    <c:when test="${!empty sitePropertyMap['site.image'] && fn:startsWith(sitePropertyMap['site.image'], '/')}">
+      <meta name="og:image" content="<c:out value="${sitePropertyMap['site.url']}"/><c:out value="${sitePropertyMap['site.image']}"/>">
+    </c:when>
+  </c:choose>
+  <c:if test="${!empty sitePropertyMap['site.name']}">
+    <meta name="og:site_name" content="<c:out value="${sitePropertyMap['site.name']}" />" />
+  </c:if>
+  <meta name="twitter:card" content="summary_large_image" />
+  <c:if test="${!empty socialTitle}">
+    <meta name="twitter:title" content="<c:out value="${socialTitle}"/>" />
+  </c:if>
+  <c:if test="${!empty socialDescription}">
+    <meta name="twitter:description" content="<c:out value="${socialDescription}"/>" />
+  </c:if>
+  <c:choose>
+    <c:when test="${!empty pageRenderInfo.imageUrl && fn:startsWith(pageRenderInfo.imageUrl, '/')}">
+      <meta name="twitter:image" content="<c:out value="${sitePropertyMap['site.url']}"/><c:out value="${pageRenderInfo.imageUrl}"/>" />
+    </c:when>
+    <c:when test="${!empty sitePropertyMap['site.image'] && fn:startsWith(sitePropertyMap['site.image'], '/')}">
+      <meta name="twitter:image" content="<c:out value="${sitePropertyMap['site.url']}"/><c:out value="${sitePropertyMap['site.image']}" />" />
+    </c:when>
+  </c:choose>
+  <c:if test="${!empty pageRenderInfo.canonicalUrl}">
+    <link rel="canonical" href="<c:out value="${pageRenderInfo.canonicalUrl}"/>" />
+  </c:if>
+  <%-- Issue #419: a draft preview link renders unreviewed content -- keep it out of search indexes --%>
+  <c:if test="${previewingDraft eq 'true'}">
+    <meta name="robots" content="noindex" />
+  </c:if>
+  <%-- JSON-LD structured data for search engines and AI (issue #403) --%>
+  <c:if test="${!empty pageRenderInfo.jsonLdData}">
+    <script type="application/ld+json"><c:out value="${pageRenderInfo.jsonLdData}" escapeXml="false" /></script>
+  </c:if>
+  <%-- CSS --%>
+    <c:if test="${!empty themePropertyMap['theme.fonts.body']}">
+      <link rel="stylesheet" href="${ctx}/css/google-fonts/<c:out value="${themePropertyMap['theme.fonts.body']}"/>.css">
+    </c:if>
+    <c:if test="${!empty themePropertyMap['theme.fonts.headlines'] && themePropertyMap['theme.fonts.headlines'] ne themePropertyMap['theme.fonts.body']}">
+      <link rel="stylesheet" href="${ctx}/css/google-fonts/<c:out value="${themePropertyMap['theme.fonts.headlines']}"/>.css">
+    </c:if>
+    <%-- The admin shell's sidebar/topbar/utility-bar chrome (platform.css) sets font-family: 'Inter'
+         unconditionally, regardless of the site's own theme.fonts.* choice -- so its @font-face has
+         to load unconditionally too. Skipped only when the theme already loaded it above. --%>
+    <c:if test="${themePropertyMap['theme.fonts.body'] ne 'inter' && themePropertyMap['theme.fonts.headlines'] ne 'inter'}">
+      <link rel="stylesheet" href="${ctx}/css/google-fonts/inter.css">
+    </c:if>
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/${font:fontawesome()}/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/${font:fontawesome()}/css/v4-shims.min.css" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/foundation-6.8.1/foundation.min.css" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/foundation-6.8.1/motion-ui.min.css" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/animate-3.7.2/animate.min.css" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/foundation-datepicker-20180424/foundation-datepicker.min.css" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/javascript/autocomplete-1.0.7/auto-complete.css" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/javascript/swiper-12.1.2/swiper-bundle.min.css" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/platform.css" />
+    <%-- Design tokens and dark scheme. Loaded after platform.css so it can repaint chrome, and
+         before the theme's inline <style> block so a site's own colors still win. --%>
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/platform-tokens.css" />
+  <c:if test="${!empty themePropertyMap}">
+      <style><%-- Prevent top-bar flicker --%>
+        :root {
+          <c:if test="${!empty themePropertyMap['theme.body.text.color']}">--sc-body-text-color:<c:out value="${themePropertyMap['theme.body.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.body.backgroundColor']}">--sc-body-background-color:<c:out value="${themePropertyMap['theme.body.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.link.color']}">--sc-link-color:<c:out value="${themePropertyMap['theme.link.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.text.color']}">--sc-button-text-color:<c:out value="${themePropertyMap['theme.button.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.default.backgroundColor']}">--sc-button-default-background-color:<c:out value="${themePropertyMap['theme.button.default.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.default.hoverBackgroundColor']}">--sc-button-default-hover-background-color:<c:out value="${themePropertyMap['theme.button.default.hoverBackgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.primary.backgroundColor']}">--sc-button-primary-background-color:<c:out value="${themePropertyMap['theme.button.primary.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.primary.hoverBackgroundColor']}">--sc-button-primary-hover-background-color:<c:out value="${themePropertyMap['theme.button.primary.hoverBackgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.secondary.backgroundColor']}">--sc-button-secondary-background-color:<c:out value="${themePropertyMap['theme.button.secondary.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.secondary.hoverBackgroundColor']}">--sc-button-secondary-hover-background-color:<c:out value="${themePropertyMap['theme.button.secondary.hoverBackgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.success.backgroundColor']}">--sc-button-success-background-color:<c:out value="${themePropertyMap['theme.button.success.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.success.hoverBackgroundColor']}">--sc-button-success-hover-background-color:<c:out value="${themePropertyMap['theme.button.success.hoverBackgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.warning.backgroundColor']}">--sc-button-warning-background-color:<c:out value="${themePropertyMap['theme.button.warning.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.warning.hoverBackgroundColor']}">--sc-button-warning-hover-background-color:<c:out value="${themePropertyMap['theme.button.warning.hoverBackgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.alert.backgroundColor']}">--sc-button-alert-background-color:<c:out value="${themePropertyMap['theme.button.alert.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.button.alert.hoverBackgroundColor']}">--sc-button-alert-hover-background-color:<c:out value="${themePropertyMap['theme.button.alert.hoverBackgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.backgroundColor']}">--sc-callout-background-color:<c:out value="${themePropertyMap['theme.callout.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.text.color']}">--sc-callout-text-color:<c:out value="${themePropertyMap['theme.callout.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.primary.backgroundColor']}">--sc-callout-primary-background-color:<c:out value="${themePropertyMap['theme.callout.primary.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.primary.text.color']}">--sc-callout-primary-text-color:<c:out value="${themePropertyMap['theme.callout.primary.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.secondary.backgroundColor']}">--sc-callout-secondary-background-color:<c:out value="${themePropertyMap['theme.callout.secondary.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.secondary.text.color']}">--sc-callout-secondary-text-color:<c:out value="${themePropertyMap['theme.callout.secondary.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.success.backgroundColor']}">--sc-callout-success-background-color:<c:out value="${themePropertyMap['theme.callout.success.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.success.text.color']}">--sc-callout-success-text-color:<c:out value="${themePropertyMap['theme.callout.success.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.warning.backgroundColor']}">--sc-callout-warning-background-color:<c:out value="${themePropertyMap['theme.callout.warning.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.warning.text.color']}">--sc-callout-warning-text-color:<c:out value="${themePropertyMap['theme.callout.warning.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.alert.backgroundColor']}">--sc-callout-alert-background-color:<c:out value="${themePropertyMap['theme.callout.alert.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.callout.alert.text.color']}">--sc-callout-alert-text-color:<c:out value="${themePropertyMap['theme.callout.alert.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.footer.backgroundColor']}">--sc-footer-background-color:<c:out value="${themePropertyMap['theme.footer.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.footer.text.color']}">--sc-footer-text-color:<c:out value="${themePropertyMap['theme.footer.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.utilitybar.text.color']}">--sc-utilitybar-text-color:<c:out value="${themePropertyMap['theme.utilitybar.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.utilitybar.link.color']}">--sc-utilitybar-link-color:<c:out value="${themePropertyMap['theme.utilitybar.link.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.utilitybar.backgroundColor']}">--sc-utilitybar-background-color:<c:out value="${themePropertyMap['theme.utilitybar.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.text.color']}">--sc-topbar-text-color:<c:out value="${themePropertyMap['theme.topbar.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.backgroundColor']}">--sc-topbar-background-color:<c:out value="${themePropertyMap['theme.topbar.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.menu.text.color']}">--sc-topbar-menu-text-color:<c:out value="${themePropertyMap['theme.topbar.menu.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.menu.arrow.color']}">--sc-topbar-menu-arrow-color:<c:out value="${themePropertyMap['theme.topbar.menu.arrow.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.menu.text.hoverBackgroundColor']}">--sc-topbar-menu-text-hover-background-color:<c:out value="${themePropertyMap['theme.topbar.menu.text.hoverBackgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.menu.hoverTextColor']}">--sc-topbar-menu-hover-text-color:<c:out value="${themePropertyMap['theme.topbar.menu.hoverTextColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.menu.dropdown.backgroundColor']}">--sc-topbar-menu-dropdown-background-color:<c:out value="${themePropertyMap['theme.topbar.menu.dropdown.backgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.menu.dropdown.text.color']}">--sc-topbar-menu-dropdown-text-color:<c:out value="${themePropertyMap['theme.topbar.menu.dropdown.text.color']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.menu.activeBackgroundColor']}">--sc-topbar-menu-active-background-color:<c:out value="${themePropertyMap['theme.topbar.menu.activeBackgroundColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.topbar.menu.activeTextColor']}">--sc-topbar-menu-active-text-color:<c:out value="${themePropertyMap['theme.topbar.menu.activeTextColor']}" />;</c:if>
+          <c:if test="${!empty themePropertyMap['theme.footer.links.color']}">--sc-footer-links-color:<c:out value="${themePropertyMap['theme.footer.links.color']}" />;</c:if>
+        }
+        .no-js .top-bar { display: none; }
+        @media screen and (min-width: 40em) {
+          .no-js .top-bar { display: block; }
+          .no-js .title-bar { display: none; }
+        }
+        <c:if test="${!empty themePropertyMap['theme.fonts.body']}">
+          <c:choose>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'abel'}">body { font-family: 'Abel', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'bakbak-one'}">body { font-family: 'Bakbak One', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'inter'}">body { font-family: 'Inter', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'lato'}">body { font-family: 'Lato', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'libre-baskerville'}">body { font-family: 'Libre Baskerville', serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'muli'}">body { font-family: 'Muli', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'open-sans'}">body { font-family: 'Open Sans', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'oswald'}">body { font-family: 'Oswald', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'oxygen'}">body { font-family: 'Oxygen', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'poppins'}">body { font-family: 'Poppins', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'questrial'}">body { font-family: 'Questrial', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'rubik'}">body { font-family: 'Rubik', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.body'] eq 'source-sans-pro'}">body { font-family: 'Source Sans Pro', sans-serif;font-weight: 400; }</c:when>
+          </c:choose>
+        </c:if>
+        <c:if test="${!empty themePropertyMap['theme.fonts.headlines']}">
+          <c:choose>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'abel'}">h1, h2, h3, h4, h5, h6 { font-family: 'Abel', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'bakbak-one'}">h1, h2, h3, h4, h5, h6 { font-family: 'Bakbak One', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'inter'}">h1, h2, h3, h4, h5, h6 { font-family: 'Inter', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'lato'}">h1, h2, h3, h4, h5, h6 { font-family: 'Lato', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'libre-baskerville'}">h1, h2, h3, h4, h5, h6 { font-family: 'Libre Baskerville', serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'muli'}">h1, h2, h3, h4, h5, h6 { font-family: 'Muli', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'open-sans'}">h1, h2, h3, h4, h5, h6 { font-family: 'Open Sans', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'oswald'}">h1, h2, h3, h4, h5, h6 { font-family: 'Oswald', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'oxygen'}">h1, h2, h3, h4, h5, h6 { font-family: 'Oxygen', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'poppins'}">h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif;font-weight: 500; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'questrial'}">h1, h2, h3, h4, h5, h6 { font-family: 'Questrial', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'rubik'}">h1, h2, h3, h4, h5, h6 { font-family: 'Rubik', sans-serif;font-weight: 400; }</c:when>
+            <c:when test="${themePropertyMap['theme.fonts.headlines'] eq 'source-sans-pro'}">h1, h2, h3, h4, h5, h6 { font-family: 'Source Sans Pro', sans-serif;font-weight: 400; }</c:when>
+          </c:choose>
+        </c:if>
+        <c:if test="${!empty themePropertyMap['theme.body.text.color']}">body{color:var(--sc-body-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.body.backgroundColor']}">body{background-color:var(--sc-body-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.link.color']}">a{color:var(--sc-link-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.text.color']}">.button{color:var(--sc-button-text-color) !important}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.default.backgroundColor']}">.button{background-color:var(--sc-button-default-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.default.hoverBackgroundColor']}">.button:hover, .button:focus{background-color:var(--sc-button-default-hover-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.primary.backgroundColor']}">.button.primary{background-color:var(--sc-button-primary-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.primary.hoverBackgroundColor']}">.button.primary:hover, .button.primary:focus, #platform-menu ul.menu li a.button.primary:hover{background-color:var(--sc-button-primary-hover-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.secondary.backgroundColor']}">.button.secondary{background-color:var(--sc-button-secondary-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.secondary.hoverBackgroundColor']}">.button.secondary:hover, .button.secondary:focus, #platform-menu ul.menu li a.button.secondary:hover{background-color:var(--sc-button-secondary-hover-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.success.backgroundColor']}">.button.success{background-color:var(--sc-button-success-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.success.hoverBackgroundColor']}">.button.success:hover, .button.success:focus{background-color:var(--sc-button-success-hover-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.warning.backgroundColor']}">.button.warning{background-color:var(--sc-button-warning-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.warning.hoverBackgroundColor']}">.button.warning:hover, .button.warning:focus{background-color:var(--sc-button-warning-hover-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.alert.backgroundColor']}">.button.alert{background-color:var(--sc-button-alert-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.button.alert.hoverBackgroundColor']}">.button.alert:hover, .button.alert:focus{background-color:var(--sc-button-alert-hover-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.backgroundColor']}">.callout{background-color:var(--sc-callout-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.text.color']}">.callout,.callout label{color:var(--sc-callout-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.primary.backgroundColor']}">.callout.primary{background-color:var(--sc-callout-primary-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.primary.text.color']}">.callout.primary,.callout.primary label{color:var(--sc-callout-primary-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.secondary.backgroundColor']}">.callout.secondary{background-color:var(--sc-callout-secondary-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.secondary.text.color']}">.callout.secondary,.callout.secondary label{color:var(--sc-callout-secondary-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.success.backgroundColor']}">.callout.success{background-color:var(--sc-callout-success-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.success.text.color']}">.callout.success,.callout.success label{color:var(--sc-callout-success-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.warning.backgroundColor']}">.callout.warning{background-color:var(--sc-callout-warning-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.warning.text.color']}">.callout.warning,.callout.warning label{color:var(--sc-callout-warning-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.alert.backgroundColor']}">.callout.alert{background-color:var(--sc-callout-alert-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.callout.alert.text.color']}">.callout.alert,.callout.alert label{color:var(--sc-callout-alert-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.footer.backgroundColor']}">.platform-footer{background-color:var(--sc-footer-background-color)}.platform-footer .fa-inverse{color:var(--sc-footer-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.footer.text.color']}">.platform-footer,.platform-footer p{color:var(--sc-footer-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.utilitybar.text.color']}">#platform-menu .utility-bar{color:var(--sc-utilitybar-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.utilitybar.link.color']}">#platform-menu .utility-bar a, #platform-menu .utility-bar button.button i.fa{color:var(--sc-utilitybar-link-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.utilitybar.backgroundColor']}">#platform-menu .utility-bar{background-color:var(--sc-utilitybar-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.text.color']}">#platform-menu, #platform-menu .menu-text, #platform-menu .menu-text a,#platform-menu .menu-text a:hover{color:var(--sc-topbar-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.backgroundColor']}">#platform-menu,#platform-small-menu,#platform-small-menu .title-bar,#platform-small-toggle-menu .drilldown a{background-color:var(--sc-topbar-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.backgroundColor']}">.callout.header{background-color:var(--sc-topbar-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.text.color']}">#platform-menu ul.menu li a,#platform-small-menu ul.menu li a,#platform-small-menu .title-bar-title{color:var(--sc-topbar-menu-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.text.color']}">.callout.header, #platform-menu button.button i.fa{color:var(--sc-topbar-menu-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.arrow.color']}">.dropdown.menu>li.is-dropdown-submenu-parent>a::after{border-color:var(--sc-topbar-menu-arrow-color) transparent transparent}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.text.hoverBackgroundColor']}">#platform-menu ul.menu li a:hover,#platform-menu .is-active{background-color:var(--sc-topbar-menu-text-hover-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.hoverTextColor']}">#platform-menu ul.menu li > a:hover,#platform-menu ul.menu li.is-active > a,#platform-menu .is-active .is-dropdown-submenu-item a:hover{color:var(--sc-topbar-menu-hover-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.hoverTextColor']}">#platform-menu button.button i.fa:hover{color:var(--sc-topbar-menu-hover-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.dropdown.backgroundColor']}">#platform-menu ul.is-dropdown-submenu li.is-dropdown-submenu-item{background-color:var(--sc-topbar-menu-dropdown-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.dropdown.text.color']}">#platform-menu ul.is-dropdown-submenu li.is-dropdown-submenu-item a{color:var(--sc-topbar-menu-dropdown-text-color);}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.activeBackgroundColor']}">#platform-menu ul.menu .active > a{background-color:var(--sc-topbar-menu-active-background-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.topbar.menu.activeTextColor']}">#platform-menu ul.menu .active > a{color:var(--sc-topbar-menu-active-text-color)}</c:if>
+        <c:if test="${!empty themePropertyMap['theme.footer.links.color']}">.platform-footer a{color:var(--sc-footer-links-color)}</c:if>
+        #site-newsletter-overlay, #site-promo-overlay {
+          position: fixed;
+          bottom: 0;
+          right: 0;
+          padding: 32px 30px 70px 30px;
+          z-index: 10;
+          color: <c:out value="${sitePropertyMap['site.newsletter.color']}" />;
+          background-color: <c:out value="${sitePropertyMap['site.newsletter.backgroundColor']}" />;
+          border: 1px solid #dbdbdb;
+        }
+        #site-newsletter-overlay h4, #site-newsletter-overlay p, #site-promo-overlay h4, #site-promo-overlay p {
+          color: <c:out value="${sitePropertyMap['site.newsletter.color']}" />;
+          font-weight: bolder;
+        }
+        #site-newsletter-overlay {
+          display: none;
+        }
+      </style>
+  </c:if>
+  <c:if test="${!empty includeGlobalStylesheet}">
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/custom/stylesheet.css?v=${includeGlobalStylesheetLastModified}" />
+  </c:if>
+  <c:if test="${!empty includeStylesheet}">
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/custom/stylesheet${includeStylesheet}.css?v=${includeStylesheetLastModified}" />
+  </c:if>
+  <c:if test="${pageEditMode eq 'true'}">
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/platform-editor.css?v=<%= VERSION %>" />
+    <link rel="stylesheet" type="text/css" href="${ctx}/css/quill-2.0.3-snow.css" />
+  </c:if>
+  <c:if test="${!empty pageCollection}">
+    <style>
+        <c:choose>
+          <c:when test="${!empty pageCollectionCategory && !empty pageCollectionCategory.headerBgColor && !empty pageCollectionCategory.headerTextColor}">
+            .item-menu.menu-bar,.item-menu.title-bar{background-color:<c:out value="${pageCollectionCategory.headerBgColor}" />}
+            .item-menu.menu-bar, .item-menu.menu-bar .menu-text, .item-menu.menu-bar .collection-name, .item-menu.menu-bar i {color:<c:out value="${pageCollectionCategory.headerTextColor}" />}
+          </c:when>
+          <c:when test="${!empty pageCollection.headerBgColor && !empty pageCollection.headerTextColor}">
+            .item-menu.menu-bar,.item-menu.title-bar{background-color:<c:out value="${pageCollection.headerBgColor}" />}
+            .item-menu.menu-bar, .item-menu.menu-bar .menu-text, .item-menu.menu-bar .collection-name, .item-menu.menu-bar i {color:<c:out value="${pageCollection.headerTextColor}" />}
+          </c:when>
+        </c:choose>
+        <c:if test="${!empty pageCollection.menuTextColor}">.item-menu.menu-bar div > ul > li > a {color:<c:out value="${pageCollection.menuTextColor}" />}</c:if>
+        <c:if test="${!empty pageCollection.menuBgColor}">.item-menu.menu-bar div > ul > li > a {background-color:<c:out value="${pageCollection.menuBgColor}" />}</c:if>
+        <c:if test="${!empty pageCollection.menuBorderColor}">.item-menu.menu-bar div > ul > li > a {border:1px solid <c:out value="${pageCollection.menuBorderColor}" />}</c:if>
+        <c:if test="${!empty pageCollection.menuActiveTextColor}">.item-menu.menu-bar div > ul > li.is-selected > a {color:<c:out value="${pageCollection.menuActiveTextColor}" />}</c:if>
+        <c:if test="${!empty pageCollection.menuActiveBgColor}">.item-menu.menu-bar div > ul > li.is-selected > a {background-color:<c:out value="${pageCollection.menuActiveBgColor}" />}</c:if>
+        <c:if test="${!empty pageCollection.menuActiveBorderColor}">.item-menu.menu-bar div > ul > li.is-selected > a {border:1px solid <c:out value="${pageCollection.menuActiveBorderColor}" />}</c:if>
+        <c:if test="${!empty pageCollection.menuHoverTextColor}">.item-menu.menu-bar div > ul > li > a:hover, .item-menu.menu-bar .dropdown.menu > li.is-active > a {color:<c:out value="${pageCollection.menuHoverTextColor}" />}</c:if>
+        <c:if test="${!empty pageCollection.menuHoverBgColor}">.item-menu.menu-bar div > ul > li > a:hover, .item-menu.menu-bar .dropdown.menu > li.is-active > a {background-color:<c:out value="${pageCollection.menuHoverBgColor}" />}</c:if>
+        <c:if test="${!empty pageCollection.menuHoverBorderColor}">.item-menu.menu-bar div > ul > li > a:hover, .item-menu.menu-bar .dropdown.menu > li.is-active > a {border:1px solid <c:out value="${pageCollection.menuHoverBorderColor}" />}</c:if>
+    </style>
+  </c:if>
+  <%-- Javascript before content--%>
+  <c:if test="${!fn:startsWith(pageRenderInfo.name, '/admin') && !fn:startsWith(pageRenderInfo.name, '/content-editor')}">
+    <c:if test="${!empty analyticsPropertyMap['analytics.google.tagmanager'] && fn:startsWith(analyticsPropertyMap['analytics.google.tagmanager'], 'GTM-')}">
+      <script nonce="${cspNonce}">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','${js:escape(analyticsPropertyMap['analytics.google.tagmanager'])}');</script>
+    </c:if>
+  </c:if>
+    <script src="${ctx}/javascript/jquery-3.7.1/jquery.min.js"></script>
+    <script src="${ctx}/javascript/foundation-datepicker-20180424/foundation-datepicker.min.js"></script>
+    <script src="${ctx}/javascript/autocomplete-1.0.7/auto-complete.js"></script>
+    <script src="${ctx}/javascript/js-cookie-3.0.5/js.cookie.min.js"></script>
+    <script src="${ctx}/javascript/swiper-12.1.2/swiper-bundle.min.js"></script>
+    <c:if test="${colorSchemeMode eq 'user'}">
+      <script src="${ctx}/javascript/platform-theme.js"></script>
+    </c:if>
+  <style>
+    .platform-skip-link { position: absolute; left: -9999px; top: -9999px; z-index: 9999; }
+    .platform-skip-link:focus { left: 0; top: 0; background: #fff; color: #000; padding: 0.5rem 1rem; text-decoration: none; border: 2px solid #000; }
+    .platform-preview-draft-banner { background: #fef6e0; color: #7a5c00; border-bottom: 1px solid #f0d98c; padding: 0.5rem 1rem; text-align: center; font-size: 0.9rem; }
+  </style>
+</head>
+<c:set var="bodyClass" value="${pageRenderInfo.cssClass}"/>
+<c:if test="${pageEditMode eq 'true'}">
+  <c:choose>
+    <c:when test="${!empty pageRenderInfo.cssClass}"><c:set var="bodyClass" value="${pageRenderInfo.cssClass} page-edit-mode"/></c:when>
+    <c:otherwise><c:set var="bodyClass" value="page-edit-mode"/></c:otherwise>
+  </c:choose>
+</c:if>
+<body<c:if test="${pageRenderInfo.name eq '/'}"> id="body-home"</c:if><c:if test="${!empty bodyClass}"> class="<c:out value="${bodyClass}" />"</c:if>>
+  <!-- Skip link for keyboard navigation (WCAG 2.4.1) -->
+  <a href="#main" class="platform-skip-link">Skip to main content</a>
+  <c:if test="${previewingDraft eq 'true'}">
+    <div class="platform-preview-draft-banner"><i class="${font:far()} fa-eye fa-fw"></i> You are previewing an unpublished draft. This page is not visible to the public.</div>
+  </c:if>
+  <c:if test="${pageEditMode eq 'true'}">
+    <div id="sc-editor-toolbar" role="toolbar" aria-label="Page editor"
+         data-page-path="<c:out value="${pageRenderInfo.pagePath}"/>"
+         data-ctx="${ctx}"
+         data-layout-mode="<c:out value="${pageLayoutMode}"/>"
+         data-has-draft="<c:out value="${hasDraft}"/>"
+         data-widget-names="<c:out value="${widgetLibraryJson}"/>">
+      <span id="sc-editor-toolbar-title">Visual Editor</span>
+      <a href="${ctx}/admin/web-page-designer?webPage=<c:out value="${pageRenderInfo.pagePath}"/>" class="button small hollow secondary"><i class="fa fa-fw fa-code"></i> XML</a>
+      <button type="button" id="sc-editor-media-library" class="button small hollow secondary"><i class="fa fa-fw fa-image"></i> Media Library</button>
+      <a href="?editMode=false" id="sc-editor-exit" class="button small hollow secondary"><i class="fa fa-fw fa-times"></i> Exit</a>
+      <span id="sc-editor-status" aria-live="polite"></span>
+    </div>
+  </c:if>
+  <c:choose>
+    <c:when test="${fn:startsWith(pageRenderInfo.name, '/admin') && pageRenderInfo.name ne '/admin/web-page' && pageRenderInfo.name ne '/admin/web-page-designer' && pageRenderInfo.name ne '/admin/web-container-designer' && pageRenderInfo.name ne '/admin/css-editor'}">
+      <%-- Draw the admin menu--%>
+      <div class="off-canvas-wrapper">
+        <div class="off-canvas position-left reveal-for-medium admin-menu hide-for-print" style="z-index: 1005 !important; padding-bottom: 50px" id="offCanvas" data-off-canvas>
+          <div class="app-title">
+            <c:out value="<%= PRODUCT_NAME %>"/><br />
+            <small>v<c:out value="<%= VERSION %>"/></small>
+          </div>
+          <div class="app-user">
+            <i class="${font:far()} fa-user fa-fw"></i>
+            <c:out value="${userSession.user.fullName}"/>
+          </div>
+          <nav aria-label="Admin navigation">
+          <%-- Admin Link --%>
+          <ul class="vertical menu">
+            <li class="section-title">Admin</li>
+            <li<c:if test="${pageRenderInfo.name eq '/admin'}"> class="is-active"</c:if>><a href="${ctx}/admin"><i class="${font:far()} fa-home fa-fw"></i> <span>Welcome</span></a></li>
+            <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/documentation')}"> class="is-active"</c:if>><a href="${ctx}/admin/documentation/wiki/Home"><i class="${font:far()} fa-book fa-fw"></i> <span>Documentation</span></a></li>
+            <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/activity')}"> class="is-active"</c:if>><a href="${ctx}/admin/activity"><i class="${font:far()} fa-exchange-alt fa-fw"></i> <span>Activity</span></a></li>
+            <c:if test="${userSession.hasRole('admin')}">
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/health-dashboard')}"> class="is-active"</c:if>><a href="${ctx}/admin/health-dashboard"><i class="${font:far()} fa-heart-pulse fa-fw"></i> <span>System Health</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/job-queue-dashboard')}"> class="is-active"</c:if>><a href="${ctx}/admin/job-queue-dashboard"><i class="${font:far()} fa-list-check fa-fw"></i> <span>Job Queue</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/database-maintenance')}"> class="is-active"</c:if>><a href="${ctx}/admin/database-maintenance"><i class="${font:far()} fa-database fa-fw"></i> <span>Database Maintenance</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/cache-management')}"> class="is-active"</c:if>><a href="${ctx}/admin/cache-management"><i class="${font:far()} fa-bolt fa-fw"></i> <span>Cache Management</span></a></li>
+            </c:if>
+          </ul>
+          <%-- Community menu --%>
+          <%-- Issue #733's follow-up: broadened so a user reachable only via the users:manage
+               capability (no legacy role) can discover the Users/User Groups links, not just hit
+               their URLs directly. The rest of this section's links have nothing to do with
+               users:manage, so they stay nested behind the original role-only check below. --%>
+          <c:if test="${userSession.hasRole('admin') || userSession.hasRole('community-manager') || userSession.hasPermission('users:manage')}">
+            <ul class="vertical menu">
+              <li class="section-title">Community</li>
+              <c:if test="${userSession.hasRole('admin') || userSession.hasRole('community-manager')}">
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/community/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/community/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/community/search-analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/community/search-analytics"><i class="${font:far()} fa-search fa-fw"></i> <span>Search Analytics</span></a></li>
+                <c:if test="${userSession.hasRole('admin')}">
+                  <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-vitals')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-vitals"><i class="${font:far()} fa-tachometer-alt fa-fw"></i> <span>Web Vitals</span></a></li>
+                </c:if>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/forms')}"> class="is-active"</c:if>><a href="${ctx}/admin/forms"><i class="${font:far()} fa-file-lines fa-fw"></i> <span>Form Builder</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/form-')}"> class="is-active"</c:if>><a href="${ctx}/admin/form-data"><i class="${font:far()} fa-list-alt fa-fw"></i> <span>Form Data</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mailing-list') && !fn:startsWith(pageRenderInfo.name, '/admin/mailing-list-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mailing-lists"><i class="${font:far()} fa-envelope fa-fw"></i> <span>Mailing Lists</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/newsletter-send')}"> class="is-active"</c:if>><a href="${ctx}/admin/newsletter-send"><i class="${font:far()} fa-paper-plane fa-fw"></i> <span>Send Newsletter</span></a></li>
+              </c:if>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/user') || fn:startsWith(pageRenderInfo.name, '/admin/modify-user') || fn:startsWith(pageRenderInfo.name, '/admin/unsuspend-requests')}"> class="is-active"</c:if>><a href="${ctx}/admin/users"><i class="${font:far()} fa-user-circle fa-fw"></i> <span>Users</span></a></li>
+              <c:if test="${userSession.hasRole('admin') || userSession.hasPermission('users:manage')}">
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/group')}"> class="is-active"</c:if>><a href="${ctx}/admin/groups"><i class="${font:far()} fa-users fa-fw"></i> <span>User Groups</span></a></li>
+              </c:if>
+              <%-- Editorial Calendar (issue #426) is authorized for community-manager too (see
+                   EditorialCalendarAjax's role set and admin-layout.xml), but the Content menu
+                   section below is gated to admin/content-manager only. Duplicate just this one
+                   link here, guarded so admin/content-manager users -- who already see it in the
+                   Content section -- don't see it twice. --%>
+              <c:if test="${(userSession.hasRole('admin') || userSession.hasRole('community-manager')) && !userSession.hasRole('admin') && !userSession.hasRole('content-manager')}">
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/editorial-calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/editorial-calendar"><i class="${font:far()} fa-calendar-check fa-fw"></i> <span>Editorial Calendar</span></a></li>
+              </c:if>
+            </ul>
+          </c:if>
+          <%-- Content menu --%>
+          <c:if test="${userSession.hasRole('admin') || userSession.hasRole('content-manager')}">
+            <ul class="vertical menu">
+              <li class="section-title">Content</li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/content/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/content/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sitemap')}"> class="is-active"</c:if>><a href="${ctx}/admin/sitemap"><i class="${font:far()} fa-sitemap fa-fw"></i> <span>Navigation Menu</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-page')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-pages"><i class="${font:far()} fa-sticky-note fa-fw"></i> <span>Web Pages</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-redirect')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-redirects"><i class="${font:far()} fa-exchange-alt fa-fw"></i> <span>Web Redirects</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/image')}"> class="is-active"</c:if>><a href="${ctx}/admin/images"><i class="${font:far()} fa-image fa-fw"></i> <span>Images</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/content-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/content-list"><i class="${font:far()} fa-th fa-fw"></i> <span>Content</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/blog')}"> class="is-active"</c:if>><a href="${ctx}/admin/blogs"><i class="${font:far()} fa-quote-right fa-fw"></i> <span>Blogs</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/calendars"><i class="${font:far()} fa-calendar fa-fw"></i> <span>Calendars</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/editorial-calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/editorial-calendar"><i class="${font:far()} fa-calendar-check fa-fw"></i> <span>Editorial Calendar</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/folder')}"> class="is-active"</c:if>><a href="${ctx}/admin/folders"><i class="${font:far()} fa-copy fa-fw"></i> <span>Files &amp; Folders</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/wiki')}"> class="is-active"</c:if>><a href="${ctx}/admin/wikis"><i class="${font:far()} fa-file fa-fw"></i> <span>Wikis</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/useful-links')}"> class="is-active"</c:if>><a href="${ctx}/admin/useful-links"><i class="${font:far()} fa-list-alt fa-fw"></i> <span>Useful Links</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sticky-footer-links')}"> class="is-active"</c:if>><a href="${ctx}/admin/sticky-footer-links"><i class="${font:far()} fa-flag fa-fw"></i> <span>Sticky Page Buttons</span></a></li>
+            </ul>
+          </c:if>
+          <%-- Data menu --%>
+          <c:if test="${userSession.hasRole('admin') || userSession.hasRole('data-manager')}">
+            <ul class="vertical menu">
+              <li class="section-title">Data</li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/collection')}"> class="is-active"</c:if>><a href="${ctx}/admin/collections"><i class="${font:far()} fa-database fa-fw"></i> <span>Collections</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/dataset')}"> class="is-active"</c:if>><a href="${ctx}/admin/datasets"><i class="${font:far()} fa-table fa-fw"></i> <span>Datasets</span></a></li>
+            </ul>
+          </c:if>
+          <%-- E-Commerce menu (if enabled if settings) --%>
+          <c:if test="${!empty ecommercePropertyMap['ecommerce.enabled'] && ecommercePropertyMap['ecommerce.enabled'] eq 'true'}">
+            <c:if test="${userSession.hasRole('admin') || userSession.hasRole('ecommerce-manager')}">
+              <ul class="vertical menu">
+                <li class="section-title">E-Commerce</li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/e-commerce/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/e-commerce/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/order')}"> class="is-active"</c:if>><a href="${ctx}/admin/orders"><i class="${font:far()} fa-receipt fa-fw"></i> <span>Orders</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/customer')}"> class="is-active"</c:if>><a href="${ctx}/admin/customers"><i class="${font:far()} fa-address-book fa-fw"></i> <span>Customers</span></a></li>
+                <li<c:if test="${pageRenderInfo.name eq '/admin/products' || pageRenderInfo.name eq '/admin/product'}"> class="is-active"</c:if>><a href="${ctx}/admin/products"><i class="${font:far()} fa-dolly fa-fw"></i> <span>Products</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/product-categor')}"> class="is-active"</c:if>><a href="${ctx}/admin/product-categories"><i class="${font:far()} fa-border-all fa-fw"></i> <span>Categories</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/pricing-rule')}"> class="is-active"</c:if>><a href="${ctx}/admin/pricing-rules"><i class="${font:far()} fa-tags fa-fw"></i> <span>Pricing Rules</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sales-tax-nexus')}"> class="is-active"</c:if>><a href="${ctx}/admin/sales-tax-nexus"><i class="${font:far()} fa-balance-scale fa-fw"></i> <span>Sales Tax Nexus</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/shipping-rates')}"> class="is-active"</c:if>><a href="${ctx}/admin/shipping-rates"><i class="${font:far()} fa-shipping-fast fa-fw"></i> <span>Shipping Rates</span></a></li>
+              </ul>
+            </c:if>
+          </c:if>
+          <%-- API, Apps, etc. --%>
+          <c:if test="${userSession.hasRole('admin') || userSession.hasPermission('admin:manage')}">
+            <ul class="vertical menu">
+              <li class="section-title">Access</li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/api')}"> class="is-active"</c:if>><a href="${ctx}/admin/apis"><i class="${font:far()} fa-paper-plane fa-fw"></i> <span>APIs</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/app')}"> class="is-active"</c:if>><a href="${ctx}/admin/apps"><i class="${font:far()} fa-mobile fa-fw"></i> <span>Apps</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/blocked-ip-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/blocked-ip-list"><i class="${font:far()} fa-shield-halved fa-fw"></i> <span>Blocked IPs</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/allowed-ip-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/allowed-ip-list"><i class="${font:far()} fa-shield fa-fw"></i> <span>Allowed IPs</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/bot-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/bot-list"><i class="${font:far()} fa-robot fa-fw"></i> <span>Bot User Agents</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/role-capabilities')}"> class="is-active"</c:if>><a href="${ctx}/admin/role-capabilities"><i class="${font:far()} fa-user-lock fa-fw"></i> <span>Role Capabilities</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/audit-log')}"> class="is-active"</c:if>><a href="${ctx}/admin/audit-log"><i class="${font:far()} fa-clipboard-list fa-fw"></i> <span>Audit Log</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/analytics-retention')}"> class="is-active"</c:if>><a href="${ctx}/admin/analytics-retention"><i class="${font:far()} fa-trash-can fa-fw"></i> <span>Analytics Retention</span></a></li>
+            </ul>
+          </c:if>
+          <%-- SEO and AI Visibility menu --%>
+          <c:if test="${userSession.hasRole('admin')}">
+            <ul class="vertical menu">
+              <li class="section-title">SEO &amp; AI</li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/seo-overview')}"> class="is-active"</c:if>><a href="${ctx}/admin/seo-overview"><i class="${font:far()} fa-magnifying-glass-chart fa-fw"></i> <span>SEO &amp; AI Visibility</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/seo-sitemap')}"> class="is-active"</c:if>><a href="${ctx}/admin/seo-sitemap"><i class="${font:far()} fa-map fa-fw"></i> <span>SEO Sitemap</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/llms')}"> class="is-active"</c:if>><a href="${ctx}/admin/llms-properties"><i class="${font:far()} fa-file-lines fa-fw"></i> <span>LLM/AI Visibility (llms.txt)</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/robots')}"> class="is-active"</c:if>><a href="${ctx}/admin/robots-properties"><i class="${font:far()} fa-robot fa-fw"></i> <span>Robots &amp; Crawlers</span></a></li>
+            </ul>
+          </c:if>
+          <%-- Settings menu --%>
+          <c:if test="${userSession.hasRole('admin')}">
+            <ul class="vertical menu">
+              <li class="section-title">Settings</li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/theme')}"> class="is-active"</c:if>><a href="${ctx}/admin/theme-properties"><i class="${font:far()} fa-palette fa-fw"></i> <span>Theme</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/site-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/site-properties"><i class="${font:far()} fa-rocket fa-fw"></i> <span>Site Settings</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mfa')}"> class="is-active"</c:if>><a href="${ctx}/admin/mfa-properties"><i class="${font:far()} fa-lock fa-fw"></i> <span>MFA Settings</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/social')}"> class="is-active"</c:if>><a href="${ctx}/admin/social-media-settings"><i class="${font:far()} fa-thumbs-up fa-fw"></i> <span>Social Media</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/configure-analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/configure-analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics Settings</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/captcha')}"> class="is-active"</c:if>><a href="${ctx}/admin/captcha-properties"><i class="${font:far()} fa-key fa-fw"></i> <span>Captcha Settings</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/security-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/security-properties"><i class="${font:far()} fa-shield fa-fw"></i> <span>Security</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/feature-flags')}"> class="is-active"</c:if>><a href="${ctx}/admin/feature-flags"><i class="${font:far()} fa-flag fa-fw"></i> <span>Feature Flags</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/bi')}"> class="is-active"</c:if>><a href="${ctx}/admin/bi-properties"><i class="${font:far()} fa-table-columns fa-fw"></i> <span>BI Settings</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/webhook')}"> class="is-active"</c:if>><a href="${ctx}/admin/webhooks"><i class="${font:far()} fa-plug fa-fw"></i> <span>Webhooks</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/integrations')}"> class="is-active"</c:if>><a href="${ctx}/admin/integrations"><i class="${font:far()} fa-puzzle-piece fa-fw"></i> <span>Integrations</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/ecommerce')}"> class="is-active"</c:if>><a href="${ctx}/admin/ecommerce-properties"><i class="${font:far()} fa-shopping-cart fa-fw"></i> <span>E-commerce Settings</span></a></li>
+              <li<c:if test="${pageRenderInfo.name eq '/admin/elearning-properties'}"> class="is-active"</c:if>><a href="${ctx}/admin/elearning-properties"><i class="${font:far()} fa-chalkboard-teacher fa-fw"></i> <span>E-learning Settings</span></a></li>
+              <li<c:if test="${pageRenderInfo.name eq '/admin/elearning-statements'}"> class="is-active"</c:if>><a href="${ctx}/admin/elearning-statements"><i class="${font:far()} fa-list fa-fw"></i> <span>xAPI Statements</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mail-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mail-properties"><i class="${font:far()} fa-cogs fa-fw"></i> <span>Email Settings</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mailing-list-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mailing-list-properties"><i class="${font:far()} fa-envelope fa-fw"></i> <span>Mailing List Settings</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/maps')}"> class="is-active"</c:if>><a href="${ctx}/admin/maps-properties"><i class="${font:far()} fa-map fa-fw"></i> <span>Maps Settings</span></a></li>
+              <%--<li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/email-templates')}"> class="is-active"</c:if>><a href="${ctx}/admin/email-templates"><i class="${font:far()} fa-file-text fa-fw"></i> <span>Email Templates</span></a></li>--%>
+            </ul>
+          </c:if>
+          </nav>
+        </div>
+        <div class="off-canvas-content" data-off-canvas-content>
+          <div class="title-bar hide-for-medium" aria-label="Admin navigation">
+            <button class="menu-icon" type="button" data-toggle="offCanvas" aria-label="Open admin menu"></button>
+            <div class="title-bar-title">Admin Menu</div>
+          </div>
+          <div class="web-content admin-web-content">
+            <c:if test="${!empty pageRenderInfo.title}">
+              <h1 class="show-for-sr"><c:out value="${pageRenderInfo.title}"/></h1>
+            </c:if>
+            <jsp:include page="${PageBody}" flush="true"/>
+          </div>
+        </div>
+      </div>
+    </c:when>
+    <c:otherwise>
+      <%-- Draw a regular page --%>
+      <c:if test="${!fn:startsWith(pageRenderInfo.name, '/content-editor')}">
+        <c:if test="${!empty analyticsPropertyMap['analytics.google.tagmanager'] && fn:startsWith(analyticsPropertyMap['analytics.google.tagmanager'], 'GTM-') && (analyticsPropertyMap['analytics.consentRequired'] ne 'true' or cookie['analytics-consent'].value eq 'accepted')}">
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${js:escape(analyticsPropertyMap['analytics.google.tagmanager'])}"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        </c:if>
+      </c:if>
+      <div class="web-content">
+        <jsp:include page="${PageBody}" flush="true"/>
+      </div>
+      <c:if test="${!empty sitePropertyMap['site.confirmation'] && sitePropertyMap['site.confirmation'] eq 'true'}">
+        <div id="site-confirmation" class="reveal full" data-reveal data-close-on-esc="false" data-close-on-click="false" data-animation-out="fade-out fast" role="dialog" aria-modal="true" aria-label="Site Confirmation">
+          <div style="position:absolute; top: 50%; left: 50%; transform: translateY(-50%) translateX(-50%)">
+            <div class="modal-prompt">
+              <p>
+                <c:choose>
+                  <c:when test="${!empty sitePropertyMap['site.logo']}">
+                    <c:set var="modalLogoSrcset" value="${image:srcset(sitePropertyMap['site.logo'])}"/>
+                    <img alt="Logo" style="max-width: 75%" src="<c:out value="${sitePropertyMap['site.logo']}"/>"
+                      <c:if test="${not empty modalLogoSrcset}"> srcset="<c:out value="${modalLogoSrcset}"/>" sizes="200px"</c:if>
+                      loading="eager" decoding="async" />
+                  </c:when>
+                  <c:otherwise>
+                    <c:out value="${sitePropertyMap['site.name']}"/>
+                  </c:otherwise>
+                </c:choose>
+              </p>
+              <p>
+                <c:if test="${!empty sitePropertyMap['site.confirmation.line1']}">
+                  <c:out value="${sitePropertyMap['site.confirmation.line1']}" />
+                </c:if>
+                <c:if test="${!empty sitePropertyMap['site.confirmation.line2']}">
+                  <br /><c:out value="${sitePropertyMap['site.confirmation.line2']}" />
+                </c:if>
+              </p>
+              <p>
+                <button id="site-confirmation-yes" class="button secondary">Yes</button>
+                <span style="display:inline-block; vertical-align: middle; height:40px;">or</span>
+                <button id="site-confirmation-no" class="button secondary">No</button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </c:if>
+      <c:choose>
+        <c:when test="${!empty requestPricingRule.promoCode}">
+          <div id="site-promo-overlay" class="animated slideInUp faster delay-1s hide-for-print">
+            <button id="site-promo-close-button" class="close-button" type="button" aria-label="Close">
+              <span aria-hidden="true"><i class="${font:fal()} fa-circle-xmark"></i></span>
+            </button>
+            <h4>Thanks for visiting!</h4>
+            <p>We've added a promo code for use on your next purchase</p>
+          </div>
+        </c:when>
+        <c:when test="${!empty requestOverlayHeadline}">
+          <div id="site-newsletter-overlay" class="animated slideInUp faster delay-3s hide-for-print">
+            <button id="site-newsletter-close-button" class="close-button" type="button" aria-label="Close">
+              <span aria-hidden="true"><i class="${font:fal()} fa-circle-xmark"></i></span>
+            </button>
+            <h4><c:out value="${requestOverlayHeadline}" /></h4>
+            <p><c:out value="${requestOverlayMessage}" /></p>
+              <%-- Form Content --%>
+            <form method="get" onsubmit="return platformNewsletterOverlaySignUp()">
+              <div class="input-group">
+                <input class="input-group-field" type="text" id="platformOverlayEmail" name="email" placeholder="name@example.com" required>
+                <div class="input-group-button">
+                  <button type="submit" class="button small">Sign Up</button>
+                </div>
+              </div>
+              <p class="help-text" id="platformOverlayEmailHelpText"></p>
+            </form>
+          </div>
+        </c:when>
+      </c:choose>
+      <c:if test="${!empty footerStickyLinks && !fn:startsWith(pageRenderInfo.name, '/admin') && !fn:startsWith(pageRenderInfo.name, '/content-editor')}">
+        <style>
+          #site-sticky-footer {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            text-align: right;
+            padding-right: 30px;
+            z-index: 4;
+          }
+          .site-sticky-footer-button {
+            margin: 0 10px -12px 0;
+            padding: 24px 20px 30px 20px;
+          }
+        </style>
+        <div id="site-sticky-footer" class="animated slideInUp faster delay-1s hide-for-print">
+        <c:forEach items="${footerStickyLinks.entries}" var="link">
+          <c:choose>
+            <%-- Exact match, not a prefix match -- pageRenderInfo.name is the canonical page path
+                 with no query string (PageServlet sets it from getRequestURI(), which never
+                 includes one). A prefix check here previously hid a button on any page whose path
+                 merely started with the same string as its target (e.g. a link to "/contact" also
+                 vanishing on "/contact-us"), and hid a "/" (Home) button on every single page,
+                 since every page path starts with "/". --%>
+            <c:when test="${pageRenderInfo.name eq link.link}">
+
+            </c:when>
+            <c:when test="${fn:startsWith(link.link, 'http://') || fn:startsWith(link.link, 'https://')}">
+              <a class="button secondary site-sticky-footer-button" href="<c:out value="${link.link}"/>" target="_blank"><c:out value="${link.name}"/></a>
+            </c:when>
+            <c:otherwise>
+              <a class="button secondary site-sticky-footer-button" href="<c:out value="${ctx}${link.link}"/>"><c:out value="${link.name}"/></a>
+            </c:otherwise>
+          </c:choose>
+        </c:forEach>
+        </div>
+      </c:if>
+    </c:otherwise>
+  </c:choose>
+  <%-- Javascript after content--%>
+  <script nonce="${cspNonce}">
+    var mainToken = '${userSession.formToken}';
+  </script>
+    <script src="${ctx}/javascript/foundation-6.8.1/what-input-5.2.6.min.js"></script>
+    <script src="${ctx}/javascript/foundation-6.8.1/foundation.min.js"></script>
+    <script nonce="${cspNonce}">
+      $(document).foundation();
+      <%-- Foundation's Nest.Feather (foundation.util.nest.js) unconditionally tags every
+           dropdown-menu/drilldown submenu <ul> with role="menubar" -- the same role as the
+           top-level menu bar. role="menubar" is not an allowed owned element of role="menubar",
+           so nested submenus fail WAI-ARIA's required-owned-elements check for their parent
+           menubar. There is no Foundation option to change this; correct it after init. --%>
+      $('[data-submenu]').attr('role', 'menu');
+      <%--
+      $('.card-profile-stats-more-link').click(function(e){
+        e.preventDefault();
+        if ( $(".card-profile-stats-more-content").is(':hidden') ) {
+          $('.card-profile-stats-more-link').find('i').removeClass('fa-angle-down').addClass('fa-angle-up');
+        } else {
+          $('.card-profile-stats-more-link').find('i').removeClass('fa-angle-up').addClass('fa-angle-down');
+        }
+        $(this).next('.card-profile-stats-more-content').slideToggle();
+      });
+      --%>
+      <c:if test="${!empty sitePropertyMap['site.confirmation'] && sitePropertyMap['site.confirmation'] eq 'true'}">
+        var siteConfirmationCookie = 'site-confirmation';
+        var foundSiteConfirmation = Cookies.get(siteConfirmationCookie);
+        if (foundSiteConfirmation !== undefined) {
+          Cookies.set(siteConfirmationCookie, 'valid', { expires: 30 });
+        } else {
+          var siteConfirmation = $('#site-confirmation');
+          siteConfirmation.foundation('open');
+          siteConfirmation.on('closed.zf.reveal', function () {
+            Cookies.set(siteConfirmationCookie, 'valid', { expires: 30 });
+          });
+          var siteConfirmationYes = $('#site-confirmation-yes');
+          siteConfirmationYes.on('click', function () {
+            siteConfirmation.foundation('close');
+          });
+          var siteConfirmationNo = $('#site-confirmation-no');
+          siteConfirmationNo.on('click', function () {
+            alert('${js:escape(sitePropertyMap['site.confirmation.declined.text'])}');
+          });
+        }
+      </c:if>
+      <c:if test="${!empty requestOverlayHeadline}">
+        <%-- Site Newsletter cookies and functions --%>
+        var siteNewsletterCookie = 'site-newsletter';
+        function validateEmail(email) {
+          var re = /\S+@\S+\.\S+/;
+          return re.test(email);
+        }
+        function platformNewsletterOverlaySignUp() {
+          var email = document.getElementById("platformOverlayEmail").value;
+          if (email === undefined || email.length === 0) {
+            document.getElementById('platformOverlayEmailHelpText').innerHTML = "Please enter your email address";
+            return false;
+          }
+          if (!validateEmail(email)) {
+            document.getElementById('platformOverlayEmailHelpText').innerHTML = "Please re-enter your email address using a proper format.";
+            return false;
+          }
+          $.getJSON("${ctx}/json/emailSubscribe?token=" + mainToken + "&email=" + encodeURIComponent(email), function(data) {
+            if (data.status === undefined || data.status !== '0') {
+              document.getElementById('platformOverlayEmailHelpText').innerHTML = "Please re-enter your email address using a proper format.";
+              return false;
+            }
+            document.getElementById('platformOverlayEmailHelpText').innerHTML = "Thanks for signing up for <c:out value="${js:escape(sitePropertyMap['site.name'])}"/> emails";
+            Cookies.set(siteNewsletterCookie, 'valid', { expires: 90 });
+          });
+          return false;
+        }
+      </c:if>
+      $(document).ready(function() {
+        <%-- // Elements can animate when they are visible on screen --%>
+        function isScrolledIntoView(elem) {
+          var docViewTop = $(window).scrollTop();
+          var docViewBottom = docViewTop + $(window).height();
+          var elemTop = $(elem).offset().top;
+          var elemBottom = elemTop + $(elem).height();
+          return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        }
+        $(window).scroll(function() {
+          $('.animated').each(function() {
+            if (isScrolledIntoView(this) === true) {
+              if ($(this).hasClass("doFadeIn")) {
+                $(this).addClass('fadeIn');
+              } else if ($(this).hasClass("doFadeInLeft")) {
+                $(this).addClass('fadeInLeft');
+              } else if ($(this).hasClass("doFadeInRight")) {
+                $(this).addClass('fadeInRight');
+              } else if ($(this).hasClass("doFadeInRightBig")) {
+                $(this).addClass('fadeInRightBig');
+              } else if ($(this).hasClass("doFadeInUp")) {
+                $(this).addClass('myFadeInUp');
+              } else if ($(this).hasClass("doFadeInDown")) {
+                $(this).addClass('fadeInDown');
+              } else if ($(this).hasClass("doSlideInLeft")) {
+                $(this).addClass('slideInLeft');
+              } else if ($(this).hasClass("doSlideInRight")) {
+                $(this).addClass('slideInRight');
+              } else if ($(this).hasClass("doSlideInUp")) {
+                $(this).addClass('slideInUp');
+              } else if ($(this).hasClass("doSlideInDown")) {
+                $(this).addClass('slideInDown');
+              }
+            }
+          });
+        });
+        <%-- Preserve admin sidebar scroll position across page navigations (issue #508) --%>
+        var OFFCANVAS_SCROLL_KEY = 'j-cms-admin-menu-scroll';
+        var $offCanvas = $('#offCanvas');
+
+        // Restore scroll position on page load
+        if ($offCanvas.length > 0) {
+          var savedScroll = sessionStorage.getItem(OFFCANVAS_SCROLL_KEY);
+          if (savedScroll !== null) {
+            $offCanvas.scrollTop(parseInt(savedScroll, 10));
+          }
+
+          // Save scroll position when clicking menu links
+          $(document).on('click', '#offCanvas a', function() {
+            sessionStorage.setItem(OFFCANVAS_SCROLL_KEY, $offCanvas.scrollTop());
+          });
+        }
+        <%-- // Add a smooth scroll for anchors --%>
+        $(document).on('click', 'a[href^="#"]', function (event) {
+          event.preventDefault();
+          <%-- Bare href="#" links (e.g. admin action icons using onclick="return confirmPostAction(...)")
+               have no target to scroll to; $("#") throws a jQuery selector syntax error --%>
+          var hash = $.attr(this, 'href');
+          if (!hash || hash === '#') {
+            return;
+          }
+          if ($("#platform-small-menu").is(":visible")) {
+            $('html, body').animate({
+              scrollTop: $(hash).offset().top - $("#platform-small-menu").height() - 20
+            }, 500);
+          } else {
+            $('html, body').animate({
+              scrollTop: $(hash).offset().top - $("#platform-menu").height() - 20
+            }, 500);
+          }
+        });
+        <c:if test="${!empty requestPricingRule.promoCode}">
+        var sitePromoOverlay = $('#site-promo-overlay');
+          var sitePromoCloseButton = $('#site-promo-close-button');
+          sitePromoCloseButton.on('click', function () {
+            sitePromoOverlay.removeClass("slideInUp delay-1s");
+            sitePromoOverlay.addClass("slideOutDown");
+          });
+        </c:if>
+        <c:if test="${!empty requestOverlayHeadline}">
+          <%-- Site newsletter close button --%>
+          var siteNewsletterOverlay = $('#site-newsletter-overlay');
+          var siteNewsletterCloseButton = $('#site-newsletter-close-button');
+          siteNewsletterCloseButton.on('click', function () {
+            siteNewsletterOverlay.removeClass("slideInUp delay-3s");
+            siteNewsletterOverlay.addClass("slideOutDown");
+            if (siteNewsletterCookie) {
+              Cookies.set(siteNewsletterCookie, 'valid', {expires: 30});
+            }
+          });
+          if (siteNewsletterCookie) {
+            var foundSiteNewsletterOverlay = Cookies.get(siteNewsletterCookie);
+            if (foundSiteNewsletterOverlay !== undefined) {
+              Cookies.set(siteNewsletterCookie, 'valid', {expires: 30});
+            } else {
+              siteNewsletterOverlay.show();
+            }
+          }
+        </c:if>
+        <%-- Detect hash and scroll to link with adjustment for menu --%>
+        var hash = $(window.location.hash);
+        if (hash && hash.offset()) {
+          var header = $("div#platform-menu");
+          var headerHeight = 10;
+          if (header) {
+              headerHeight += header.height();
+          }
+          $('html,body').animate({
+              scrollTop: hash.offset().top-headerHeight
+          }, 0);
+        }
+        $(document).on('submit', 'form', function() {
+          $(this).find('[data-disable-on-submit]').each(function() {
+            var btn = $(this);
+            btn.prop('disabled', true);
+            var loadingText = btn.data('disable-on-submit');
+            if (btn.is('input')) { btn.val(loadingText); } else { btn.text(loadingText); }
+          });
+        });
+      });
+      function postAction(url) {
+        var parser = document.createElement('a');
+        parser.href = url;
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = parser.pathname;
+        new URLSearchParams(parser.search).forEach(function(value, key) {
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+      }
+      function confirmPostAction(message, url) {
+        if (confirm(message)) { postAction(url); }
+        return false;
+      }
+    </script>
+  <%-- Only actually suppresses tracking-script injection when analytics.honorDnt is on (default
+       off) -- previously this ignored that property entirely, so a DNT-sending visitor always had
+       GA4/GTM/SimpliFi/Brand CDN suppressed even when the admin left "Honor Do-Not-Track / Global
+       Privacy Control?" off, the opposite of what server-side recording (DoNotTrackCommand) does
+       with the same property. --%>
+  <c:set var="doNotTrack" value="${'true' eq analyticsPropertyMap['analytics.honorDnt'] && (header['DNT'] eq '1' || header['Sec-GPC'] eq '1')}"/>
+  <c:if test="${!fn:startsWith(pageRenderInfo.name, '/admin') && !doNotTrack && (analyticsPropertyMap['analytics.consentRequired'] ne 'true' or cookie['analytics-consent'].value eq 'accepted')}">
+    <c:if test="${!empty analyticsPropertyMap['analytics.service'] && 'google' eq analyticsPropertyMap['analytics.service'] && !empty analyticsPropertyMap['analytics.google.key']}">
+      <script async src="https://www.googletagmanager.com/gtag/js?id=${js:escape(analyticsPropertyMap['analytics.google.key'])}" nonce="${cspNonce}"></script>
+      <script nonce="${cspNonce}">
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '${js:escape(analyticsPropertyMap['analytics.google.key'])}');
+      </script>
+    </c:if>
+    <c:if test="${!empty analyticsPropertyMap['analytics.simplifi.value']}">
+      <script async src='https://tag.simpli.fi/sifitag/${js:escape(analyticsPropertyMap['analytics.simplifi.value'])}' nonce="${cspNonce}"></script>
+    </c:if>
+    <c:if test="${!empty analyticsPropertyMap['analytics.brandcdn.value'] && !empty analyticsPropertyMap['analytics.brandcdn.value2']}">
+      <script type="text/javascript" src="//tag.brandcdn.com/autoscript/${js:escape(analyticsPropertyMap['analytics.brandcdn.value'])}/${js:escape(analyticsPropertyMap['analytics.brandcdn.value2'])}" nonce="${cspNonce}"></script>
+    </c:if>
+    <script src="${ctx}/javascript/web-vitals-collector.js?v=<%= VERSION %>" nonce="${cspNonce}"></script>
+  </c:if>
+  <c:if test="${analyticsPropertyMap['analytics.consentRequired'] eq 'true' and cookie['analytics-consent'].value ne 'accepted' and cookie['analytics-consent'].value ne 'declined'}">
+    <div id="analytics-consent-banner" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#1a1a1a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span style="flex:1;min-width:200px;">This site uses analytics to understand how visitors use it.</span>
+      <button id="analytics-consent-accept" class="button small success" style="margin:0;">Accept</button>
+      <button id="analytics-consent-decline" class="button small secondary" style="margin:0;">Decline</button>
+    </div>
+    <script nonce="${cspNonce}">
+      var analyticsConsentAccept = document.getElementById('analytics-consent-accept');
+      if (analyticsConsentAccept) {
+        analyticsConsentAccept.addEventListener('click', function() {
+          Cookies.set('analytics-consent', 'accepted', { expires: 365 });
+          window.location.reload();
+        });
+        document.getElementById('analytics-consent-decline').addEventListener('click', function() {
+          Cookies.set('analytics-consent', 'declined', { expires: 365 });
+          document.getElementById('analytics-consent-banner').style.display = 'none';
+        });
+      }
+    </script>
+  </c:if>
+  <c:if test="${pageEditMode eq 'true'}">
+    <script src="${ctx}/javascript/quill-2.0.3/quill.js"></script>
+    <script src="${ctx}/javascript/platform-editor.js?v=<%= VERSION %>"></script>
+    <%@include file="visual-editor/media-library-panel.jsp" %>
+  </c:if>
+</body>
+</html>

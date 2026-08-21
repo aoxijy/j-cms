@@ -1,0 +1,65 @@
+<?xml version="1.0" ?>
+<!--
+  ~ Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<services>
+  <service method="post" endpoint="session" class="com.simisinc.platform.rest.services.session.SessionService" />
+  <!--<service endpoint="register" class="com.simisinc.platform.presentation.rest.register.RegisterService" />-->
+  <service method="get" endpoint="me" class="com.simisinc.platform.rest.services.userProfile.MeService" />
+  <!-- ContentService also implements post(), for POST /content/{contentUniqueId} (issue #412 PR2).
+       Not listed as its own <service method="post" .../> row: RestServlet dispatches purely by
+       reflecting for a method named after the HTTP verb on whichever class this endpoint maps to,
+       so the "method" attribute here is informational only, not read by the dispatcher. Keep this
+       comment free of a doubled hyphen; see PR #939 for why that already broke this exact file
+       once. -->
+  <service method="get" endpoint="content/{contentUniqueId}" class="com.simisinc.platform.rest.services.cms.ContentService" />
+  <service method="get" endpoint="collections" class="com.simisinc.platform.rest.services.items.CollectionListService" />
+  <service method="get" endpoint="categories/{collectionUniqueId}" class="com.simisinc.platform.rest.services.items.CategoryListService" />
+  <service method="get" endpoint="items/{collectionUniqueId}?category=${categoryUniqueId}&amp;query=value" class="com.simisinc.platform.rest.services.items.ItemListService" />
+  <service method="get" endpoint="item/{itemUniqueId}" class="com.simisinc.platform.rest.services.items.ItemService" />
+  <!--
+  audit-log?category=&eventType=&outcome=&actor=&sourceIp=&targetType=&targetLabel=&range=&fromDate=&toDate=&page=&size=
+  NOTE: XMLServiceLoader only strips a query string when it follows a "/{pathParam}" segment (see
+  addServices()); a plain endpoint like this one must NOT have "?..." appended to the endpoint
+  attribute itself, or the literal query string becomes part of the registered lookup key and the
+  route silently 404s. Keep this comment free of two consecutive hyphens: that sequence inside an
+  XML comment fails Tomcat's strict parser at deploy time, same landmine as PR #178's context.xml
+  incident.
+  -->
+  <service method="get" endpoint="audit-log" class="com.simisinc.platform.rest.services.audit.AuditLogListService" />
+  <!--
+  Issue #412: read endpoints for web pages, blog posts, and folder files. "blog-posts/{id}" and
+  "post/{blogId}/{postId}" deviate from the issue's originally-specced "blog/{id}/posts" and
+  "post/{postId}" - RestServlet's router only supports up to 2 raw path params with no literal
+  segment between them, and BlogPostRepository.findByUniqueId is keyed by (blogId, postUniqueId),
+  not a globally-unique post id. See each service class's javadoc for the full rationale.
+  -->
+  <service method="get" endpoint="pages" class="com.simisinc.platform.rest.services.cms.PagesListService" />
+  <service method="get" endpoint="page/{pagePath}" class="com.simisinc.platform.rest.services.cms.PageService" />
+  <service method="get" endpoint="blog-posts/{blogUniqueId}" class="com.simisinc.platform.rest.services.cms.BlogPostListService" />
+  <service method="get" endpoint="post/{blogUniqueId}/{postUniqueId}" class="com.simisinc.platform.rest.services.cms.BlogPostService" />
+  <service method="get" endpoint="files/{folderUniqueId}" class="com.simisinc.platform.rest.services.cms.FolderFilesListService" />
+  <service method="get" endpoint="file/{fileId}" class="com.simisinc.platform.rest.services.cms.FileService" />
+  <!--
+  /item-blog/unique-id
+  /item-blog-post/unique-id/post-id
+  /item-gallery/unique-id
+  /item-events/unique-id
+  /item-event/unique-id/event-id
+  /item-lists/unique-id
+  /item-list/unique-id/list-id
+  /item-list-entry/unique-id/entry-id
+  -->
+</services>

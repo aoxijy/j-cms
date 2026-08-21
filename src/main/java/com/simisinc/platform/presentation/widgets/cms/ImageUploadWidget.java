@@ -1,0 +1,157 @@
+/*
+ * Copyright 2022 SimIS Inc. (https://www.simiscms.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.simisinc.platform.presentation.widgets.cms;
+
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Paths;
+
+import jakarta.servlet.http.Part;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.thymeleaf.util.StringUtils;
+
+import org.jobrunr.scheduling.BackgroundJobRequest;
+
+import com.simisinc.platform.application.DataException;
+import com.simisinc.platform.application.admin.LoadSitePropertyCommand;
+import com.simisinc.platform.application.cms.SaveImageCommand;
+import com.simisinc.platform.application.cms.ValidateImageCommand;
+import com.simisinc.platform.application.filesystem.FileSystemCommand;
+import com.simisinc.platform.domain.model.cms.Image;
+import com.simisinc.platform.infrastructure.scheduler.cms.ImageVariantJob;
+import com.simisinc.platform.presentation.controller.WidgetContext;
+import com.simisinc.platform.presentation.widgets.GenericWidget;
+
+/**
+ * Description
+ *
+ * @author matt rajkowski
+ * @created 5/3/18 4:00 PM
+ */
+public class ImageUploadWidget extends GenericWidget {
+
+  static final long serialVersionUID = -8484048371911908893L;
+//  private static String JSP = "/admin/dataset-upload-form.jsp";
+  private static Log LOG = LogFactory.getLog(ImageUploadWidget.class);
+
+  public WidgetContext post(WidgetContext context) throws InvocationTargetException, IllegalAccessException {
+
+    // Prepare to save the file
+    String serverRootPath = FileSystemCommand.getFileServerRootPath();
+    String serverSubPath = FileSystemCommand.generateFileServerSubPath("images");
+    String uniqueFilename = FileSystemCommand.generateUniqueFilename(context.getUserId());
+
+    // Find the file in the request and save it
+    String submittedFilename = null;
+    String extension = null;
+    long fileLength = 0;
+    File tempFile = null;
+    try {
+      Part filePart = context.getRequest().getPart("file");
+      if (filePart == null) {
+        context.setWarningMessage("A file was not found, please choose a file and try again");
+        return context;
+      }
+      submittedFilename = Paths.get(filePart.getSubmittedFileName()).getFileName().toString(); // MSIE fix.
+      if (submittedFilename.startsWith("mceclip0")) {
+        submittedFilename = StringUtils.replace(submittedFilename, "mceclip0", "clip");
+      }
+      extension = FileSystemCommand.cleanExtension(FilenameUtils.getExtension(submittedFilename));
+      // Resolve the target inside the file server root so user-derived values cannot traverse outside it
+      tempFile = FileSystemCommand.resolveWithinRoot(serverRootPath, serverSubPath + uniqueFilename + "." + extension);
+      if (tempFile == null) {
+        context.setErrorMessage("The file could not be saved");
+        return context;
+      }
+      fileLength = filePart.getSize();
+      long maxBytes = resolveMaxUploadBytes();
+      if (fileLength > maxBytes) {
+        context.setErrorMessage("The file exceeds the maximum allowed upload size");
+        return context;
+      }
+      if (fileLength > 0) {
+        filePart.write(tempFile.getAbsolutePath());
+      }
+    } catch (Exception e) {
+      // Clean up the file
+      if (tempFile != null && tempFile.exists()) {
+        LOG.warn("Deleting an uploaded file: " + tempFile.getPath());
+        tempFile.delete();
+      }
+      return context;
+    }
+
+    // Make sure a file was processed
+    if (fileLength <= 0) {
+      if (tempFile.exists()) {
+        LOG.warn("Deleting an uploaded file: " + tempFile.getPath());
+        tempFile.delete();
+      }
+      context.setErrorMessage("The file size was 0 and could not be saved");
+      return context;
+    }
+
+    // Populate the fields
+    Image imageBean = new Image();
+    imageBean.setFilename(submittedFilename);
+    imageBean.setFileLength(fileLength);
+    imageBean.setFileServerPath(serverSubPath + uniqueFilename + "." + extension);
+    imageBean.setCreatedBy(context.getUserId());
+
+    // Save the record
+    Image image = null;
+    try {
+      ValidateImageCommand.checkFile(imageBean);
+      image = SaveImageCommand.saveImage(imageBean);
+      if (image == null) {
+        throw new DataException("Your information could not be saved due to a system error. Please try again.");
+      }
+    } catch (DataException e) {
+      // Clean up the file
+      if (tempFile.exists()) {
+        LOG.warn("Deleting an uploaded file: " + tempFile.getPath());
+        tempFile.delete();
+      }
+      context.setErrorMessage(e.getMessage());
+      context.setRequestObject(imageBean);
+      return context;
+    }
+
+    // Generate srcset-ready variants in the background (issue #411) -- not inline, so upload
+    // response time does not depend on ImageMagick's speed
+    BackgroundJobRequest.enqueue(new ImageVariantJob(image.getId()));
+
+    // Return Json with the new image's URL
+    context.setJson("{\"location\": \"" + "/assets/img/" + image.getUrl() + "\"}");
+    return context;
+  }
+
+  private static long resolveMaxUploadBytes() {
+    long maxBytes = 10_485_760L; // 10MB default
+    String prop = LoadSitePropertyCommand.loadByName("system.upload.maxBytes");
+    if (prop != null && !prop.isBlank()) {
+      try {
+        maxBytes = Long.parseLong(prop.trim());
+      } catch (NumberFormatException ignored) {
+      }
+    }
+    return maxBytes;
+  }
+}

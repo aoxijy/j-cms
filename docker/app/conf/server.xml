@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!--
+  ============================================================================
+  J-CMS — STIG hardening overlay, Tomcat 11 baseline.
+  This is the stock Tomcat 11 server.xml with a small set of hardening edits;
+  each is tagged [STIG] with the rationale. Coverage & rule mapping live in the
+  private runbook docker-tomcat9-stig-hardening.md. Controls: NIST 800-53
+  CM-6/CM-7, SC-7, SI-11.
+
+  Provenance: these edits were derived against the DISA Apache Tomcat Application
+  Server 9 STIG and carried onto the Tomcat 11 base during the jakarta.servlet
+  migration. Every edit below was re-checked against stock Tomcat 11 and remains
+  valid; the referenced classes and attributes all still exist. What has NOT been
+  re-done is the rule-ID mapping itself — confirm which STIG baseline applies to
+  a Tomcat 11 server and re-map the runbook before treating this as evidence.
+
+  Re-verify on a Tomcat base version bump.
+  ============================================================================
+-->
+<!-- [STIG] Shutdown port disabled (port="-1"): no local shutdown listener is
+     opened, so there is no unauthenticated TCP shutdown channel. Container
+     lifecycle (docker stop / SIGTERM) handles shutdown instead. -->
+<Server port="-1" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+  <!-- [STIG] SecurityListener ENABLED. It refuses startup if Tomcat is running as a
+       root user, and if the effective umask is less restrictive than 0027.
+
+       Previously commented out because the image started as root and the listener
+       would have halted boot. PR #219 moved the container to a non-root user
+       (uid 10001), which is what makes this safe to turn on — and turning it on is
+       what makes the non-root property *enforced* rather than merely configured: if
+       a future change reintroduces a root runtime, Tomcat now fails fast instead of
+       silently regressing.
+
+       No umask configuration is needed. catalina.sh defaults UMASK to 0027 when it
+       is unset, applies it before starting the JVM, and passes the result through as
+       -Dorg.apache.catalina.security.SecurityListener.UMASK, which is the property
+       this listener reads. (The image's *shell* umask is 0022, but that is not what
+       Tomcat runs under — verified by reading catalina.sh, not assumed.)
+
+       NOTE for future edits: XML forbids a doubled hyphen inside a comment body.
+       Tomcat's parser rejects the whole server.xml at startup if one appears, and
+       it presents as "Cannot start server, server instance is not configured"
+       rather than as a comment problem, so it is easy to misdiagnose. Use an em
+       dash for parenthetical asides. This exact mistake shipped to main once
+       before (PR #178, in META-INF/context.xml) and is why the deploy smoke test
+       exists. -->
+  <Listener className="org.apache.catalina.security.SecurityListener" />
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" />
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+  <GlobalNamingResources>
+    <Resource name="UserDatabase" auth="Container"
+              type="org.apache.catalina.UserDatabase"
+              description="User database that can be updated and saved"
+              factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+              pathname="conf/tomcat-users.xml" />
+  </GlobalNamingResources>
+
+  <Service name="Catalina">
+
+    <!-- [STIG] HTTP/1.1 connector hardening:
+           allowTrace="false"  — reject the HTTP TRACE method (cross-site tracing).
+           server="J-CMS"      -- override the Server response header so the Tomcat
+                                 product/version is not disclosed (SI-11 / info leak).
+           xpoweredBy="false"  — do not emit the X-Powered-By header.
+           maxParameterCount="1000" — bounds a parameter-flooding DoS. Stock Tomcat 11
+                                 no longer sets this in server.xml (Tomcat 9 did); the
+                                 documented Tomcat 11 default is also 1000, so this is
+                                 the same effective limit, stated explicitly so the
+                                 value is auditable rather than implied by a default.
+           maxPartCount / maxPartHeaderSize — multipart/form-data limits, new in
+                                 Tomcat 11 with no Tomcat 9 equivalent. Pinned to the
+                                 documented Tomcat 11 defaults (50 parts, 512 header
+                                 bytes), which already bound multipart memory to ~400MB.
+                                 Stated explicitly for the same reason as
+                                 maxParameterCount: the CMS accepts uploads, so an
+                                 assessor will ask, and an auditable value beats an
+                                 implied default. Revisit only if a real upload path
+                                 legitimately needs more than 50 parts (raising is
+                                 safer than the alternative of an unbounded default).
+           discardFacades="true" — allocate a fresh request/response facade per
+                                 request instead of recycling, closing a class of
+                                 cross-request information-disclosure bugs. This is the
+                                 Tomcat 11 replacement for the RECYCLE_FACADES system
+                                 property that Tomcat 9 used (removed setenv.sh entry).
+                                 Tomcat 11 defaults this attribute to true, so the
+                                 control is satisfied by default; it is set explicitly
+                                 so the profile asserts the behaviour rather than
+                                 depending on a default a reviewer would have to know.
+
+         TLS is terminated upstream (WAF / reverse proxy); this cleartext connector
+         listens only inside the boundary. It deliberately does NOT hardcode scheme/secure
+         or a RemoteIp valve: proxy-aware client IP and scheme (X-Forwarded-For / -Proto)
+         are resolved at the APPLICATION layer by TrustedProxyIpFilter → Tomcat's
+         RemoteIpFilter, gated on the CMS_TRUSTED_PROXIES env var (issue #166 / PR #182).
+         That keeps getRemoteAddr()/isSecure() correct behind the proxy (so the Secure
+         cookie flag, IP firewall, rate limiting, and audit source IP all work) without a
+         trust decision baked into this image. -->
+    <Connector port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443"
+               maxParameterCount="1000"
+               maxPartCount="50"
+               maxPartHeaderSize="512"
+               discardFacades="true"
+               allowTrace="false"
+               server="J-CMS"
+               xpoweredBy="false"
+               />
+
+    <!-- [STIG] The AJP connector remains disabled (commented out): AJP is a
+         cleartext, historically CVE-prone channel (Ghostcat) and is not used. -->
+
+    <Engine name="Catalina" defaultHost="localhost">
+
+      <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+               resourceName="UserDatabase"/>
+      </Realm>
+
+      <!-- [STIG] autoDeploy="false": no runtime hot-deployment of WARs dropped into
+           webapps/. The application (ROOT.war) is placed at build time and deployed
+           at startup (deployOnStartup defaults true). This blocks a drop-in-WAR RCE
+           path and keeps the deployed set fixed and inventoried (CM-7). -->
+      <Host name="localhost" appBase="webapps"
+            unpackWARs="false" autoDeploy="false">
+
+        <!-- [STIG] Suppress error-page disclosure: no stack traces (showReport) and
+             no Tomcat version/server banner (showServerInfo) in error responses. -->
+        <Valve className="org.apache.catalina.valves.ErrorReportValve"
+               showReport="false" showServerInfo="false" />
+
+        <!-- [STIG] Access logging enabled (audit of every request). Extended pattern
+             adds the referer, user-agent, and response time over the stock "common". -->
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="localhost_access_log" suffix=".txt"
+               pattern="%h %l %u %t &quot;%r&quot; %s %b &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot; %D" />
+
+      </Host>
+    </Engine>
+  </Service>
+</Server>

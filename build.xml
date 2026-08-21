@@ -1,0 +1,587 @@
+<?xml version="1.0"?>
+
+<project name="J-CMS" default="build" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
+
+  <property name="project" value="j-cms" />
+  <property name="jdk" value="21" />
+  <property name="fs" value="${file.separator}"/>
+  <property name="lf" value="${line.separator}"/>
+  <property name="javadoc.dir" value="docs" />
+  <property name="base.dir" value="." />
+  <property name="src.dir" value="${base.dir}/src/main/java" />
+  <property name="src.test.dir" value="${base.dir}/src/test/java" />
+  <property name="lib.dir" value="${base.dir}/lib/build" />
+  <property name="lib.compile.dir" value="${base.dir}/lib/compile" />
+  <property name="lib.test.dir" value="${base.dir}/lib/tests" />
+  <property name="database.dir" value="${base.dir}/src/main/database" />
+  <property name="resources.dir" value="${base.dir}/src/main/resources" />
+  <property name="web.dir" value="${base.dir}/src/main/webapp" />
+  <property name="build.dir" value="${base.dir}/build" />
+  <property name="target.dir" value="${base.dir}/target" />
+  <property name="out.dir" value="${base.dir}/out" />
+  <property name="exploded.dir" value="${out.dir}/exploded/ROOT" />
+  <property name="exploded.work.dir" value="${out.dir}/exploded-work/ROOT" />
+  <property name="jsp.check.dir" value="${target.dir}/jsp-check" />
+
+  <property name="jee.lib.dir" value="${base.dir}/lib/war" />
+  <typedef resource="org/apache/catalina/ant/catalina.tasks">
+    <classpath>
+      <fileset dir="${base.dir}/lib/war" includes="*.jar"/>
+    </classpath>
+  </typedef>
+
+  <!-- SSRF connect-time DNS pin resolver (issue #760): a separate module, deliberately NOT
+       under src.dir, that is compiled against by application code (e.g. HttpGetCommand) but
+       must never ship inside the WAR; see ssrf-pin-resolver/README.md for why. Its jar is a
+       "provided scope" dependency, the same treatment lib/compile/jee already gets. -->
+  <property name="pin.resolver.src.dir" value="${base.dir}/ssrf-pin-resolver/src" />
+  <!-- Deliberately NOT a subdirectory of build.dir: the `jar` target below jars up the whole
+       of build.dir with no excludes, so a build.dir subdirectory here would get swept into
+       j-cms.jar (and from there into WEB-INF/lib), precisely the accidental-duplication
+       failure mode this module exists to avoid. Confirmed by building once with it under
+       build.dir: the pin classes really did end up inside WEB-INF/lib/j-cms.jar. -->
+  <property name="pin.resolver.build.dir" value="${target.dir}/ssrf-pin-resolver-classes" />
+  <property name="pin.resolver.jar" value="${target.dir}/j-cms-ssrf-pin-resolver.jar" />
+
+  <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties"
+           classpath="${base.dir}/lib/style/checkstyle-10.12.5-all.jar"/>
+
+  <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+    <classpath path="${base.dir}/lib/tests/org.jacoco.ant-0.8.11-nodeps.jar"/>
+  </taskdef>
+
+  <tstamp prefix="start">
+    <format property="val" pattern="yyyy-MM-dd h:mm aa" />
+  </tstamp>
+
+  <!-- Fails fast if Ant is not running on the JDK this build requires. Must run before the
+       Lombok-dependent compile step: lib/compile/lombok's annotation processor does not hook
+       into javac under other JDKs, so a JAVA_HOME mismatch here would otherwise surface many
+       steps later as a confusing "cannot find symbol" on Lombok-generated accessors instead
+       of as an immediate, legible error. -->
+  <target name="check-jdk-version">
+    <condition property="jdk.version.ok">
+      <equals arg1="${ant.java.version}" arg2="${jdk}"/>
+    </condition>
+    <fail unless="jdk.version.ok">This build requires JDK ${jdk} (found ${ant.java.version} at ${java.home}). Export JAVA_HOME to your JDK ${jdk} install before running ant.</fail>
+  </target>
+
+  <!-- Version for scripts to use -->
+  <target name="version">
+    <echo message="Project: ${ant.project.name}"/>
+    <loadfile srcfile="${src.dir}/com/simisinc/platform/ApplicationInfo.java" property="version">
+      <filterchain>
+        <linecontains>
+          <contains value="String VERSION ="/>
+        </linecontains>
+        <tokenfilter>
+<!--          public static final String VERSION = "20200323.10000";-->
+          <replacestring from="public static final String VERSION = &quot;" to=""/>
+          <replacestring from="&quot;;" to=""/>
+          <trim />
+        </tokenfilter>
+      </filterchain>
+    </loadfile>
+    <fail unless="version">The version string could not be detected in ApplicationInfo.java</fail>
+    <echo message="Version: ${version}"/>
+    <echo message="Date: ${start.val}" />
+  </target>
+
+  <target name="clean">
+    <delete dir="${build.dir}" />
+    <delete dir="${target.dir}" />
+  </target>
+
+  <!-- Creates build directories -->
+  <target name="prepare" depends="version">
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${target.dir}"/>
+    <tstamp />
+    <path id="web.classpath">
+      <fileset dir="${lib.compile.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+      <fileset dir="${lib.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+      <!-- Compile-only, like everything else on this path: see pin-resolver-jar below.
+           Not a fileset over a lib/ directory on purpose: the jar is a fresh build output,
+           not a vendored dependency, and lib/**/*.jar is exactly what
+           tools/check-vendored-provenance.py scans and would flag as UNLISTED. -->
+      <pathelement location="${pin.resolver.jar}"/>
+    </path>
+    <path id="test.classpath">
+      <fileset dir="${lib.test.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </path>
+  </target>
+
+  <target name="build" depends="package">
+    <echo message="Production .war: ${target.dir}/${project}.war"/>
+  </target>
+
+  <!-- Builds the SSRF connect-time DNS pin resolver (issue #760) as its own jar. Deliberately
+       standalone: java.net.spi.InetAddressResolverProvider/InetAddressResolver are JDK-builtin
+       interfaces, so this has zero dependency on the rest of the app's classpath and does not
+       need web.classpath or the full compile target's dependencies; plain javac is enough.
+       Output goes to target/, never to lib/, so it is a build artifact (gitignored, like the
+       rest of target/) rather than something check-vendored-provenance.py needs to know about.
+       See ssrf-pin-resolver/README.md for the full rationale and the deployment constraint
+       (CATALINA_HOME/lib only, wired in docker/app/Dockerfile; never WEB-INF/lib). -->
+  <target name="pin-resolver-jar" depends="check-jdk-version">
+    <mkdir dir="${pin.resolver.build.dir}"/>
+    <mkdir dir="${target.dir}"/>
+    <javac srcdir="${pin.resolver.src.dir}" source="${jdk}" target="${jdk}"
+           destdir="${pin.resolver.build.dir}"
+           debug="on" debuglevel="lines,source"
+           deprecation="on"
+           optimize="on"
+           includeantruntime="false">
+      <include name="**/*.java"/>
+    </javac>
+    <jar jarfile="${pin.resolver.jar}">
+      <fileset dir="${pin.resolver.build.dir}" includes="**/*.class"/>
+      <fileset dir="${pin.resolver.src.dir}" includes="META-INF/services/**"/>
+    </jar>
+  </target>
+
+  <!-- Compiles the source code -->
+  <target name="compile" depends="check-jdk-version,prepare,pin-resolver-jar">
+    <javac srcdir="${src.dir}" source="${jdk}" target="${jdk}"
+           destdir="${build.dir}"
+           debug="on" debuglevel="lines,source"
+           deprecation="on"
+           optimize="on"
+           includeantruntime="false">
+      <classpath>
+        <path refid="web.classpath"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- JSP syntax gate. Translates and compiles every JSP into a throwaway directory so a JSP
+       syntax error (unbalanced tag, unresolvable taglib, bad EL) fails the build instead of only
+       surfacing at runtime when Tomcat/Jasper serves the page. This mirrors the JSP handling that
+       already runs inside `package`, but stands alone so CI can run it right after `compile`
+       (failing fast, before the test suite) and so the gate survives any future change to
+       `package`. The Tomcat 11 / jakarta Jasper comes from lib/war (see the catalina taskdef above),
+       so invoke as: ant -lib lib/war compile-jsp -->
+  <target name="compile-jsp" depends="compile">
+    <delete dir="${jsp.check.dir}"/>
+    <mkdir dir="${jsp.check.dir}/WEB-INF/classes"/>
+    <mkdir dir="${jsp.check.dir}/WEB-INF/lib"/>
+    <mkdir dir="${jsp.check.dir}/WEB-INF/jsp"/>
+    <mkdir dir="${jsp.check.dir}/WEB-INF/src"/>
+    <mkdir dir="${jsp.check.dir}/WEB-INF/compiled"/>
+    <!-- Compiled project classes: the EL-function impls and tag handlers the JSPs reference -->
+    <copy todir="${jsp.check.dir}/WEB-INF/classes">
+      <fileset dir="${build.dir}"><include name="**"/></fileset>
+    </copy>
+    <!-- Dependency jars: supply the bundled taglib TLDs (JSTL) and referenced classes -->
+    <copy todir="${jsp.check.dir}/WEB-INF/lib" flatten="true">
+      <fileset dir="${lib.dir}"><include name="**/*.jar"/></fileset>
+    </copy>
+    <!-- web.xml plus the custom function TLDs the JSPs load via /WEB-INF/tlds/*.tld -->
+    <copy todir="${jsp.check.dir}/WEB-INF">
+      <fileset dir="${web.dir}/WEB-INF">
+        <include name="**/*.xml"/>
+        <include name="**/*.tld"/>
+      </fileset>
+    </copy>
+    <!-- The JSPs themselves -->
+    <copy todir="${jsp.check.dir}/WEB-INF/jsp">
+      <fileset dir="${web.dir}/WEB-INF/jsp"/>
+    </copy>
+    <!-- Translate JSP -> Java; Jasper fails the build on syntax and taglib-resolution errors -->
+    <jasper validateXml="false"
+            uriroot="${jsp.check.dir}"
+            webXmlInclude="${jsp.check.dir}/WEB-INF/generated_web.xml"
+            addWebXmlMappings="true"
+            outputDir="${jsp.check.dir}/WEB-INF/src" />
+    <!-- Compile the generated Java to catch errors the translation stage passes through -->
+    <javac destdir="${jsp.check.dir}/WEB-INF/compiled" source="${jdk}" target="${jdk}"
+           optimize="on" debug="off"
+           includeantruntime="false"
+           srcdir="${jsp.check.dir}/WEB-INF/src"
+           excludes="**/*.smap">
+      <classpath>
+        <pathelement location="${jsp.check.dir}/WEB-INF/classes"/>
+        <fileset dir="${jsp.check.dir}/WEB-INF/lib">
+          <include name="*.jar"/>
+        </fileset>
+        <pathelement location="${jee.lib.dir}"/>
+        <fileset dir="${jee.lib.dir}">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+      <include name="**" />
+      <exclude name="tags/**" />
+    </javac>
+    <echo message="JSP syntax check passed: translated and compiled all JSPs under ${web.dir}/WEB-INF/jsp"/>
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar jarfile="${target.dir}/${project}.jar">
+      <fileset dir="${build.dir}" />
+    </jar>
+  </target>
+
+  <target name="package" depends="clean,jar">
+    <mkdir dir="${target.dir}/${project}"/>
+    <mkdir dir="${target.dir}/${project}/WEB-INF"/>
+    <mkdir dir="${target.dir}/${project}/WEB-INF/compiled"/>
+    <mkdir dir="${target.dir}/${project}/WEB-INF/classes"/>
+    <mkdir dir="${target.dir}/${project}/WEB-INF/lib"/>
+    <mkdir dir="${target.dir}/${project}/WEB-INF/jsp"/>
+    <!-- Project Jar -->
+    <copy file="${target.dir}/${project}.jar"
+          todir="${target.dir}/${project}/WEB-INF/lib"
+          verbose="true"/>
+    <!-- Dependency Libraries -->
+    <copy todir="${target.dir}/${project}/WEB-INF/lib" flatten="true" preservelastmodified="true">
+      <fileset dir="${lib.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </copy>
+    <!-- Resources -->
+    <copy todir="${target.dir}/${project}/WEB-INF">
+      <fileset dir="${web.dir}/WEB-INF">
+        <include name="**/*.html"/>
+        <include name="**/*.xml"/>
+        <include name="**/*.yml"/>
+        <include name="**/*.tld"/>
+        <include name="**/*.mmdb"/>
+        <include name="**/*.properties"/>
+        <include name="**/*.json"/>
+      </fileset>
+    </copy>
+    <copy todir="${target.dir}/${project}/WEB-INF/classes">
+      <fileset dir="${resources.dir}">
+        <include name="**/*.properties"/>
+        <include name="**/*.sql"/>
+        <exclude name="jobrunr.properties"/>
+        <exclude name="jobrunr.production.properties"/>
+        <exclude name="simplelogger.properties"/>
+        <exclude name="simplelogger.production.properties"/>
+      </fileset>
+    </copy>
+    <!-- Production setting -->
+    <copy file="${resources.dir}/jobrunr.production.properties"
+          tofile="${target.dir}/${project}/WEB-INF/classes/jobrunr.properties"
+          overwrite="true"
+          verbose="false"/>
+    <copy file="${resources.dir}/simplelogger.production.properties"
+          tofile="${target.dir}/${project}/WEB-INF/classes/simplelogger.properties"
+          overwrite="true"
+          verbose="false"/>
+    <!-- Version string for scripts -->
+    <echo file="${target.dir}/${project}/WEB-INF/VERSION" append="true">${version}</echo>
+    <!-- Web -->
+    <copy todir="${target.dir}/${project}">
+      <fileset dir="${web.dir}">
+        <include name="robots.txt"/>
+        <include name="css/**"/>
+        <include name="fonts/**"/>
+        <include name="images/**"/>
+        <include name="javascript/**"/>
+      </fileset>
+    </copy>
+    <!-- META-INF context config (e.g. the SameSite CookieProcessor) -->
+    <copy todir="${target.dir}/${project}/META-INF">
+      <fileset dir="${web.dir}/META-INF">
+        <include name="context.xml"/>
+      </fileset>
+    </copy>
+    <!-- Prepare the JSPs-->
+    <copy todir="${target.dir}/${project}/WEB-INF/jsp">
+      <fileset dir="${web.dir}/WEB-INF/jsp"/>
+    </copy>
+    <!-- Convert the JSPs to Classes -->
+    <jasper validateXml="false"
+            uriroot="${target.dir}/${project}"
+            webXmlInclude="${target.dir}/${project}/WEB-INF/generated_web.xml"
+            addWebXmlMappings="true"
+            outputDir="${target.dir}/${project}/WEB-INF/src" />
+    <!-- Compile the JSPs -->
+    <javac destdir="${target.dir}/${project}/WEB-INF/compiled" source="${jdk}" target="${jdk}"
+           optimize="on" debug="on" debuglevel="lines,source"
+           srcdir="${target.dir}/${project}/WEB-INF/src"
+           excludes="**/*.smap">
+      <classpath>
+        <pathelement location="${target.dir}/${project}/WEB-INF/classes"/>
+        <fileset dir="${target.dir}/${project}/WEB-INF/lib">
+          <include name="*.jar"/>
+        </fileset>
+        <pathelement location="${jee.lib.dir}"/>
+        <fileset dir="${jee.lib.dir}">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+      <include name="**" />
+      <exclude name="tags/**" />
+    </javac>
+    <!-- JAR the JSPs -->
+    <jar jarfile="${target.dir}/${project}/WEB-INF/lib/${project}-jsp.jar"
+         basedir="${target.dir}/${project}/WEB-INF/compiled" includes="**/*.class" />
+    <!-- Cleanup -->
+    <!-- Keep JSPs in WAR for Tomcat to serve; delete only intermediate compile artifacts -->
+    <delete>
+      <fileset dir="${target.dir}/${project}/WEB-INF/src"/>
+      <fileset dir="${target.dir}/${project}/WEB-INF/compiled"/>
+    </delete>
+    <delete includeemptydirs="true">
+      <fileset dir="${target.dir}/${project}"  >
+        <and>
+          <size value="0"/>
+          <type type="dir"/>
+        </and>
+      </fileset>
+    </delete>
+    <!-- Create .war -->
+    <war destfile="${target.dir}/${project}.war"
+         basedir="${target.dir}/${project}"
+         compress="true"
+         manifest="${base.dir}/src/main/webapp/META-INF/MANIFEST.MF"
+         webxml="${base.dir}/src/main/webapp/WEB-INF/web.xml"/>
+    <!-- Create a checksum -->
+    <checksum file="${target.dir}/${project}.war" algorithm="SHA-256" fileext=".sha256" pattern="{0} *{1}"/>
+    <!-- Write out a version file to go with the .war -->
+    <echo file="${target.dir}/VERSION" message="${version}"/>
+  </target>
+
+  <target name="webapp" depends="compile">
+    <delete dir="${exploded.work.dir}"/>
+    <mkdir dir="${exploded.work.dir}"/>
+    <mkdir dir="${exploded.work.dir}/WEB-INF"/>
+    <mkdir dir="${exploded.work.dir}/WEB-INF/classes"/>
+    <mkdir dir="${exploded.work.dir}/WEB-INF/lib"/>
+    <mkdir dir="${exploded.work.dir}/WEB-INF/jsp"/>
+    <!-- Project Classes -->
+    <copy todir="${exploded.work.dir}/WEB-INF/classes" preservelastmodified="true">
+      <fileset dir="${build.dir}">
+        <include name="**"/>
+      </fileset>
+    </copy>
+    <!-- Dependency Libraries -->
+    <copy todir="${exploded.work.dir}/WEB-INF/lib" flatten="true" preservelastmodified="true">
+      <fileset dir="${lib.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </copy>
+    <!-- Resources -->
+    <copy todir="${exploded.work.dir}/WEB-INF" preservelastmodified="true">
+      <fileset dir="${web.dir}/WEB-INF">
+        <include name="**/*.html"/>
+        <include name="**/*.xml"/>
+        <include name="**/*.yml"/>
+        <include name="**/*.tld"/>
+        <include name="**/*.mmdb"/>
+        <include name="**/*.properties"/>
+      </fileset>
+    </copy>
+    <copy todir="${exploded.work.dir}/WEB-INF/classes" preservelastmodified="true">
+      <fileset dir="${resources.dir}">
+        <include name="**/*.properties"/>
+        <include name="**/*.sql"/>
+        <exclude name="jobrunr.properties"/>
+        <exclude name="jobrunr.production.properties"/>
+        <exclude name="simplelogger.properties"/>
+        <exclude name="simplelogger.production.properties"/>
+      </fileset>
+    </copy>
+    <!-- Developer setting -->
+    <copy file="${resources.dir}/jobrunr.properties"
+          tofile="${exploded.work.dir}/WEB-INF/classes/jobrunr.properties"
+          verbose="false"
+          preservelastmodified="true"/>
+    <copy file="${resources.dir}/simplelogger.properties"
+          tofile="${exploded.work.dir}/WEB-INF/classes/simplelogger.properties"
+          verbose="false"
+          preservelastmodified="true"/>
+    <!-- Web -->
+    <copy todir="${exploded.work.dir}" preservelastmodified="true">
+      <fileset dir="${web.dir}">
+        <include name="robots.txt"/>
+        <include name="css/**"/>
+        <include name="fonts/**"/>
+        <include name="images/**"/>
+        <include name="javascript/**"/>
+      </fileset>
+    </copy>
+    <!-- Prepare the JSPs-->
+    <copy todir="${exploded.work.dir}/WEB-INF/jsp" preservelastmodified="true">
+      <fileset dir="${web.dir}/WEB-INF/jsp"/>
+    </copy>
+    <!-- Cleanup -->
+    <!-- <delete verbose="true" includeemptydirs="true">
+      <fileset dir="${exploded.work.dir}"  >
+        <and>
+          <size value="0"/>
+          <type type="dir"/>
+        </and>
+      </fileset>
+    </delete> -->
+    <echo message=""/>
+    <!-- Sync with the exploded directory -->
+    <mkdir dir="${exploded.dir}"/>
+    <sync todir="${exploded.dir}">
+      <fileset dir="${exploded.work.dir}">
+        <include name="**"/>
+      </fileset>
+    </sync>
+    <tstamp prefix="end">
+      <format property="val" pattern="yyyy-MM-dd h:mm aa" />
+    </tstamp>
+    <echo message="Finished: ${end.val}" />
+  </target>
+
+  <target name="checkstyle" depends="check-jdk-version,prepare">
+    <mkdir dir="${target.dir}/checkstyle"/>
+    <checkstyle config="checkstyle.xml"
+                failureProperty="checkstyle.failure"
+                failOnViolation="true">
+      <formatter type="xml" tofile="${target.dir}/checkstyle/checkstyle_report.xml"/>
+      <fileset dir="${src.dir}" includes="**/*.java"/>
+    </checkstyle>
+  </target>
+
+  <target name="compile-test" depends="check-jdk-version,jar">
+    <!-- Stage ONLY the SQL migrations onto the test classpath. The package target copies them
+         into the WAR, but compile does not stage them, so build.dir has no database/ directory
+         and the migration test resolves "classpath:database/install" to nothing - finding just
+         the three Java migrations, the first of which then fails against a schema the missing
+         SQL was supposed to create. Scoped to database/** on purpose: putting the whole of
+         src/main/resources on the test classpath changes what other tests resolve and breaks
+         WebRequestFilterTest. -->
+    <copy todir="${build.dir}/database">
+      <fileset dir="${basedir}/src/main/resources/database"/>
+    </copy>
+    <javac srcdir="${src.test.dir}" source="${jdk}" target="${jdk}"
+           destdir="${build.dir}"
+           debug="on" debuglevel="lines,source"
+           deprecation="on"
+           optimize="on"
+           includeantruntime="false">
+      <classpath>
+        <path refid="web.classpath"/>
+        <path refid="test.classpath"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="ci-test" depends="compile-test">
+    <!-- Record code coverage during the single CI test pass. The JaCoCo agent instruments the forked
+         test JVM; after the run we emit HTML (for humans), plus XML and CSV (for tooling) under
+         target/coverage-reports, which CI publishes as a build artifact. This only measures and reports
+         coverage - it does not change the pass/fail semantics of the test run. Coverage is reported by
+         instruction, branch, complexity, and method; line coverage is unavailable because the build
+         compiles without line-number debug info (see the compile target, debug="off"). -->
+    <jacoco:agent property="jacocoagent" destfile="${target.dir}/jacoco.exec"/>
+    <junitlauncher haltOnFailure="false" printsummary="true" failureproperty="hasFailingTest">
+      <classpath refid="web.classpath" />
+      <classpath refid="test.classpath" />
+      <classpath>
+        <pathelement location="${build.dir}"/>
+      </classpath>
+      <testclasses>
+        <fileset dir="${build.dir}">
+          <include name="**/*Test.class" />
+          <include name="**/*Tests.class" />
+        </fileset>
+        <fork>
+          <jvmarg value="${jacocoagent}"/>
+          <jvmarg value="-javaagent:${lib.test.dir}/byte-buddy-agent-1.14.10.jar"/>
+          <jvmarg value="-Djava.awt.headless=true"/>
+        </fork>
+        <listener classname="com.simisinc.platform.ContainerFailureReportingListener"/>
+      </testclasses>
+    </junitlauncher>
+    <fail if="hasFailingTest" />
+    <!-- Build the coverage reports from the recorded execution data -->
+    <jacoco:report>
+      <executiondata>
+        <file file="${target.dir}/jacoco.exec"/>
+      </executiondata>
+      <structure name="J-CMS">
+        <classfiles>
+          <fileset dir="${build.dir}">
+            <exclude name="**/*Test*.class"/>
+          </fileset>
+        </classfiles>
+        <sourcefiles encoding="UTF-8">
+          <fileset dir="src/main/java"/>
+        </sourcefiles>
+      </structure>
+      <html destdir="${target.dir}/coverage-reports/jacoco"/>
+      <xml destfile="${target.dir}/coverage-reports/jacoco.xml"/>
+      <csv destfile="${target.dir}/coverage-reports/jacoco.csv"/>
+    </jacoco:report>
+  </target>
+
+  <target name="run-test" depends="compile-test">
+    <mkdir dir="${target.dir}/test-reports"/>
+    <jacoco:agent property="jacocoagent" destfile="${target.dir}/jacoco.exec"/>
+    <junitlauncher haltOnFailure="true" printSummary="true">
+      <classpath refid="web.classpath" />
+      <classpath refid="test.classpath" />
+      <classpath>
+        <pathelement location="${build.dir}"/>
+      </classpath>
+      <testclasses outputdir="${target.dir}/test-reports">
+        <fileset dir="${build.dir}">
+          <include name="**/*Test.class" />
+          <include name="**/*Tests.class" />
+        </fileset>
+        <fork>
+          <jvmarg value="${jacocoagent}"/>
+          <jvmarg value="-javaagent:${lib.test.dir}/byte-buddy-agent-1.14.10.jar"/>
+          <jvmarg value="-Djava.awt.headless=true"/>
+        </fork>
+      </testclasses>
+    </junitlauncher>
+  </target>
+
+  <target name="test" depends="run-test">
+    <jacoco:report>
+      <executiondata>
+        <file file="${target.dir}/jacoco.exec"/>
+      </executiondata>
+      <structure name="J-CMS">
+        <classfiles>
+          <fileset dir="${build.dir}">
+            <exclude name="**/*Test*.class"/>
+          </fileset>
+        </classfiles>
+        <sourcefiles encoding="UTF-8">
+          <fileset dir="src/main/java"/>
+        </sourcefiles>
+      </structure>
+      <html destdir="${target.dir}/coverage-reports/jacoco"/>
+    </jacoco:report>
+    <java classpathref="test.classpath" classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true">
+      <arg value="--scan-classpath"/>
+      <arg line="--reports-dir ${target.dir}/test-reports"/>
+    </java>
+    <junitreport todir="${target.dir}/test-reports">
+      <fileset dir="${target.dir}/test-reports">
+        <include name="TEST-*.xml"/>
+      </fileset>
+      <report format="frames" todir="${target.dir}/test-reports/html"/>
+    </junitreport>
+  </target>
+
+  <target name="mvn-dependencies">
+    <exec executable="mvn">
+      <arg value="dependency:tree" />
+      <arg value="-DoutputType=dot" />
+    </exec>
+  </target>
+
+  <target name="snyk">
+    <exec executable="snyk">
+      <arg value="test" />
+    </exec>
+  </target>
+
+</project>

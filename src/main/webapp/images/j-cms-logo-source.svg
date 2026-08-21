@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 142" role="img" aria-labelledby="title">
+  <title>J-CMS</title>
+  <defs>
+    <linearGradient id="jcmsGradient" x1="49" y1="103" x2="147" y2="21" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00e4bd"/>
+      <stop offset="0.55" stop-color="#04aeee"/>
+      <stop offset="1" stop-color="#126dff"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(8 6) scale(.185)">
+    <path fill="url(#jcmsGradient)" d="M599 35c-78 0-145 16-201 48-56 31-93 69-112 114-3 8-5 17-5 26v306c-47 65-98 109-155 131-69 27-139 13-211-43-51-40-101-51-150-34-47 16-79 51-94 103-15 51-5 106 29 164 38 65 95 112 170 142 52 21 102 28 150 22 119-11 223-58 314-142 95-88 155-199 180-334 6-32 9-65 9-99V35h76Z"/>
+    <path fill="#fff" d="M282 565c50-39 90-80 120-125 13-20 25-41 36-63-32 146-96 258-191 335-55 45-116 78-183 99 86-53 158-134 218-246Z"/>
+  </g>
+  <text x="155" y="91" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="61" font-weight="700" letter-spacing="0">J-CMS</text>
+</svg>

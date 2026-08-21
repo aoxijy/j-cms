@@ -1,0 +1,135 @@
+<%--
+  ~ Copyright 2022 SimIS Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="text" uri="/WEB-INF/tlds/text-functions.tld" %>
+<jsp:useBean id="userSession" class="com.simisinc.platform.presentation.controller.UserSession" scope="session"/>
+<jsp:useBean id="widgetContext" class="com.simisinc.platform.presentation.controller.WidgetContext" scope="request"/>
+<jsp:useBean id="collectionList" class="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="categoryList" class="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="dataset" class="com.simisinc.platform.domain.model.datasets.Dataset" scope="request"/>
+<jsp:useBean id="fieldMappingsList" class="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="fieldOptionsList" class="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="sampleRow" class="java.util.ArrayList" scope="request"/>
+<jsp:useBean id="columnConfiguration" class="java.lang.String" scope="request"/>
+<c:if test="${!empty title}">
+  <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
+</c:if>
+<%@include file="../page_messages.jspf" %>
+<div class="callout primary radius">
+  <h6>How field mapping works</h6>
+  <p>Pick the target <strong>Collection</strong> below -- every mapped column becomes a field on Items in that Collection.</p>
+  <p><strong>Unique Field for Merge</strong> determines how a re-sync recognizes "this source row is the same Item as last time" on subsequent runs, so it updates the existing Item instead of creating a duplicate. Choose a source column that is genuinely stable and unique for every row, such as an ID or code. Avoid using a <strong>Name</strong> column for this -- names can collide across rows or change at the source, and either one breaks the match, which can create duplicate Items or silently update the wrong one.</p>
+  <p>In the Type list, the last option for each column (shown as <code>&lt;column name&gt;</code>) maps that column as a custom field. That only works if the column's name is an <em>exact</em> match to an existing Custom Field's <code>name</code> on the target Collection, defined on that Collection's own Custom Fields tab. If there's no matching Custom Field, the mapping still saves without error, but the data goes nowhere visible -- it won't show up on the Custom Fields tab or on the Item. Create the Custom Field first, then map to it here.</p>
+  <p style="margin-bottom:0">A column mapped to <strong>Image URL</strong> (or any other URL-type field) must contain a URL the server can reach over HTTP(S) -- there's no way here to upload binary image files directly from the source data.</p>
+</div>
+<form method="post" onsubmit="return checkForm()">
+  <%-- Required by controller --%>
+  <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
+  <input type="hidden" name="token" value="${userSession.formToken}"/>
+  <%-- Form values --%>
+  <input type="hidden" name="id" value="${dataset.id}"/>
+  <%-- Form --%>
+  <label>Collection
+    <select name="collectionUniqueId">
+      <option value=""></option>
+      <c:forEach items="${collectionList}" var="collection">
+        <option value="<c:out value="${collection.uniqueId}" />"<c:if test="${collection.uniqueId eq dataset.collectionUniqueId}"> selected</c:if>><c:out value="${collection.name}" /></option>
+      </c:forEach>
+      <option value="NEW-<c:out value="${dataset.name}"/>"<c:if test="${fn:startsWith(dataset.collectionUniqueId, 'NEW-')}"> selected</c:if>>&lt;<c:out value="${dataset.name}"/>&gt;</option>
+    </select>
+  </label>
+
+  <label>Unique Field for Merge
+    <select name="uniqueColumnName">
+      <option value=""></option>
+      <c:forEach items="${dataset.fieldTitlesList}" var="column" varStatus="status">
+        <option value="<c:out value="${column}" />"<c:if test="${column eq dataset.uniqueColumnName}"> selected</c:if>><c:out value="${column}" /></option>
+      </c:forEach>
+    </select>
+  </label>
+
+  <%-- Map Fields --%>
+  <table class="unstriped">
+    <thead>
+      <tr>
+        <th width="240">Field Name</th>
+        <th width="240">Type</th>
+        <th>Options</th>
+      </tr>
+    </thead>
+    <tbody>
+      <c:forEach items="${dataset.fieldTitlesList}" var="column" varStatus="status">
+      <tr>
+        <td>
+          <c:out value="${column}" /><br />
+          <small class="subheader"><c:out value="${text:trim(sampleRow[status.index], 30, true)}" /></small>
+        </td>
+        <td>
+          <select name="columnMapping${status.index}">
+            <option value=""></option>
+            <option value="name"<c:if test="${fieldMappingsList[status.index] eq 'name'}"> selected</c:if>>Name</option>
+            <option value="category"<c:if test="${fieldMappingsList[status.index] eq 'category'}"> selected</c:if>>Category</option>
+            <option value="summary"<c:if test="${fieldMappingsList[status.index] eq 'summary'}"> selected</c:if>>Summary</option>
+            <option value="description"<c:if test="${fieldMappingsList[status.index] eq 'description'}"> selected</c:if>>HTML Description</option>
+            <option value="textDescription"<c:if test="${fieldMappingsList[status.index] eq 'textDescription'}"> selected</c:if>>Text Description</option>
+            <option value="keywords"<c:if test="${fieldMappingsList[status.index] eq 'keywords'}"> selected</c:if>>Keywords</option>
+            <option value="geopoint"<c:if test="${fieldMappingsList[status.index] eq 'geopoint'}"> selected</c:if>>Geo Point</option>
+            <option value="latitude"<c:if test="${fieldMappingsList[status.index] eq 'latitude'}"> selected</c:if>>Latitude</option>
+            <option value="longitude"<c:if test="${fieldMappingsList[status.index] eq 'longitude'}"> selected</c:if>>Longitude</option>
+            <option value="location"<c:if test="${fieldMappingsList[status.index] eq 'location'}"> selected</c:if>>Location Name</option>
+            <option value="street"<c:if test="${fieldMappingsList[status.index] eq 'street'}"> selected</c:if>>Street Address</option>
+            <option value="addressLine2"<c:if test="${fieldMappingsList[status.index] eq 'addressLine2'}"> selected</c:if>>Street Address Line 2</option>
+            <option value="addressLine3"<c:if test="${fieldMappingsList[status.index] eq 'addressLine3'}"> selected</c:if>>Street Address Line 3</option>
+            <option value="city"<c:if test="${fieldMappingsList[status.index] eq 'city'}"> selected</c:if>>City</option>
+            <option value="state"<c:if test="${fieldMappingsList[status.index] eq 'state'}"> selected</c:if>>State</option>
+            <option value="postalCode"<c:if test="${fieldMappingsList[status.index] eq 'postalCode'}"> selected</c:if>>Postal Code</option>
+            <option value="country"<c:if test="${fieldMappingsList[status.index] eq 'country'}"> selected</c:if>>Country</option>
+            <option value="county"<c:if test="${fieldMappingsList[status.index] eq 'county'}"> selected</c:if>>County</option>
+            <option value="phoneNumber"<c:if test="${fieldMappingsList[status.index] eq 'phoneNumber'}"> selected</c:if>>Phone Number</option>
+            <option value="email"<c:if test="${fieldMappingsList[status.index] eq 'email'}"> selected</c:if>>Email Address</option>
+            <option value="cost"<c:if test="${fieldMappingsList[status.index] eq 'cost'}"> selected</c:if>>Cost</option>
+            <option value="startDate"<c:if test="${fieldMappingsList[status.index] eq 'startDate'}"> selected</c:if>>Start Date</option>
+            <option value="endDate"<c:if test="${fieldMappingsList[status.index] eq 'endDate'}"> selected</c:if>>End Date</option>
+            <option value="expectedDate"<c:if test="${fieldMappingsList[status.index] eq 'expectedDate'}"> selected</c:if>>Expected Date</option>
+            <option value="expirationDate"<c:if test="${fieldMappingsList[status.index] eq 'expirationDate'}"> selected</c:if>>Expiration Date</option>
+            <option value="url"<c:if test="${fieldMappingsList[status.index] eq 'url'}"> selected</c:if>>URL</option>
+            <option value="imageUrl"<c:if test="${fieldMappingsList[status.index] eq 'imageUrl'}"> selected</c:if>>Image URL</option>
+            <option value="barcode"<c:if test="${fieldMappingsList[status.index] eq 'barcode'}"> selected</c:if>>Barcode</option>
+            <option value="assignedTo"<c:if test="${fieldMappingsList[status.index] eq 'assignedTo'}"> selected</c:if>>Assigned To</option>
+            <option value="privacyType"<c:if test="${fieldMappingsList[status.index] eq 'privacyType'}"> selected</c:if>>Privacy Type</option>
+            <option value="custom"<c:if test="${fieldMappingsList[status.index] eq 'custom'}"> selected</c:if>>&lt;<c:out value="${column}"/>&gt;</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" name="columnOptions${status.index}" placeholder="Options" value="<c:out value="${fieldOptionsList[status.index]}" />" autocomplete="off" />
+        </td>
+      </tr>
+      </c:forEach>
+      <c:if test="${empty dataset.fieldTitlesList}">
+        <tr>
+          <td colspan="3">No fields were found</td>
+        </tr>
+      </c:if>
+    </tbody>
+  </table>
+  <div class="button-container">
+    <input type="submit" class="button radius success" name="process" value="Save"/>
+  </div>
+</form>
+
+
