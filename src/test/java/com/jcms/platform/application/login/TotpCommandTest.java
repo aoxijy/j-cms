@@ -91,9 +91,9 @@ class TotpCommandTest {
   @Test
   void buildsAnEnrollmentUri() {
     String uri = TotpCommand.generateUri("J-CMS", "user@example.com", RFC_SECRET);
-    assertTrue(uri.startsWith("otpauth://totp/J-CMS%20CMS:user%40example.com?"), uri);
+    assertTrue(uri.startsWith("otpauth://totp/J-CMS:user%40example.com?"), uri);
     assertTrue(uri.contains("secret=" + RFC_SECRET));
-    assertTrue(uri.contains("issuer=J-CMS%20CMS"));
+    assertTrue(uri.contains("issuer=J-CMS"));
     assertTrue(uri.contains("digits=6"));
     assertTrue(uri.contains("period=30"));
   }
