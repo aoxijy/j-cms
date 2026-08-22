@@ -30,25 +30,33 @@
 <fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <fmt:message key="common.search" bundle="${adminMessages}" var="searchLabel" />
 <fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
+<fmt:message key="users.selectAll" bundle="${adminMessages}" var="selectAllLabel" />
+<fmt:message key="users.mfaEnabled" bundle="${adminMessages}" var="mfaEnabledLabel" />
+<fmt:message key="users.mfaNotEnabled" bundle="${adminMessages}" var="mfaNotEnabledLabel" />
+<fmt:message key="users.accountsSelected.one" bundle="${adminMessages}" var="oneAccountSelectedLabel" />
+<fmt:message key="users.accountsSelected.many" bundle="${adminMessages}" var="manyAccountsSelectedLabel" />
+<fmt:message key="users.stepUpPlaceholder" bundle="${adminMessages}" var="stepUpPlaceholder" />
+<fmt:message key="users.resetPasswordReauthTitle" bundle="${adminMessages}" var="resetPasswordReauthTitle" />
+<fmt:message key="users.assignRoleReauthTitle" bundle="${adminMessages}" var="assignRoleReauthTitle" />
+<fmt:message key="users.closeDialog" bundle="${adminMessages}" var="closeDialogLabel" />
+<fmt:message key="users.emailAddress" bundle="${adminMessages}" var="emailAddressLabel" />
+<fmt:message key="users.organization" bundle="${adminMessages}" var="organizationLabel" />
+<fmt:message key="users.nickname" bundle="${adminMessages}" var="nicknameLabel" />
+<fmt:message key="users.username" bundle="${adminMessages}" var="usernameLabel" />
+<fmt:message key="users.suspendReasonPrompt" bundle="${adminMessages}" var="suspendReasonPrompt" />
+<fmt:message key="users.unsuspendReasonPrompt" bundle="${adminMessages}" var="unsuspendReasonPrompt" />
 <c:if test="${!empty title}">
   <h1><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h1>
 </c:if>
 <%@include file="../page_messages.jspf" %>
 <div class="callout primary radius">
-  <p style="margin-bottom:0">
-    Every account on the site: search and filter, add one at a time or in bulk, and act on many at
-    once (suspend, unsuspend, reset password, grant a role). Click a name to open that account's
-    <a href="${ctx}/admin/user-details">full detail page</a>, including its own actions (delete,
-    unlock, approve/deny an unsuspend request). Reachable by <strong>admin</strong> and
-    <strong>community-manager</strong> -- a community-manager has everything here except granting a
-    role above their own level, and the guardrails below apply the same way to both.
-  </p>
+  <p style="margin-bottom:0"><fmt:message key="users.overview" bundle="${adminMessages}" /></p>
 </div>
 <c:if test="${pendingUnsuspendRequestCount gt 0}">
   <div class="callout warning radius">
     <a href="${ctx}/admin/unsuspend-requests">
       <c:out value="${pendingUnsuspendRequestCount}" />
-      unsuspend request<c:if test="${pendingUnsuspendRequestCount ne 1}">s</c:if> awaiting review &rarr;
+      <fmt:message key="users.pendingUnsuspendRequests" bundle="${adminMessages}" /> &rarr;
     </a>
   </div>
 </c:if>
@@ -87,7 +95,7 @@
     <option value="locked"<c:if test="${statusFilter eq 'locked'}"> selected</c:if>><fmt:message key="status.locked" bundle="${adminMessages}" /></option>
     <option value="inactive"<c:if test="${statusFilter eq 'inactive'}"> selected</c:if>><fmt:message key="status.inactiveUnverified" bundle="${adminMessages}" /></option>
   </select>
-  <label for="mfaFilter" class="show-for-sr">MFA</label>
+  <label for="mfaFilter" class="show-for-sr"><fmt:message key="users.mfa" bundle="${adminMessages}" /></label>
   <select id="mfaFilter" name="mfaFilter" class="float-left width-auto margin-right-10">
     <option value="any"<c:if test="${mfaFilter eq 'any'}"> selected</c:if>><fmt:message key="users.mfa.any" bundle="${adminMessages}" /></option>
     <option value="enabled"<c:if test="${mfaFilter eq 'enabled'}"> selected</c:if>><fmt:message key="users.mfa.enabled" bundle="${adminMessages}" /></option>
@@ -125,19 +133,20 @@
 <table class="unstriped">
   <thead>
     <tr>
-      <th width="24"><input type="checkbox" id="selectAllUsers" aria-label="Select all users on this page"></th>
+      <th width="24"><input type="checkbox" id="selectAllUsers" aria-label="${selectAllLabel}"></th>
       <th><fmt:message key="common.name" bundle="${adminMessages}" /></th>
       <th><fmt:message key="common.email" bundle="${adminMessages}" /></th>
       <th><fmt:message key="common.role" bundle="${adminMessages}" /></th>
       <th width="90"><fmt:message key="common.status" bundle="${adminMessages}" /></th>
-      <th width="50">MFA</th>
+      <th width="50"><fmt:message key="users.mfa" bundle="${adminMessages}" /></th>
       <th width="200"><fmt:message key="users.lastLogin" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
     <c:forEach items="${userList}" var="user">
     <tr>
-      <td><input type="checkbox" class="userRowCheckbox" value="${user.id}" data-name="${fn:escapeXml(user.fullName)}" data-email="${fn:escapeXml(user.email)}" aria-label="Select ${fn:escapeXml(user.fullName)}"></td>
+      <fmt:message key="users.selectUser" bundle="${adminMessages}" var="selectUserLabel"><fmt:param value="${user.fullName}" /></fmt:message>
+      <td><input type="checkbox" class="userRowCheckbox" value="${user.id}" data-name="${fn:escapeXml(user.fullName)}" data-email="${fn:escapeXml(user.email)}" aria-label="${fn:escapeXml(selectUserLabel)}"></td>
       <td>
         <a href="${ctx}/admin/user-details?userId=${user.id}"><c:out value="${user.fullName}" /></a>
         <c:if test="${!empty user.organization}">
@@ -160,8 +169,8 @@
       </td>
       <td class="text-center">
         <c:choose>
-          <c:when test="${user.mfaEnabled}"><span class="label round success" title="MFA enabled"><i class="fa fa-check"></i></span></c:when>
-          <c:otherwise><span class="label round secondary" title="MFA not enabled"><i class="fa fa-times"></i></span></c:otherwise>
+          <c:when test="${user.mfaEnabled}"><span class="label round success" title="${mfaEnabledLabel}"><i class="fa fa-check"></i></span></c:when>
+          <c:otherwise><span class="label round secondary" title="${mfaNotEnabledLabel}"><i class="fa fa-times"></i></span></c:otherwise>
         </c:choose>
       </td>
       <td class="text-center">
@@ -184,79 +193,74 @@
      each is populated at open time with the live selection (see the JS below), not just a count. --%>
 <div class="reveal" id="bulkSuspendReveal" role="dialog" aria-modal="true" aria-labelledby="bulkSuspendRevealTitle"
      data-reveal data-close-on-click="true">
-  <h4 id="bulkSuspendRevealTitle">Suspend <span id="bulkSuspendCount">0</span> Account(s)</h4>
-  <p id="bulkSuspendSelfNotice" style="display:none;"><em>Your own account is selected and will be skipped.</em></p>
+  <h4 id="bulkSuspendRevealTitle"><fmt:message key="users.suspend" bundle="${adminMessages}" /> <span id="bulkSuspendCount">0</span> <fmt:message key="users.accounts" bundle="${adminMessages}" /></h4>
+  <p id="bulkSuspendSelfNotice" style="display:none;"><em><fmt:message key="users.selfSuspendSkipped" bundle="${adminMessages}" /></em></p>
   <ul id="bulkSuspendList"></ul>
   <form method="post">
     <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
     <input type="hidden" name="token" value="${userSession.formToken}"/>
     <input type="hidden" name="command" value="bulkSuspend"/>
-    <label for="bulkSuspendReason">Reason <span class="required">*</span>
+    <label for="bulkSuspendReason"><fmt:message key="security.reason" bundle="${adminMessages}" /> <span class="required">*</span>
       <textarea id="bulkSuspendReason" name="reason" maxlength="255" required
-                placeholder="Why are these accounts being suspended?"></textarea>
+                placeholder="${suspendReasonPrompt}"></textarea>
     </label>
-    <input type="submit" class="button alert radius" value="Suspend Accounts"/>
-    <button class="button secondary radius" type="button" data-close>Cancel</button>
+    <button type="submit" class="button alert radius"><fmt:message key="users.suspendAccounts" bundle="${adminMessages}" /></button>
+    <button class="button secondary radius" type="button" data-close><fmt:message key="common.cancel" bundle="${adminMessages}" /></button>
   </form>
-  <button class="close-button" data-close aria-label="Close reveal" type="button">
+  <button class="close-button" data-close aria-label="${closeDialogLabel}" type="button">
     <span aria-hidden="true">&times;</span>
   </button>
 </div>
 <div class="reveal" id="bulkUnsuspendReveal" role="dialog" aria-modal="true" aria-labelledby="bulkUnsuspendRevealTitle"
      data-reveal data-close-on-click="true">
-  <h4 id="bulkUnsuspendRevealTitle">Unsuspend <span id="bulkUnsuspendCount">0</span> Account(s)</h4>
-  <p class="help-text">
-    Accounts holding an elevated role (community-manager and above) can't be reactivated by one
-    admin acting alone -- those will be filed as requests for a second administrator to review
-    instead of being restored directly. A reason is only required if any selected account is elevated.
-  </p>
+  <h4 id="bulkUnsuspendRevealTitle"><fmt:message key="users.unsuspend" bundle="${adminMessages}" /> <span id="bulkUnsuspendCount">0</span> <fmt:message key="users.accounts" bundle="${adminMessages}" /></h4>
+  <p class="help-text"><fmt:message key="users.unsuspendElevatedHelp" bundle="${adminMessages}" /></p>
   <ul id="bulkUnsuspendList"></ul>
   <form method="post">
     <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
     <input type="hidden" name="token" value="${userSession.formToken}"/>
     <input type="hidden" name="command" value="bulkUnsuspend"/>
-    <label for="bulkUnsuspendReason">Reason (required only if any selected account is elevated)
+    <label for="bulkUnsuspendReason"><fmt:message key="users.unsuspendReason" bundle="${adminMessages}" />
       <textarea id="bulkUnsuspendReason" name="reason" maxlength="255"
-                placeholder="Why should these accounts be unsuspended?"></textarea>
+                placeholder="${unsuspendReasonPrompt}"></textarea>
     </label>
-    <input type="submit" class="button radius" value="Unsuspend Accounts"/>
-    <button class="button secondary radius" type="button" data-close>Cancel</button>
+    <button type="submit" class="button success radius"><fmt:message key="users.unsuspendAccounts" bundle="${adminMessages}" /></button>
+    <button class="button secondary radius" type="button" data-close><fmt:message key="common.cancel" bundle="${adminMessages}" /></button>
   </form>
-  <button class="close-button" data-close aria-label="Close reveal" type="button">
+  <button class="close-button" data-close aria-label="${closeDialogLabel}" type="button">
     <span aria-hidden="true">&times;</span>
   </button>
 </div>
 <div class="reveal" id="bulkResetPasswordReveal" role="dialog" aria-modal="true" aria-labelledby="bulkResetPasswordRevealTitle"
      data-reveal data-close-on-click="true">
-  <h4 id="bulkResetPasswordRevealTitle">Reset Password for <span id="bulkResetPasswordCount">0</span> Account(s)</h4>
-  <p>An email with password reset instructions will be sent to every listed account.</p>
+  <h4 id="bulkResetPasswordRevealTitle"><fmt:message key="users.resetPasswordFor" bundle="${adminMessages}" /> <span id="bulkResetPasswordCount">0</span> <fmt:message key="users.accounts" bundle="${adminMessages}" /></h4>
+  <p><fmt:message key="users.resetPasswordEmailHelp" bundle="${adminMessages}" /></p>
   <ul id="bulkResetPasswordList"></ul>
   <form method="post">
     <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
     <input type="hidden" name="token" value="${userSession.formToken}"/>
     <input type="hidden" name="command" value="bulkResetPassword"/>
-    <label for="bulkResetPasswordStepUpCredential">Your password or authenticator code <span class="required">*</span>
+    <label for="bulkResetPasswordStepUpCredential"><fmt:message key="users.stepUpCredential" bundle="${adminMessages}" /> <span class="required">*</span>
       <input type="password" id="bulkResetPasswordStepUpCredential" name="stepUpCredential" maxlength="255"
-             placeholder="Password or 6-digit code" required
-             title="Re-authentication required to reset another user's password"/>
+             placeholder="${stepUpPlaceholder}" required title="${resetPasswordReauthTitle}"/>
     </label>
-    <input type="submit" class="button warning radius" value="Send Reset Emails"/>
-    <button class="button secondary radius" type="button" data-close>Cancel</button>
+    <button type="submit" class="button warning radius"><fmt:message key="users.sendResetEmails" bundle="${adminMessages}" /></button>
+    <button class="button secondary radius" type="button" data-close><fmt:message key="common.cancel" bundle="${adminMessages}" /></button>
   </form>
-  <button class="close-button" data-close aria-label="Close reveal" type="button">
+  <button class="close-button" data-close aria-label="${closeDialogLabel}" type="button">
     <span aria-hidden="true">&times;</span>
   </button>
 </div>
 <div class="reveal" id="bulkAssignRolesReveal" role="dialog" aria-modal="true" aria-labelledby="bulkAssignRolesRevealTitle"
      data-reveal data-close-on-click="true">
-  <h4 id="bulkAssignRolesRevealTitle">Assign Role to <span id="bulkAssignRolesCount">0</span> Account(s)</h4>
-  <p class="help-text">This role is added to every selected account; existing roles are left alone.</p>
+  <h4 id="bulkAssignRolesRevealTitle"><fmt:message key="users.assignRoleTo" bundle="${adminMessages}" /> <span id="bulkAssignRolesCount">0</span> <fmt:message key="users.accounts" bundle="${adminMessages}" /></h4>
+  <p class="help-text"><fmt:message key="users.assignRoleHelp" bundle="${adminMessages}" /></p>
   <ul id="bulkAssignRolesList"></ul>
   <form method="post">
     <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
     <input type="hidden" name="token" value="${userSession.formToken}"/>
     <input type="hidden" name="command" value="bulkAssignRoles"/>
-    <label for="bulkRoleId">Role <span class="required">*</span>
+    <label for="bulkRoleId"><fmt:message key="common.role" bundle="${adminMessages}" /> <span class="required">*</span>
       <select id="bulkRoleId" name="roleId" required>
         <c:forEach items="${roleList}" var="role">
           <c:choose>
@@ -268,15 +272,14 @@
         </c:forEach>
       </select>
     </label>
-    <label for="bulkAssignRolesStepUpCredential">Your password or authenticator code <span class="required">*</span>
+    <label for="bulkAssignRolesStepUpCredential"><fmt:message key="users.stepUpCredential" bundle="${adminMessages}" /> <span class="required">*</span>
       <input type="password" id="bulkAssignRolesStepUpCredential" name="stepUpCredential" maxlength="255"
-             placeholder="Password or 6-digit code" required
-             title="Re-authentication required to change account roles"/>
+             placeholder="${stepUpPlaceholder}" required title="${assignRoleReauthTitle}"/>
     </label>
-    <input type="submit" class="button warning radius" value="Assign Role"/>
-    <button class="button secondary radius" type="button" data-close>Cancel</button>
+    <button type="submit" class="button primary radius"><fmt:message key="users.assignRole" bundle="${adminMessages}" /></button>
+    <button class="button secondary radius" type="button" data-close><fmt:message key="common.cancel" bundle="${adminMessages}" /></button>
   </form>
-  <button class="close-button" data-close aria-label="Close reveal" type="button">
+  <button class="close-button" data-close aria-label="${closeDialogLabel}" type="button">
     <span aria-hidden="true">&times;</span>
   </button>
 </div>
@@ -294,7 +297,7 @@
 
     function refresh() {
       var n = selected().length;
-      $count.text(n + (n === 1 ? ' account selected  ' : ' accounts selected  '));
+      $count.text(n + ' ' + (n === 1 ? '${fn:escapeXml(oneAccountSelectedLabel)}' : '${fn:escapeXml(manyAccountsSelectedLabel)}') + '  ');
       $bar.toggle(n > 0);
       $selectAll.prop('indeterminate', n > 0 && n < $rows.length);
       $selectAll.prop('checked', n > 0 && n === $rows.length);
@@ -343,7 +346,7 @@
 </script>
 <%--<div class="reveal small" id="formReveal" data-reveal data-close-on-esc="false" data-close-on-click="false" data-animation-in="slide-in-down fast">--%>
 <div class="reveal small" id="formReveal" data-reveal data-close-on-click="false" data-animation-in="slide-in-down fast" role="dialog" aria-modal="true" aria-labelledby="userFormRevealTitle">
-  <button class="close-button" data-close aria-label="Close modal" type="button">
+  <button class="close-button" data-close aria-label="${closeDialogLabel}" type="button">
     <span aria-hidden="true">&times;</span>
   </button>
   <h4 id="userFormRevealTitle"><fmt:message key="users.newUser" bundle="${adminMessages}" /></h4>
@@ -365,23 +368,23 @@
       </fieldset>
     </div>
     <label><fmt:message key="common.email" bundle="${adminMessages}" /> <span class="required">*</span>
-      <input type="email" placeholder="Email Address" name="email" value="" required>
+      <input type="email" placeholder="${emailAddressLabel}" name="email" value="" required>
     </label>
     <label><fmt:message key="users.organization" bundle="${adminMessages}" />
-      <input type="text" placeholder="Organization" name="organization" value="">
+      <input type="text" placeholder="${organizationLabel}" name="organization" value="">
     </label>
     <div class="grid-x grid-margin-x">
       <fieldset class="medium-6 cell">
         <label><fmt:message key="users.communityNickname" bundle="${adminMessages}" />
-          <input type="text" placeholder="Nickname" name="nickname" value="">
+          <input type="text" placeholder="${nicknameLabel}" name="nickname" value="">
         </label>
-        <p class="help-text" id="nicknameHelpText">Optional name to be shown instead of first/last name</p>
+        <p class="help-text" id="nicknameHelpText"><fmt:message key="users.nicknameHelp" bundle="${adminMessages}" /></p>
       </fieldset>
       <fieldset class="medium-6 cell">
         <label><fmt:message key="users.username" bundle="${adminMessages}" />
-          <input type="text" placeholder="Username" name="username" value="">
+          <input type="text" placeholder="${usernameLabel}" name="username" value="">
         </label>
-        <p class="help-text" id="usernameHelpText">Optional, system uses email address when this is empty</p>
+        <p class="help-text" id="usernameHelpText"><fmt:message key="users.usernameHelp" bundle="${adminMessages}" /></p>
       </fieldset>
     </div>
     <c:if test="${!empty roleList}">
