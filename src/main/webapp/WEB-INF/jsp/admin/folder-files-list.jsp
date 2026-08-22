@@ -38,10 +38,12 @@
 <jsp:useBean id="query" class="java.lang.String" scope="request"/>
 <jsp:useBean id="sortBy" class="java.lang.String" scope="request"/>
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="files.searchPlaceholder" bundle="${adminMessages}" var="fileSearchLabel" />
 <script src="${ctx}/javascript/clipboard-2.0.11/clipboard.min.js"></script>
 <%@include file="../page_messages.jspf" %>
 <c:if test="${(userSession.hasRole('admin') || userSession.hasRole('content-manager') || canAdd eq 'true')}">
-  <a href="${ctx}/admin/file-form?subFolderId=${subFolder.id}&folderId=${folder.id}&returnPage=${widgetContext.uri}%3FsubFolderId=${subFolder.id}%26folderId=${folder.id}" class="button small primary radius float-left"><i class="fa fa-plus"></i> Add File Link</a>
+  <a href="${ctx}/admin/file-form?subFolderId=${subFolder.id}&folderId=${folder.id}&returnPage=${widgetContext.uri}%3FsubFolderId=${subFolder.id}%26folderId=${folder.id}" class="button small primary radius float-left"><i class="fa fa-plus"></i> <fmt:message key="files.addLink" bundle="${adminMessages}" /></a>
 </c:if>
 <%-- Search/sort (GET so the criteria live in the URL); folderId/subFolderId are carried as hidden
      fields since a GET form with no action= replaces the current query string with only its own
@@ -53,22 +55,22 @@
   </c:if>
   <div class="grid-x grid-margin-x">
     <div class="cell medium-5">
-      <label for="fileSearchQuery" class="show-for-sr">Search by filename or title</label>
-      <input id="fileSearchQuery" type="search" name="query" placeholder="Search by filename or title..."<c:if test="${!empty query}"> value="<c:out value="${query}"/>"</c:if>>
+      <label for="fileSearchQuery" class="show-for-sr">${fileSearchLabel}</label>
+      <input id="fileSearchQuery" type="search" name="query" placeholder="${fileSearchLabel}..."<c:if test="${!empty query}"> value="<c:out value="${query}"/>"</c:if>>
     </div>
     <div class="cell medium-4">
-      <label for="fileSortBy" class="show-for-sr">Sort by</label>
+      <label for="fileSortBy" class="show-for-sr"><fmt:message key="common.sortBy" bundle="${adminMessages}" /></label>
       <select id="fileSortBy" name="sortBy">
-        <option value="date" <c:if test="${sortBy eq 'date'}">selected</c:if>>Date (Newest First)</option>
-        <option value="name" <c:if test="${sortBy eq 'name'}">selected</c:if>>Name (A-Z)</option>
-        <option value="size" <c:if test="${sortBy eq 'size'}">selected</c:if>>Size (Largest First)</option>
-        <option value="downloads" <c:if test="${sortBy eq 'downloads'}">selected</c:if>>Downloads (Most First)</option>
+        <option value="date" <c:if test="${sortBy eq 'date'}">selected</c:if>><fmt:message key="sort.newestFirst" bundle="${adminMessages}" /></option>
+        <option value="name" <c:if test="${sortBy eq 'name'}">selected</c:if>><fmt:message key="sort.nameAscending" bundle="${adminMessages}" /></option>
+        <option value="size" <c:if test="${sortBy eq 'size'}">selected</c:if>><fmt:message key="sort.largestFirst" bundle="${adminMessages}" /></option>
+        <option value="downloads" <c:if test="${sortBy eq 'downloads'}">selected</c:if>><fmt:message key="sort.mostDownloads" bundle="${adminMessages}" /></option>
       </select>
     </div>
     <div class="cell medium-3">
-      <button type="submit" class="button small primary radius"><i class="fa fa-filter"></i> Apply</button>
+      <button type="submit" class="button small primary radius"><i class="fa fa-filter"></i> <fmt:message key="common.apply" bundle="${adminMessages}" /></button>
       <c:if test="${!empty query || sortBy ne 'date'}">
-        <a href="${widgetContext.uri}?folderId=${folder.id}<c:if test="${subFolder.id gt 0}">&subFolderId=${subFolder.id}</c:if>" class="button small secondary radius">Clear</a>
+        <a href="${widgetContext.uri}?folderId=${folder.id}<c:if test="${subFolder.id gt 0}">&subFolderId=${subFolder.id}</c:if>" class="button small secondary radius"><fmt:message key="common.clear" bundle="${adminMessages}" /></a>
       </c:if>
     </div>
   </div>
@@ -79,7 +81,7 @@
        present) shows/hides it, keeps the count current, and opens #bulkDeleteReveal on click. --%>
   <div id="bulkActionsBar" class="callout radius" style="display:none;padding:10px 15px;margin-bottom:10px;">
     <span id="bulkSelectedCount"></span>
-    <button type="button" class="button tiny alert radius" id="bulkDeleteBtn">Delete</button>
+    <button type="button" class="button tiny alert radius" id="bulkDeleteBtn"><fmt:message key="common.delete" bundle="${adminMessages}" /></button>
   </div>
   <p class="help-text">Select all is capped at up to 100 files at a time for bulk actions.</p>
 </c:if>
@@ -90,12 +92,12 @@
         <th width="30"><input type="checkbox" id="selectAllFiles" aria-label="Select all files"></th>
       </c:if>
       <th>
-        Filename
+        <fmt:message key="files.filename" bundle="${adminMessages}" />
       </th>
-      <th width="110">action</th>
-      <th width="50" class="text-center">size</th>
-      <th width="60" class="text-center">uploaded</th>
-      <th width="70" class="text-center">downloads</th>
+      <th width="110"><fmt:message key="common.action" bundle="${adminMessages}" /></th>
+      <th width="50" class="text-center"><fmt:message key="files.size" bundle="${adminMessages}" /></th>
+      <th width="60" class="text-center"><fmt:message key="files.uploaded" bundle="${adminMessages}" /></th>
+      <th width="70" class="text-center"><fmt:message key="files.downloads" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -104,7 +106,7 @@
         <td colspan="5">
           <c:choose>
             <c:when test="${!empty query}">No files match "<c:out value="${query}" />"</c:when>
-            <c:otherwise>No files were found</c:otherwise>
+            <c:otherwise><fmt:message key="files.noneFound" bundle="${adminMessages}" /></c:otherwise>
           </c:choose>
         </td>
       </tr>
@@ -148,18 +150,18 @@
           </c:choose>
           <c:choose>
             <c:when test="${date:relative(file.created) eq 'just now'}">
-              <span class="label small round success">new</span>
+              <span class="label small round success"><fmt:message key="status.new" bundle="${adminMessages}" /></span>
             </c:when>
             <c:when test="${date:relative(file.modified) eq 'just now'}">
-              <span class="label small round primary">updated</span>
+              <span class="label small round primary"><fmt:message key="status.updated" bundle="${adminMessages}" /></span>
             </c:when>
           </c:choose>
           <c:if test="${file.version ne '1.0'}">(<c:out value="${file.version}" />)</c:if>
           <c:if test="${file.expired}">
-            <span class="label small round alert">expired</span>
+            <span class="label small round alert"><fmt:message key="status.expired" bundle="${adminMessages}" /></span>
           </c:if>
           <c:if test="${file.expiringSoon}">
-            <span class="label small round warning">expiring soon</span>
+            <span class="label small round warning"><fmt:message key="status.expiring" bundle="${adminMessages}" /></span>
           </c:if>
         </small>
         <c:if test="${file.categoryId gt 0}">

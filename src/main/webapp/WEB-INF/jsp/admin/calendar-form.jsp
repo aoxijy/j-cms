@@ -15,16 +15,21 @@
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="calendar" class="com.jcms.platform.domain.model.cms.Calendar" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
+<fmt:message key="common.choose" bundle="${adminMessages}" var="chooseLabel" />
+<fmt:message key="common.cancel" bundle="${adminMessages}" var="cancelLabel" />
 <link href="${ctx}/css/spectrum-1.8.1/spectrum.css" rel="stylesheet">
 <script src="${ctx}/javascript/spectrum-1.8.1/spectrum.js"></script>
 <c:choose>
-  <c:when test="${calendar.id eq -1}"><h4>New Calendar</h4></c:when>
+  <c:when test="${calendar.id eq -1}"><h4><fmt:message key="calendar.new" bundle="${adminMessages}" /></h4></c:when>
   <c:otherwise>
-    <h4>Update Calendar</h4>
-    <a class="button small radius primary" href="${ctx}/admin/calendar-event?calendarId=${calendar.id}&returnPage=/admin/calendar?calendarId=${calendar.id}">Add Event <i class="fa fa-arrow-circle-right"></i></a>
+    <h4><fmt:message key="calendar.update" bundle="${adminMessages}" /></h4>
+    <a class="button small radius primary" href="${ctx}/admin/calendar-event?calendarId=${calendar.id}&returnPage=/admin/calendar?calendarId=${calendar.id}"><fmt:message key="calendar.addEvent" bundle="${adminMessages}" /> <i class="fa fa-arrow-circle-right"></i></a>
   </c:otherwise>
 </c:choose>
 <form method="post">
@@ -49,25 +54,25 @@
     it is independent.
   </p>
   <%-- Form Content --%>
-  <label>Name <span class="required">*</span>
+  <label><fmt:message key="common.name" bundle="${adminMessages}" /> <span class="required">*</span>
     <input type="text" placeholder="Events, Holidays, etc." name="name" value="<c:out value="${calendar.name}"/>" required>
   </label>
-  <label>Description
+  <label><fmt:message key="webPages.description" bundle="${adminMessages}" />
     <input type="text" placeholder="Describe it..." name="description" value="<c:out value="${calendar.description}"/>">
   </label>
-  <label>Color
+  <label><fmt:message key="common.color" bundle="${adminMessages}" />
     <input id="color" type="text" name="color" value="<c:out value="${calendar.color}"/>">
   </label>
-  <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${calendar.id == -1 || calendar.enabled}">checked</c:if>/><label for="enabled">Online?</label>
+  <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${calendar.id == -1 || calendar.enabled}">checked</c:if>/><label for="enabled"><fmt:message key="common.onlineQuestion" bundle="${adminMessages}" /></label>
   <br/><small class="help-text"><i class="fa fa-info-circle"></i> Turning this off hides this calendar's events from their own individual event pages for public visitors (admins/content-managers can still open them directly). It does not currently remove them from calendar grids or search/upcoming-events widgets elsewhere on the site -- those don't check this setting.</small>
   <div class="button-container">
     <c:choose>
       <c:when test="${!empty returnPage}">
-        <input type="submit" class="button radius success" value="Save"/>
-        <a href="${returnPage}" class="button radius secondary">Cancel</a>
+        <input type="submit" class="button radius success" value="${saveLabel}"/>
+        <a href="${returnPage}" class="button radius secondary">${cancelLabel}</a>
       </c:when>
       <c:otherwise>
-        <input type="submit" class="button radius success expanded" value="Save"/>
+        <input type="submit" class="button radius success expanded" value="${saveLabel}"/>
       </c:otherwise>
     </c:choose>
   </div>
@@ -79,8 +84,8 @@
       color: target.value,
       flat: false,
       preferredFormat: "hex",
-      chooseText: "Choose",
-      cancelText: "Cancel",
+      chooseText: "${chooseLabel}",
+      cancelText: "${cancelLabel}",
       showPalette: true,
       palette: [
         ["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],

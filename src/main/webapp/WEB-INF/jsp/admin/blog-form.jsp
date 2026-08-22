@@ -15,13 +15,16 @@
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="blog" class="com.jcms.platform.domain.model.cms.Blog" scope="request"/>
 <jsp:useBean id="mailingLists" class="java.util.ArrayList" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
 <c:choose>
-  <c:when test="${blog.id eq -1}"><h4>New Blog</h4></c:when>
-  <c:otherwise><h4>Update Blog</h4></c:otherwise>
+  <c:when test="${blog.id eq -1}"><h4><fmt:message key="blog.new" bundle="${adminMessages}" /></h4></c:when>
+  <c:otherwise><h4><fmt:message key="blog.update" bundle="${adminMessages}" /></h4></c:otherwise>
 </c:choose>
 <form method="post">
   <%-- Required by controller --%>
@@ -51,18 +54,18 @@
     </div>
   </c:if>
   <%-- Form Content --%>
-  <label>Name <span class="required">*</span>
+  <label><fmt:message key="common.name" bundle="${adminMessages}" /> <span class="required">*</span>
     <input type="text" placeholder="Blog, News, Press Releases..." name="name" aria-describedby="blogNameHelpText" value="<c:out value="${blog.name}"/>" required>
   </label>
   <p class="help-text" id="blogNameHelpText">Also generates this category's Unique Id (shown in the
     blog list, and used in every post's URL) the first time it's saved -- see the warning above
     before renaming a category that already has posts in it.</p>
-  <label>Description
+  <label><fmt:message key="webPages.description" bundle="${adminMessages}" />
     <input type="text" placeholder="Describe it..." name="description" value="<c:out value="${blog.description}"/>">
   </label>
-  <label>Mailing List
+  <label><fmt:message key="blog.mailingList" bundle="${adminMessages}" />
     <select name="mailingListId">
-      <option value="-1">None</option>
+      <option value="-1"><fmt:message key="common.none" bundle="${adminMessages}" /></option>
       <c:forEach items="${mailingLists}" var="mailingList">
         <option value="${mailingList.id}" <c:if test="${mailingList.id == blog.mailingListId}">selected</c:if>><c:out value="${mailingList.title}" /></option>
       </c:forEach>
@@ -71,7 +74,7 @@
       the Email Subscribe widget with this category's Unique Id also lets visitors subscribe to just
       this category's updates, separately from any site-wide subscription option.</small>
   </label>
-  <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${blog.id == -1 || blog.enabled}">checked</c:if>/><label for="enabled">Online?</label>
+  <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${blog.id == -1 || blog.enabled}">checked</c:if>/><label for="enabled"><fmt:message key="common.onlineQuestion" bundle="${adminMessages}" /></label>
   <c:if test="${blog.id != -1}">
     <p><a href="${ctx}/admin/blog-tags?blogId=${blog.id}">Manage this blog's tags...</a></p>
     <p class="help-text">These tags belong only to this category -- another category with a similar
@@ -81,11 +84,11 @@
   <div class="button-container">
     <c:choose>
       <c:when test="${!empty returnPage}">
-          <input type="submit" class="button radius success" value="Save"/>
-          <a href="${returnPage}" class="button radius secondary">Cancel</a>
+          <input type="submit" class="button radius success" value="${saveLabel}"/>
+          <a href="${returnPage}" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
       </c:when>
       <c:otherwise>
-        <input type="submit" class="button radius success expanded" value="Save"/>
+        <input type="submit" class="button radius success expanded" value="${saveLabel}"/>
       </c:otherwise>
     </c:choose>
   </div>

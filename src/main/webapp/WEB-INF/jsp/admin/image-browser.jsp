@@ -27,22 +27,27 @@
 <jsp:useBean id="query" class="java.lang.String" scope="request"/>
 <jsp:useBean id="sortBy" class="java.lang.String" scope="request"/>
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="images.searchPlaceholder" bundle="${adminMessages}" var="imageSearchLabel" />
+<fmt:message key="common.search" bundle="${adminMessages}" var="searchLabel" />
+<fmt:message key="common.cancel" bundle="${adminMessages}" var="cancelLabel" />
+<fmt:message key="images.selectAll" bundle="${adminMessages}" var="selectAllImagesLabel" />
 <c:if test="${!empty title}">
   <h1><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h1>
 </c:if>
 <%@include file="../page_messages.jspf" %>
 <form id="imageSearchForm" method="get" autocomplete="off" class="float-right">
   <div class="input-group no-gap width-auto">
-    <input class="input-group-field" type="search" name="query" aria-label="Search images by filename"
-           placeholder="<c:if test="${empty query}">Search filenames...</c:if>"<c:if test="${!empty query}"> value="<c:out value="${query}"/>"</c:if> autocomplete="off">
-    <label for="imageSortBy" class="show-for-sr">Sort by</label>
+    <input class="input-group-field" type="search" name="query" aria-label="${imageSearchLabel}"
+           placeholder="<c:if test="${empty query}">${imageSearchLabel}...</c:if>"<c:if test="${!empty query}"> value="<c:out value="${query}"/>"</c:if> autocomplete="off">
+    <label for="imageSortBy" class="show-for-sr"><fmt:message key="common.sortBy" bundle="${adminMessages}" /></label>
     <select id="imageSortBy" name="sortBy" class="input-group-field" style="max-width:220px;" onchange="this.form.submit();">
-      <option value="date" <c:if test="${sortBy eq 'date'}">selected</c:if>>Date (Newest First)</option>
-      <option value="name" <c:if test="${sortBy eq 'name'}">selected</c:if>>Name (A-Z)</option>
-      <option value="size" <c:if test="${sortBy eq 'size'}">selected</c:if>>Size (Largest First)</option>
+      <option value="date" <c:if test="${sortBy eq 'date'}">selected</c:if>><fmt:message key="sort.newestFirst" bundle="${adminMessages}" /></option>
+      <option value="name" <c:if test="${sortBy eq 'name'}">selected</c:if>><fmt:message key="sort.nameAscending" bundle="${adminMessages}" /></option>
+      <option value="size" <c:if test="${sortBy eq 'size'}">selected</c:if>><fmt:message key="sort.largestFirst" bundle="${adminMessages}" /></option>
     </select>
     <div class="input-group-button">
-      <button type="submit" class="button search" aria-label="Search"><i class="fa fa-search" aria-hidden="true"></i></button>
+      <button type="submit" class="button search" aria-label="${searchLabel}"><i class="fa fa-search" aria-hidden="true"></i></button>
     </div>
   </div>
 </form>
@@ -54,22 +59,22 @@
      only ever narrows what's already been fetched for this page, not the whole library. --%>
 <c:if test="${!empty imageList}">
   <div id="usageFilterBar" class="button-group margin-bottom-10" style="clear:both;">
-    <button type="button" class="button tiny primary radius usage-filter-btn" data-usage-filter="all">All (this page)</button>
-    <button type="button" class="button tiny secondary radius usage-filter-btn" data-usage-filter="orphaned">Orphaned only</button>
-    <button type="button" class="button tiny secondary radius usage-filter-btn" data-usage-filter="used">Used only</button>
+    <button type="button" class="button tiny primary radius usage-filter-btn" data-usage-filter="all"><fmt:message key="images.allThisPage" bundle="${adminMessages}" /></button>
+    <button type="button" class="button tiny secondary radius usage-filter-btn" data-usage-filter="orphaned"><fmt:message key="images.orphanedOnly" bundle="${adminMessages}" /></button>
+    <button type="button" class="button tiny secondary radius usage-filter-btn" data-usage-filter="used"><fmt:message key="images.usedOnly" bundle="${adminMessages}" /></button>
   </div>
 </c:if>
 <div id="bulkActionsBar" class="callout radius" style="display:none;padding:10px 15px;margin-bottom:10px;">
   <span id="bulkSelectedCount"></span>
-  <button type="button" class="button tiny alert radius" id="bulkDeleteBtn">Delete Selected</button>
+  <button type="button" class="button tiny alert radius" id="bulkDeleteBtn"><fmt:message key="images.deleteSelected" bundle="${adminMessages}" /></button>
 </div>
 <div class="grid-container" style="padding: 0;">
   <c:if test="${empty imageList}">
-    <p>No images were found.</p>
+    <p><fmt:message key="images.noneFound" bundle="${adminMessages}" /></p>
   </c:if>
   <c:if test="${!empty imageList}">
     <label class="margin-bottom-10">
-      <input type="checkbox" id="selectAllImages" aria-label="Select all images"> Select All
+      <input type="checkbox" id="selectAllImages" aria-label="${selectAllImagesLabel}"> ${selectAllImagesLabel}
     </label>
   </c:if>
   <div class="grid-x grid-margin-x small-up-2 medium-up-3 large-up-5">
@@ -92,8 +97,8 @@
             <small style="color: #999999">${image.width}x${image.height}</small>
             <small style="color: #999999"><c:out value="${number:suffix(image.fileLength)}"/></small><br />
             <small style="color: #999999"><fmt:formatDate pattern="yyyy-MM-dd" value="${image.created}" /></small><br />
-            <small><a target="_blank" href="${ctx}/assets/img/${fn:escapeXml(image.url)}">Image Link</a></small><br />
-            <small><span class="usage-badge label secondary" data-image-id="${image.id}">Checking usage&hellip;</span></small><br />
+            <small><a target="_blank" href="${ctx}/assets/img/${fn:escapeXml(image.url)}"><fmt:message key="images.imageLink" bundle="${adminMessages}" /></a></small><br />
+            <small><span class="usage-badge label secondary" data-image-id="${image.id}"><fmt:message key="images.checkingUsage" bundle="${adminMessages}" />&hellip;</span></small><br />
             <c:if test="${!empty imageTagsByImageId[image.id]}">
               <c:forEach items="${imageTagsByImageId[image.id]}" var="cardTag">
                 <span class="label secondary" style="margin:1px;"><c:out value="${cardTag.name}"/></span>
@@ -104,16 +109,16 @@
                     data-id="${image.id}" data-filename="${fn:escapeXml(image.filename)}"
                     data-url="${ctx}/assets/img/${fn:escapeXml(image.url)}"
                     data-focal-x="<c:out value="${image.focalX}"/>" data-focal-y="<c:out value="${image.focalY}"/>">
-              <i class="fa fa-crosshairs"></i> Focal Point
+              <i class="fa fa-crosshairs"></i> <fmt:message key="images.focalPoint" bundle="${adminMessages}" />
             </button>
             <button type="button" class="setTagsBtn button tiny secondary radius margin-top-5"
                     data-id="${image.id}" data-filename="${fn:escapeXml(image.filename)}"
                     data-tag-ids="<c:forEach items="${imageTagsByImageId[image.id]}" var="cardTagId" varStatus="cardTagIdStatus">${cardTagId.id}<c:if test="${!cardTagIdStatus.last}">,</c:if></c:forEach>">
-              <i class="fa fa-tag"></i> Tags
+              <i class="fa fa-tag"></i> <fmt:message key="images.tags" bundle="${adminMessages}" />
             </button>
             <button type="button" class="deleteImageBtn button tiny alert radius margin-top-5"
                     data-id="${image.id}" data-filename="${fn:escapeXml(image.filename)}">
-              <i class="fa fa-remove"></i> Delete
+              <i class="fa fa-remove"></i> <fmt:message key="common.delete" bundle="${adminMessages}" />
             </button>
           </div>
         </div>
@@ -149,7 +154,7 @@
      bulkDeleteReveal above. --%>
 <div class="reveal large" id="focalPointReveal" role="dialog" aria-modal="true"
      aria-labelledby="focalPointRevealTitle" data-reveal data-close-on-click="true">
-  <h4 id="focalPointRevealTitle">Set Focal Point</h4>
+  <h4 id="focalPointRevealTitle"><fmt:message key="images.setFocalPoint" bundle="${adminMessages}" /></h4>
   <p>Click the image where the subject is, so a future square crop keeps it in frame.</p>
   <div id="focalPointImageWrap" style="position:relative; display:inline-block; max-width:100%;">
     <img id="focalPointImage" src="" alt="" style="display:block; max-width:100%; height:auto; cursor:crosshair;">
@@ -159,10 +164,10 @@
   </div>
   <div class="grid-x grid-margin-x margin-top-10">
     <div class="cell small-6">
-      <label>Horizontal <input type="range" id="focalXRange" min="0" max="100" step="1" value="50"></label>
+      <label><fmt:message key="images.horizontal" bundle="${adminMessages}" /> <input type="range" id="focalXRange" min="0" max="100" step="1" value="50"></label>
     </div>
     <div class="cell small-6">
-      <label>Vertical <input type="range" id="focalYRange" min="0" max="100" step="1" value="50"></label>
+      <label><fmt:message key="images.vertical" bundle="${adminMessages}" /> <input type="range" id="focalYRange" min="0" max="100" step="1" value="50"></label>
     </div>
   </div>
   <form method="post">
@@ -173,7 +178,7 @@
     <input type="hidden" name="focalX" id="focalXInput" value="50"/>
     <input type="hidden" name="focalY" id="focalYInput" value="50"/>
     <input type="submit" class="button radius" value="Save Focal Point"/>
-    <button class="button secondary radius" type="button" data-close>Cancel</button>
+    <button class="button secondary radius" type="button" data-close>${cancelLabel}</button>
   </form>
   <button class="close-button" data-close aria-label="Close reveal" type="button">
     <span aria-hidden="true">&times;</span>
@@ -185,7 +190,7 @@
      AdminImageBrowserWidget#setTagsAction. --%>
 <div class="reveal" id="tagsReveal" role="dialog" aria-modal="true" aria-labelledby="tagsRevealTitle"
      data-reveal data-close-on-click="true">
-  <h4 id="tagsRevealTitle">Set Tags</h4>
+  <h4 id="tagsRevealTitle"><fmt:message key="images.setTags" bundle="${adminMessages}" /></h4>
   <form method="post">
     <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
     <input type="hidden" name="token" value="${userSession.formToken}"/>
@@ -201,11 +206,11 @@
         <label><input type="checkbox" name="assignTagId" value="${modalTag.id}" class="tagCheckbox" data-tag-id="${modalTag.id}"> <c:out value="${modalTag.name}"/></label>
       </c:forEach>
     </div>
-    <label for="newTagName">New tag
+    <label for="newTagName"><fmt:message key="images.newTag" bundle="${adminMessages}" />
       <input type="text" id="newTagName" name="newTagName" maxlength="255" placeholder="e.g. Homepage">
     </label>
     <input type="submit" class="button radius" value="Save Tags"/>
-    <button class="button secondary radius" type="button" data-close>Cancel</button>
+    <button class="button secondary radius" type="button" data-close>${cancelLabel}</button>
   </form>
   <button class="close-button" data-close aria-label="Close reveal" type="button">
     <span aria-hidden="true">&times;</span>

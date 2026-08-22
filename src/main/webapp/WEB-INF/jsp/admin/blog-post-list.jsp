@@ -23,6 +23,7 @@
 <jsp:useBean id="blogMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="blogPostReviewStatusMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -31,14 +32,14 @@
 <form method="get" autocomplete="off" class="margin-bottom-10">
   <div class="grid-x grid-margin-x">
     <div class="cell medium-4">
-      <label>Search
+      <label><fmt:message key="common.search" bundle="${adminMessages}" />
         <input type="text" name="q" placeholder="post title" value="<c:out value='${q}'/>">
       </label>
     </div>
     <div class="cell medium-4">
-      <label>Blog
+      <label><fmt:message key="blog.blog" bundle="${adminMessages}" />
         <select name="blogId">
-          <option value="">All</option>
+          <option value=""><fmt:message key="common.all" bundle="${adminMessages}" /></option>
           <c:forEach items="${blogList}" var="blog">
             <option value="${blog.id}" <c:if test="${blogId == blog.id}">selected</c:if>><c:out value="${blog.name}" /></option>
           </c:forEach>
@@ -46,38 +47,38 @@
       </label>
     </div>
     <div class="cell medium-4">
-      <label>Status
+      <label><fmt:message key="common.status" bundle="${adminMessages}" />
         <select name="status">
-          <option value="">All</option>
-          <option value="published" <c:if test="${status == 'published'}">selected</c:if>>Published</option>
-          <option value="draft" <c:if test="${status == 'draft'}">selected</c:if>>Draft</option>
+          <option value=""><fmt:message key="common.all" bundle="${adminMessages}" /></option>
+          <option value="published" <c:if test="${status == 'published'}">selected</c:if>><fmt:message key="status.published" bundle="${adminMessages}" /></option>
+          <option value="draft" <c:if test="${status == 'draft'}">selected</c:if>><fmt:message key="status.draft" bundle="${adminMessages}" /></option>
           <%-- Archived posts are excluded from every other option above by default (issue #427);
                this is the only way to see them in the admin list. --%>
-          <option value="archived" <c:if test="${status == 'archived'}">selected</c:if>>Archived</option>
+          <option value="archived" <c:if test="${status == 'archived'}">selected</c:if>><fmt:message key="status.archived" bundle="${adminMessages}" /></option>
         </select>
       </label>
     </div>
   </div>
-  <button type="submit" class="button small primary radius"><i class="fa fa-filter"></i> Filter</button>
-  <a href="${widgetContext.uri}" class="button small secondary radius">Clear</a>
+  <button type="submit" class="button small primary radius"><i class="fa fa-filter"></i> <fmt:message key="common.filter" bundle="${adminMessages}" /></button>
+  <a href="${widgetContext.uri}" class="button small secondary radius"><fmt:message key="common.clear" bundle="${adminMessages}" /></a>
 </form>
 <div id="bulkActionsBar" class="callout radius" style="display:none;padding:10px 15px;margin-bottom:10px;">
   <span id="bulkSelectedCount"></span>
-  <button type="button" class="button tiny radius" id="bulkPublishBtn">Publish</button>
-  <button type="button" class="button tiny radius" id="bulkUnpublishBtn">Unpublish</button>
-  <button type="button" class="button tiny radius" id="bulkArchiveBtn">Archive</button>
-  <button type="button" class="button tiny radius" id="bulkMoveBtn">Move</button>
-  <button type="button" class="button tiny alert radius" id="bulkDeleteBtn">Delete</button>
+  <button type="button" class="button tiny success radius" id="bulkPublishBtn"><fmt:message key="common.publish" bundle="${adminMessages}" /></button>
+  <button type="button" class="button tiny warning radius" id="bulkUnpublishBtn"><fmt:message key="common.unpublish" bundle="${adminMessages}" /></button>
+  <button type="button" class="button tiny secondary radius" id="bulkArchiveBtn"><fmt:message key="common.archive" bundle="${adminMessages}" /></button>
+  <button type="button" class="button tiny primary radius" id="bulkMoveBtn"><fmt:message key="common.move" bundle="${adminMessages}" /></button>
+  <button type="button" class="button tiny alert radius" id="bulkDeleteBtn"><fmt:message key="common.delete" bundle="${adminMessages}" /></button>
 </div>
 <table class="unstriped">
   <thead>
     <tr>
       <th width="24"><input type="checkbox" id="selectAllBlogPosts" aria-label="Select all blog posts on this page"></th>
-      <th>Title</th>
-      <th width="160">Blog</th>
-      <th width="120" class="text-center">Status</th>
-      <th width="160" class="text-center">Published</th>
-      <th width="80" class="text-center">Action</th>
+      <th><fmt:message key="common.title" bundle="${adminMessages}" /></th>
+      <th width="160"><fmt:message key="blog.blog" bundle="${adminMessages}" /></th>
+      <th width="120" class="text-center"><fmt:message key="common.status" bundle="${adminMessages}" /></th>
+      <th width="160" class="text-center"><fmt:message key="status.published" bundle="${adminMessages}" /></th>
+      <th width="80" class="text-center"><fmt:message key="common.action" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -106,13 +107,13 @@
         <td class="text-center">
           <c:choose>
             <c:when test="${!empty blogPost.archived}">
-              <span class="label secondary radius">Archived</span>
+              <span class="label secondary radius"><fmt:message key="status.archived" bundle="${adminMessages}" /></span>
             </c:when>
             <c:when test="${!empty blogPost.published}">
-              <span class="label success radius">Published</span>
+              <span class="label success radius"><fmt:message key="status.published" bundle="${adminMessages}" /></span>
             </c:when>
             <c:otherwise>
-              <span class="label radius">Draft</span>
+              <span class="label radius"><fmt:message key="status.draft" bundle="${adminMessages}" /></span>
             </c:otherwise>
           </c:choose>
         </td>
@@ -130,7 +131,7 @@
     </c:forEach>
     <c:if test="${empty blogPostList}">
       <tr>
-        <td colspan="6">No blog posts match the current filters</td>
+        <td colspan="6"><fmt:message key="blog.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>

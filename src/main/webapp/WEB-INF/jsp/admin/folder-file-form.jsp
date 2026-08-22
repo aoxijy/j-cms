@@ -24,6 +24,8 @@
 <jsp:useBean id="folder" class="com.jcms.platform.domain.model.cms.Folder" scope="request"/>
 <jsp:useBean id="subFolder" class="com.jcms.platform.domain.model.cms.SubFolder" scope="request"/>
 <jsp:useBean id="folderCategoryList" class="java.util.ArrayList" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -49,7 +51,7 @@
   <c:if test="${!empty folderCategoryList}">
     <div class="grid-x grid-margin-x">
       <div class="small-6 cell">
-        <label>Category
+        <label><fmt:message key="files.category" bundle="${adminMessages}" />
           <select name="categoryId" id="categoryId">
             <option value="-1"></option>
             <c:forEach items="${folderCategoryList}" var="category" varStatus="status">
@@ -60,23 +62,23 @@
       </div>
     </div>
   </c:if>
-  <label>Display Name <span class="required">*</span>
+  <label><fmt:message key="files.displayName" bundle="${adminMessages}" /> <span class="required">*</span>
     <input type="text" placeholder="Name" name="title" id="title" value="" required>
   </label>
-  <label>URL <span class="required">*</span>
+  <label><fmt:message key="files.url" bundle="${adminMessages}" /> <span class="required">*</span>
     <input type="text" placeholder="URL" name="filename" id="filename" value="" required>
   </label>
-  <label>Summary
+  <label><fmt:message key="files.summary" bundle="${adminMessages}" />
     <input type="text" placeholder="Summary" name="summary" id="summary" value="">
   </label>
   <div class="button-container">
     <c:choose>
       <c:when test="${!empty returnPage}">
-        <input type="submit" class="button radius success" value="Save"/>
-        <a href="${returnPage}" class="button radius secondary">Cancel</a>
+        <input type="submit" class="button radius success" value="${saveLabel}"/>
+        <a href="${returnPage}" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
       </c:when>
       <c:otherwise>
-        <input type="submit" class="button radius success expanded" value="Save"/>
+        <input type="submit" class="button radius success expanded" value="${saveLabel}"/>
       </c:otherwise>
     </c:choose>
   </div>
