@@ -14,6 +14,7 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
@@ -32,10 +33,10 @@
   </c:if>
   <%@include file="../page_messages.jspf" %>
   <%-- Form Content --%>
-  <label>Name
-    <input type="text" placeholder="Give it a name..." name="name" value="<c:out value="${tag.name}"/>">
+  <label><fmt:message key="common.name" bundle="${adminMessages}" />
+    <input type="text" placeholder="<fmt:message key="blog.tagNamePlaceholder" bundle="${adminMessages}" />" name="name" value="<c:out value="${tag.name}"/>">
   </label>
   <div class="button-container">
-    <input type="submit" class="button radius primary" value="Save" />
+    <input type="submit" class="button radius primary" value="<fmt:message key="common.save" bundle="${adminMessages}" />" />
   </div>
 </form>

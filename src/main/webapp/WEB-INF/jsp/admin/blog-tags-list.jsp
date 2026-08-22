@@ -14,6 +14,7 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
@@ -28,7 +29,7 @@
   <thead>
     <tr>
       <th>
-        Tags
+        <fmt:message key="blog.tags" bundle="${adminMessages}" />
       </th>
     </tr>
   </thead>
@@ -37,13 +38,13 @@
     <tr>
       <td>
         <a href="${ctx}/admin/blog-tag?blogId=${blog.id}&tagId=${tag.id}"><c:out value="${tag.name}" /></a>
-        <a href="#" onclick="return confirmPostAction('Are you sure you want to delete <c:out value="${js:escape(tag.name)}" />?', '${widgetContext.uri}?command=delete&widget=${widgetContext.uniqueId}&token=${userSession.formToken}&tagId=${tag.id}');"><i class="fa fa-remove"></i></a>
+        <a href="#" onclick="return confirmPostAction('<fmt:message key="blog.tagDeleteConfirm" bundle="${adminMessages}" />', '${widgetContext.uri}?command=delete&widget=${widgetContext.uniqueId}&token=${userSession.formToken}&tagId=${tag.id}');"><i class="fa fa-remove"></i></a>
       </td>
     </tr>
     </c:forEach>
     <c:if test="${empty tagList}">
       <tr>
-        <td class="subheader">No tags were found</td>
+        <td class="subheader"><fmt:message key="blog.noTags" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>
