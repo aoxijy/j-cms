@@ -1,0 +1,23 @@
+/* Optional administrator theme. Loaded only for /admin when admin.theme=colorful. */
+:root[data-admin-theme="colorful"] {
+  --admin-blue: #2563eb;
+  --admin-green: #16a34a;
+  --admin-orange: #ea580c;
+  --admin-red: #dc2626;
+  --admin-purple: #7c3aed;
+}
+
+:root[data-admin-theme="colorful"] body .button.primary,
+:root[data-admin-theme="colorful"] body button.primary { background: var(--admin-blue); }
+:root[data-admin-theme="colorful"] body .button.success { background: var(--admin-green); }
+:root[data-admin-theme="colorful"] body .button.warning { background: var(--admin-orange); }
+:root[data-admin-theme="colorful"] body .button.alert { background: var(--admin-red); }
+:root[data-admin-theme="colorful"] body .platform-dashboard-group > .cell:nth-child(5n+1) i { color: var(--admin-blue); }
+:root[data-admin-theme="colorful"] body .platform-dashboard-group > .cell:nth-child(5n+2) i { color: var(--admin-green); }
+:root[data-admin-theme="colorful"] body .platform-dashboard-group > .cell:nth-child(5n+3) i { color: var(--admin-orange); }
+:root[data-admin-theme="colorful"] body .platform-dashboard-group > .cell:nth-child(5n+4) i { color: var(--admin-purple); }
+:root[data-admin-theme="colorful"] body .platform-dashboard-group > .cell:nth-child(5n+5) i { color: var(--admin-red); }
+:root[data-admin-theme="colorful"] body .callout.primary { border-left: .3rem solid var(--admin-blue); }
+:root[data-admin-theme="colorful"] body .callout.success { border-left: .3rem solid var(--admin-green); }
+:root[data-admin-theme="colorful"] body .callout.warning { border-left: .3rem solid var(--admin-orange); }
+:root[data-admin-theme="colorful"] body .callout.alert { border-left: .3rem solid var(--admin-red); }

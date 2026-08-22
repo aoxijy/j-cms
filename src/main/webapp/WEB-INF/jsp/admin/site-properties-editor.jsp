@@ -22,6 +22,7 @@
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="sitePropertyList" class="java.util.ArrayList" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <link href="${ctx}/css/spectrum-1.8.1/spectrum.css" rel="stylesheet">
 <script src="${ctx}/javascript/spectrum-1.8.1/spectrum.js"></script>
 <%-- Handle image uploads --%>
@@ -54,7 +55,7 @@
   }
 </script>
 <c:if test="${!empty title}">
-  <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
+  <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:choose><c:when test="${prefix eq 'admin'}"><fmt:message key="page.title.admin.ui.settings" bundle="${adminMessages}" /></c:when><c:otherwise><c:out value="${title}" /></c:otherwise></c:choose></h4>
 </c:if>
 <form method="post">
   <%-- Required by controller --%>
@@ -65,16 +66,32 @@
   <table class="unstriped">
     <thead>
     <tr>
-      <th width="200">Name</th>
-      <th>Value</th>
+      <th width="200"><fmt:message key="common.name" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.value" bundle="${adminMessages}" /></th>
     </tr>
     </thead>
     <tbody>
     <c:forEach items="${sitePropertyList}" var="siteProperty">
       <tr>
-        <td><c:out value="${siteProperty.label}" /></td>
+        <td><c:choose>
+          <c:when test="${siteProperty.name eq 'admin.language'}"><fmt:message key="setting.admin.language" bundle="${adminMessages}" /></c:when>
+          <c:when test="${siteProperty.name eq 'admin.theme'}"><fmt:message key="setting.admin.theme" bundle="${adminMessages}" /></c:when>
+          <c:otherwise><c:out value="${siteProperty.label}" /></c:otherwise>
+        </c:choose></td>
         <td nowrap>
           <c:choose>
+            <c:when test="${siteProperty.name eq 'admin.language'}">
+              <select name="${siteProperty.name}">
+                <option value="en"<c:if test="${siteProperty.value ne 'zh_CN'}"> selected</c:if>><fmt:message key="language.english" bundle="${adminMessages}" /></option>
+                <option value="zh_CN"<c:if test="${siteProperty.value eq 'zh_CN'}"> selected</c:if>><fmt:message key="language.simplifiedChinese" bundle="${adminMessages}" /></option>
+              </select>
+            </c:when>
+            <c:when test="${siteProperty.name eq 'admin.theme'}">
+              <select name="${siteProperty.name}">
+                <option value="default"<c:if test="${siteProperty.value ne 'colorful'}"> selected</c:if>><fmt:message key="theme.default" bundle="${adminMessages}" /></option>
+                <option value="colorful"<c:if test="${siteProperty.value eq 'colorful'}"> selected</c:if>><fmt:message key="theme.colorful" bundle="${adminMessages}" /></option>
+              </select>
+            </c:when>
             <%-- Secret values are never rendered back to the browser --%>
             <c:when test="${secretPropertyNames.contains(siteProperty.name)}">
               <c:choose>

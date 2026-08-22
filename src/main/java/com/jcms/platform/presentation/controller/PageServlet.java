@@ -53,6 +53,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.jsp.jstl.core.Config;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -812,6 +813,8 @@ public class PageServlet extends HttpServlet {
       // Never render a malformed tracking id into the public page's script tags
       AnalyticsTrackingIdCommand.sanitize(analyticsPropertyMap);
       Map<String, String> ecommercePropertyMap = LoadSitePropertyCommand.loadAsMap("ecommerce");
+      Map<String, String> adminPropertyMap = LoadSitePropertyCommand.loadAsMap("admin");
+      Locale adminLocale = AdminUiCommand.resolveLocale(adminPropertyMap.get("admin.language"));
 
       // Publish these before any widget renders (below), not just for main.jsp/layout.jsp
       // afterward -- a widget JSP (e.g. ActivityListWidget's activity-list.jsp) that reads
@@ -825,6 +828,9 @@ public class PageServlet extends HttpServlet {
       request.setAttribute("socialMediaLinkList", socialMediaLinkList);
       request.setAttribute("analyticsPropertyMap", analyticsPropertyMap);
       request.setAttribute("ecommercePropertyMap", ecommercePropertyMap);
+      request.setAttribute("adminPropertyMap", adminPropertyMap);
+      request.setAttribute("adminLocale", adminLocale.toLanguageTag());
+      Config.set(request, Config.FMT_LOCALE, adminLocale);
 
       // Allow content admins to see a page
       if (pageRef == null &&
@@ -967,6 +973,11 @@ public class PageServlet extends HttpServlet {
 
       // Setup the rendering info
       PageRenderInfo pageRenderInfo = new PageRenderInfo(pageRef, pagePath);
+      if (pagePath.startsWith("/admin")) {
+        pageRenderInfo.setTitle(AdminUiCommand.message(
+            "page.title." + AdminUiCommand.keyForPath(pageRenderInfo.getName()),
+            pageRenderInfo.getTitle(), adminLocale));
+      }
       if (pageRenderInfo.getName().startsWith("_")) {
         // Show the actual name from the request, not the template name
         pageRenderInfo.setName(pagePath);

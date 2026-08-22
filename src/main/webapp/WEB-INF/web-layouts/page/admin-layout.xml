@@ -262,6 +262,18 @@
     </section>
   </page>
 
+  <page name="/admin/ui-settings" role="admin" title="Admin UI Settings">
+    <section>
+      <column class="small-12 medium-8 large-6 cell">
+        <widget name="sitePropertiesEditor">
+          <icon>fa-palette</icon>
+          <title>Admin UI Settings</title>
+          <prefix>admin</prefix>
+        </widget>
+      </column>
+    </section>
+  </page>
+
   <page name="/admin/site-header-properties" role="admin,content-manager" title="Utility Bar Settings">
     <section>
       <column class="small-12 cell">

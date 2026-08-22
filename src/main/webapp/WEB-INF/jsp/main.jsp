@@ -31,6 +31,7 @@
 <jsp:useBean id="themePropertyMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="analyticsPropertyMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="ecommercePropertyMap" class="java.util.HashMap" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <%-- Color scheme. The site property theme.ui.mode selects it:
        light  forced light, and no toggle (the default, so an existing site is unchanged)
        dark   forced dark, and no toggle
@@ -45,7 +46,7 @@
   <c:otherwise><c:set var="colorScheme" value="light" /></c:otherwise>
 </c:choose>
 <!doctype html>
-<html class="no-js" lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" data-theme="${colorScheme}">
+<html class="no-js" lang="${fn:escapeXml(empty adminLocale ? 'en' : adminLocale)}" xml:lang="${fn:escapeXml(empty adminLocale ? 'en' : adminLocale)}" xmlns="http://www.w3.org/1999/xhtml" data-theme="${colorScheme}" data-admin-theme="${adminPropertyMap['admin.theme'] eq 'colorful' ? 'colorful' : 'default'}">
 <head>
   <meta charset="UTF-8" />
   <c:if test="${colorSchemeMode eq 'user'}">
@@ -58,7 +59,7 @@
   </c:if>
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Language" content="en">
+  <meta http-equiv="Content-Language" content="${fn:escapeXml(empty adminLocale ? 'en' : adminLocale)}">
   <!--
   ========================================================================
   J-CMS
@@ -190,6 +191,9 @@
     <%-- Design tokens and dark scheme. Loaded after platform.css so it can repaint chrome, and
          before the theme's inline <style> block so a site's own colors still win. --%>
     <link rel="stylesheet" type="text/css" href="${ctx}/css/platform-tokens.css" />
+    <c:if test="${fn:startsWith(pageRenderInfo.name, '/admin') && adminPropertyMap['admin.theme'] eq 'colorful'}">
+      <link rel="stylesheet" type="text/css" href="${ctx}/css/platform-admin-colorful.css?v=<%= VERSION %>" />
+    </c:if>
   <c:if test="${!empty themePropertyMap}">
       <style><%-- Prevent top-bar flicker --%>
         :root {
@@ -557,9 +561,10 @@
           <%-- Settings menu --%>
           <c:if test="${userSession.hasRole('admin')}">
             <ul class="vertical menu">
-              <li class="section-title">Settings</li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/theme')}"> class="is-active"</c:if>><a href="${ctx}/admin/theme-properties"><i class="${font:far()} fa-palette fa-fw"></i> <span>Theme</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/site-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/site-properties"><i class="${font:far()} fa-rocket fa-fw"></i> <span>Site Settings</span></a></li>
+              <li class="section-title"><fmt:message key="nav.section.settings" bundle="${adminMessages}" /></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/ui-settings')}"> class="is-active"</c:if>><a href="${ctx}/admin/ui-settings"><i class="${font:far()} fa-language fa-fw"></i> <span><fmt:message key="nav.adminUiSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/theme')}"> class="is-active"</c:if>><a href="${ctx}/admin/theme-properties"><i class="${font:far()} fa-palette fa-fw"></i> <span><fmt:message key="nav.theme" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/site-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/site-properties"><i class="${font:far()} fa-rocket fa-fw"></i> <span><fmt:message key="nav.siteSettings" bundle="${adminMessages}" /></span></a></li>
               <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mfa')}"> class="is-active"</c:if>><a href="${ctx}/admin/mfa-properties"><i class="${font:far()} fa-lock fa-fw"></i> <span>MFA Settings</span></a></li>
               <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/social')}"> class="is-active"</c:if>><a href="${ctx}/admin/social-media-settings"><i class="${font:far()} fa-thumbs-up fa-fw"></i> <span>Social Media</span></a></li>
               <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/configure-analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/configure-analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics Settings</span></a></li>
@@ -583,7 +588,7 @@
         <div class="off-canvas-content" data-off-canvas-content>
           <div class="title-bar hide-for-medium" aria-label="Admin navigation">
             <button class="menu-icon" type="button" data-toggle="offCanvas" aria-label="Open admin menu"></button>
-            <div class="title-bar-title">Admin Menu</div>
+            <div class="title-bar-title"><fmt:message key="nav.adminMenu" bundle="${adminMessages}" /></div>
           </div>
           <div class="web-content admin-web-content">
             <c:if test="${!empty pageRenderInfo.title}">
