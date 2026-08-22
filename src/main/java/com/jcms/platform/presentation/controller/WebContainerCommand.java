@@ -41,8 +41,11 @@ import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.jcms.platform.presentation.controller.RequestConstants.*;
 
@@ -63,6 +66,7 @@ public class WebContainerCommand implements Serializable {
   private static final String WARNING_MESSAGE = "WARNING_MESSAGE";
   private static final String ERROR_MESSAGE = "ERROR_MESSAGE";
   private static final String REQUEST_OBJECT = "REQUEST_OBJECT";
+  private static final Pattern I18N_VARIABLE = Pattern.compile("\\$\\{i18n\\.([A-Za-z0-9._-]+)}");
 
   // Page-level attributes that PageServlet computes once (before the section/column/widget walk
   // below even starts) and that must stay visible for the *entire* request -- to every widget's
@@ -188,6 +192,13 @@ public class WebContainerCommand implements Serializable {
           for (String preference : widget.getPreferences().keySet()) {
             String value = widget.getPreferences().get(preference);
             // check for dynamic preferences
+            if (value.contains("${i18n.")) {
+              Object localeAttribute = request.getAttribute("adminLocale");
+              Locale locale = localeAttribute == null
+                  ? Locale.ENGLISH
+                  : Locale.forLanguageTag(localeAttribute.toString());
+              value = replaceMessageVariables(value, locale);
+            }
             while (value.contains("${ctx}")) {
               value = StringUtils.replace(value, "${ctx}", contextPath);
             }
@@ -623,6 +634,23 @@ public class WebContainerCommand implements Serializable {
       replacementValue = StringUtils.replace(replacementValue, "'", "''");
     }
     return StringUtils.replace(content, searchString, replacementValue);
+  }
+
+  /** Replaces resource-backed admin text embedded in XML widget preferences. */
+  static String replaceMessageVariables(String content, Locale locale) {
+    if (content == null || !content.contains("${i18n.")) {
+      return content;
+    }
+    Matcher matcher = I18N_VARIABLE.matcher(content);
+    StringBuffer output = new StringBuffer();
+    while (matcher.find()) {
+      String key = matcher.group(1);
+      String english = AdminUiCommand.message(key, key, Locale.ENGLISH);
+      String translated = AdminUiCommand.message(key, english, locale);
+      matcher.appendReplacement(output, Matcher.quoteReplacement(translated));
+    }
+    matcher.appendTail(output);
+    return output.toString();
   }
 
   public static String replaceVariableWithParameterValue(HttpServletRequest request, String content) {

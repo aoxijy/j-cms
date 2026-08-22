@@ -36,6 +36,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -50,6 +51,23 @@ import static org.mockito.Mockito.when;
  * @created 7/14/2022 8:00 AM
  */
 class WebContainerCommandTest {
+  @Test
+  void replacesDashboardMessagesUsingTheRequestedLocale() {
+    String content = "<h5>${i18n.dashboard.section.activity}</h5> ${i18n.dashboard.onlineNow}";
+
+    Assertions.assertEquals("<h5>访问动态</h5> 当前在线",
+        WebContainerCommand.replaceMessageVariables(content, Locale.SIMPLIFIED_CHINESE));
+    Assertions.assertEquals("<h5>Activity</h5> Online Now",
+        WebContainerCommand.replaceMessageVariables(content, Locale.ENGLISH));
+  }
+
+  @Test
+  void missingDashboardMessagesFallBackToTheKeyWithoutBreakingReplacement() {
+    Assertions.assertEquals("Before dashboard.missingKey after",
+        WebContainerCommand.replaceMessageVariables(
+            "Before ${i18n.dashboard.missingKey} after", Locale.SIMPLIFIED_CHINESE));
+  }
+
   @Test
   void replaceVariable() {
     // User information

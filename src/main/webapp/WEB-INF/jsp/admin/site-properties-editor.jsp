@@ -23,6 +23,7 @@
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="sitePropertyList" class="java.util.ArrayList" scope="request"/>
 <fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
 <link href="${ctx}/css/spectrum-1.8.1/spectrum.css" rel="stylesheet">
 <script src="${ctx}/javascript/spectrum-1.8.1/spectrum.js"></script>
 <%-- Handle image uploads --%>
@@ -694,8 +695,8 @@
     </div>
   </c:if>
   <div class="button-container">
-    <input type="submit" class="button radius success" value="Save" />
-    <a href="${ctx}/admin" class="button radius secondary">Cancel</a>
+    <input type="submit" class="button radius success" value="${saveLabel}" />
+    <a href="${ctx}/admin" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
   </div>
 </form>
 <div class="reveal large" id="imageBrowserReveal" data-reveal data-animation-in="slide-in-down fast" role="dialog" aria-modal="true" aria-label="Image Browser">
