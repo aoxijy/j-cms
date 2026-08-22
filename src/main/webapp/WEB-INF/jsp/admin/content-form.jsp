@@ -15,9 +15,11 @@
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="content" class="com.jcms.platform.domain.model.cms.Content" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <form method="post">
   <%-- Required by controller --%>
   <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
@@ -30,7 +32,7 @@
   </c:if>
   <%@include file="../page_messages.jspf" %>
   <%-- Form Content --%>
-  <label>Reference name <span class="required">*</span>
+  <label><fmt:message key="content.referenceName" bundle="${adminMessages}" /> <span class="required">*</span>
     <input type="text" placeholder="example-unique-id" name="uniqueId" value="<c:out value="${content.uniqueId}"/>" required>
   </label>
   <p class="help-text">This is the internal key a page's widget XML uses to find this content block -- never a
@@ -38,6 +40,6 @@
     exists, Continue will warn instead of creating a duplicate, since you'd otherwise be silently opening that
     existing block for editing.</p>
   <div class="button-container">
-    <input type="submit" class="button radius primary expanded" value="Continue"/>
+    <button type="submit" class="button radius primary expanded"><fmt:message key="common.continue" bundle="${adminMessages}" /></button>
   </div>
 </form>

@@ -26,6 +26,8 @@
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
 <jsp:useBean id="query" class="java.lang.String" scope="request"/>
 <jsp:useBean id="currentClientIp" class="java.lang.String" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="security.searchIpReason" bundle="${adminMessages}" var="ipSearchLabel" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -50,7 +52,7 @@
   <input type="hidden" name="token" value="${userSession.formToken}"/>
   <%-- Form --%>
   <input type="hidden" name="command" value="uploadCSVFile" />
-  <label for="file" class="button small secondary radius float-left margin-left-0"><i class="fa fa-upload"></i> Upload CSV File</label>
+  <label for="file" class="button small secondary radius float-left margin-left-0"><i class="fa fa-upload"></i> <fmt:message key="users.uploadCsv" bundle="${adminMessages}" /></label>
   <input type="file" id="file" name="file" accept="text/csv" class="show-for-sr">
 </form>
 <script nonce="${cspNonce}">
@@ -64,27 +66,27 @@
   <input type="hidden" name="token" value="${userSession.formToken}"/>
   <%-- Form --%>
   <input type="hidden" name="command" value="downloadCSVFile" />
-  <button class="button small secondary radius float-left margin-left-10"><i class="fa fa-download"></i> Download CSV File</button>
+  <button class="button small secondary radius float-left margin-left-10"><i class="fa fa-download"></i> <fmt:message key="common.downloadCsvFile" bundle="${adminMessages}" /></button>
 </form>
 <p class="help-text">Upload requires an "IP Address" column, plus optional "Reason", "Date", and "Remove" columns; set Remove to "true" on a row to unblock that IP instead of adding it. Matching existing IPs with the same reason are skipped. Download includes IP Address, Date, and Reason. After an import, read the result message above for the actual succeeded/skipped counts and re-check the list below -- don't assume a generic-looking message means every row landed.</p>
 <%-- Search (GET so the query lives in the URL and paging preserves it) --%>
 <form method="get" autocomplete="off" class="margin-bottom-10">
   <div class="input-group">
-    <label for="blockedIpQuery" class="show-for-sr">Search by IP address or reason</label>
-    <input id="blockedIpQuery" class="input-group-field" type="search" name="query" placeholder="Search by IP address or reason..."<c:if test="${!empty query}"> value="<c:out value="${query}"/>"</c:if>>
+    <label for="blockedIpQuery" class="show-for-sr">${ipSearchLabel}</label>
+    <input id="blockedIpQuery" class="input-group-field" type="search" name="query" placeholder="${ipSearchLabel}..."<c:if test="${!empty query}"> value="<c:out value="${query}"/>"</c:if>>
     <div class="input-group-button">
-      <button type="submit" class="button">Search</button>
+      <button type="submit" class="button"><fmt:message key="common.search" bundle="${adminMessages}" /></button>
     </div>
   </div>
 </form>
 <table class="unstriped stack">
   <thead>
     <tr>
-      <th width="100">IP Address</th>
-      <th>Location</th>
-      <th>Reason</th>
-      <th width="80">Logged</th>
-      <th width="70">History</th>
+      <th width="100"><fmt:message key="security.ipAddress" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.location" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="security.reason" bundle="${adminMessages}" /></th>
+      <th width="80"><fmt:message key="security.logged" bundle="${adminMessages}" /></th>
+      <th width="70"><fmt:message key="security.history" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -94,7 +96,7 @@
         <c:out value="${text:trim(record.ipAddress, 24, true)}" />
         <a href="#" onclick="return confirmPostAction('Are you sure you want to delete <c:out value="${js:escape(record.ipAddress)}" />?', '${widgetContext.uri}?command=delete&widget=${widgetContext.uniqueId}&token=${userSession.formToken}&blockedIPListId=${record.id}');"><i class="fa fa-remove"></i></a>
       </td>
-      <td><c:choose><c:when test="${fn:contains(record.ipAddress, '/')}"><small>Range</small></c:when><c:otherwise><c:out value='${geoip:location(record.ipAddress, " ")}'/></c:otherwise></c:choose></td>
+      <td><c:choose><c:when test="${fn:contains(record.ipAddress, '/')}"><small><fmt:message key="security.range" bundle="${adminMessages}" /></small></c:when><c:otherwise><c:out value='${geoip:location(record.ipAddress, " ")}'/></c:otherwise></c:choose></td>
       <td nowrap="true"><small<c:if test="${fn:length(record.reason) > 40}"> title="<c:out value="${record.reason}" />"</c:if>><c:out value="${text:trim(record.reason, 40, true)}" /></small></td>
       <td nowrap="true"><fmt:formatDate pattern="yyyy-MM-dd" value="${record.created}" /></td>
       <td nowrap="true">
@@ -102,13 +104,13 @@
           <c:param name="targetType" value="blocked_ip"/>
           <c:param name="targetLabel" value="${record.ipAddress}"/>
         </c:url>
-        <a href="${historyUrl}" title="View audit history for this IP">History</a>
+        <a href="${historyUrl}" title="View audit history for this IP"><fmt:message key="security.history" bundle="${adminMessages}" /></a>
       </td>
     </tr>
     </c:forEach>
     <c:if test="${empty blockedIPList}">
       <tr>
-        <td colspan="5"><c:choose><c:when test="${!empty query}">No records matched your search</c:when><c:otherwise>No records were found</c:otherwise></c:choose></td>
+        <td colspan="5"><c:choose><c:when test="${!empty query}"><fmt:message key="security.noneMatched" bundle="${adminMessages}" /></c:when><c:otherwise><fmt:message key="security.noneFound" bundle="${adminMessages}" /></c:otherwise></c:choose></td>
       </tr>
     </c:if>
   </tbody>

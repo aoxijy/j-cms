@@ -15,9 +15,12 @@
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="integrationCardList" class="java.util.ArrayList" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="integrations.install" bundle="${adminMessages}" var="installLabel" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}"/></h4>
 </c:if>
@@ -33,15 +36,15 @@
       <div class="callout radius" style="height: 100%;">
         <h5><i class="fa ${fn:escapeXml(card.definition.iconClass)}"></i> <c:out value="${card.definition.name}" />
           <c:choose>
-            <c:when test="${card.installed}"><span class="label success">Installed</span></c:when>
-            <c:otherwise><span class="label secondary">Not installed</span></c:otherwise>
+            <c:when test="${card.installed}"><span class="label success"><fmt:message key="integrations.installed" bundle="${adminMessages}" /></span></c:when>
+            <c:otherwise><span class="label secondary"><fmt:message key="integrations.notInstalled" bundle="${adminMessages}" /></span></c:otherwise>
           </c:choose>
         </h5>
         <p><c:out value="${card.definition.description}" /></p>
         <p class="help-text">
-          <a href="${fn:escapeXml(card.definition.websiteUrl)}" target="_blank" rel="noopener noreferrer">Website</a>
+          <a href="${fn:escapeXml(card.definition.websiteUrl)}" target="_blank" rel="noopener noreferrer"><fmt:message key="integrations.website" bundle="${adminMessages}" /></a>
           <c:if test="${!empty card.definition.docsUrl}">
-            &middot; <a href="${fn:escapeXml(card.definition.docsUrl)}" target="_blank" rel="noopener noreferrer">Setup docs</a>
+            &middot; <a href="${fn:escapeXml(card.definition.docsUrl)}" target="_blank" rel="noopener noreferrer"><fmt:message key="integrations.setupDocs" bundle="${adminMessages}" /></a>
           </c:if>
         </p>
 
@@ -49,10 +52,10 @@
           <c:when test="${card.installed}">
             <p>
               <c:if test="${!empty card.manageUrl}">
-                <a class="button radius secondary" href="${ctx}<c:out value="${card.manageUrl}"/>">Manage</a>
+                <a class="button radius secondary" href="${ctx}<c:out value="${card.manageUrl}"/>"><fmt:message key="integrations.manage" bundle="${adminMessages}" /></a>
               </c:if>
               <a href="#" class="button radius alert"
-                 onclick="return confirmPostAction('Uninstall ${fn:escapeXml(card.definition.name)}? This removes its saved credential and any webhook subscription it created.', '${widgetContext.uri}?action=uninstall&amp;widget=${widgetContext.uniqueId}&amp;token=${userSession.formToken}&amp;integrationId=${fn:escapeXml(card.definition.id)}');">Uninstall</a>
+                 onclick="return confirmPostAction('Uninstall ${fn:escapeXml(card.definition.name)}? This removes its saved credential and any webhook subscription it created.', '${widgetContext.uri}?action=uninstall&amp;widget=${widgetContext.uniqueId}&amp;token=${userSession.formToken}&amp;integrationId=${fn:escapeXml(card.definition.id)}');"><fmt:message key="integrations.uninstall" bundle="${adminMessages}" /></a>
             </p>
           </c:when>
           <c:when test="${installingId eq card.definition.id}">
@@ -69,7 +72,7 @@
               </c:forEach>
               <c:if test="${!empty card.definition.supportedEventTypeIds}">
                 <fieldset>
-                  <legend>Notify on <span class="required">*</span></legend>
+                  <legend><fmt:message key="integrations.notifyOn" bundle="${adminMessages}" /> <span class="required">*</span></legend>
                   <c:forEach items="${card.definition.supportedEventTypeIds}" var="eventTypeId">
                     <label>
                       <input type="checkbox" name="eventType" value="${eventTypeId}"
@@ -80,19 +83,19 @@
                 </fieldset>
               </c:if>
               <p>
-                <input type="submit" class="button radius success" value="Install"/>
-                <a class="button radius secondary" href="${ctx}/admin/integrations">Cancel</a>
+                <input type="submit" class="button radius success" value="${installLabel}"/>
+                <a class="button radius secondary" href="${ctx}/admin/integrations"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
               </p>
             </form>
           </c:when>
           <c:otherwise>
-            <p><a class="button radius" href="${ctx}/admin/integrations?installing=<c:out value="${card.definition.id}"/>">Install</a></p>
+            <p><a class="button radius" href="${ctx}/admin/integrations?installing=<c:out value="${card.definition.id}"/>">${installLabel}</a></p>
           </c:otherwise>
         </c:choose>
       </div>
     </div>
   </c:forEach>
   <c:if test="${empty integrationCardList}">
-    <div class="small-12 cell">No integrations are registered</div>
+    <div class="small-12 cell"><fmt:message key="integrations.noneRegistered" bundle="${adminMessages}" /></div>
   </c:if>
 </div>

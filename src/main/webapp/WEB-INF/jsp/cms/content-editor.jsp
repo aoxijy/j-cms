@@ -16,11 +16,13 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="font" uri="/WEB-INF/tlds/font-functions.tld" %>
 <%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="content" class="com.jcms.platform.domain.model.cms.Content" scope="request"/>
 <jsp:useBean id="isDraft" class="java.lang.String" scope="request"/>
 <jsp:useBean id="reusabilityWarning" class="java.lang.String" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <script src="${ctx}/javascript/tinymce-7.9.3/tinymce.min.js"></script>
 <script nonce="${cspNonce}">
   $(window).on('resize', function () {
@@ -120,7 +122,7 @@
   <small>
     <c:out value="${content.uniqueId}" />
     <c:if test="${isDraft eq 'true'}">
-      <span class="label warning">Draft</span>
+      <span class="label warning"><fmt:message key="status.draft" bundle="${adminMessages}" /></span>
     </c:if>
   </small>
 </p>
@@ -137,18 +139,18 @@
   <div class="button-container">
     <c:choose>
       <c:when test="${content.id eq -1}">
-        <input type="submit" class="button radius primary" name="save" value="Save" />
+        <button type="submit" class="button radius primary" name="save" value="Save"><fmt:message key="common.save" bundle="${adminMessages}" /></button>
       </c:when>
       <c:otherwise>
-        <input type="submit" class="button radius success" name="save" value="Publish Immediately" />
-        <input type="submit" class="button radius warning" name="save" value="Save as Draft" />
+        <button type="submit" class="button radius success" name="save" value="Publish Immediately"><fmt:message key="content.publishImmediately" bundle="${adminMessages}" /></button>
+        <button type="submit" class="button radius warning" name="save" value="Save as Draft"><fmt:message key="content.saveAsDraft" bundle="${adminMessages}" /></button>
         <c:if test="${isDraft eq 'true'}">
-          <input type="submit" class="button radius alert" name="save" value="Remove this Draft" />
+          <button type="submit" class="button radius alert" name="save" value="Remove this Draft"><fmt:message key="content.removeDraft" bundle="${adminMessages}" /></button>
         </c:if>
-        <a href="${ctx}/admin/content-versions?uniqueId=${content.uniqueId}" class="button radius secondary"><i class="fa fa-history"></i> Version History</a>
+        <a href="${ctx}/admin/content-versions?uniqueId=${content.uniqueId}" class="button radius secondary"><i class="fa fa-history"></i> <fmt:message key="webPages.versionHistory" bundle="${adminMessages}" /></a>
       </c:otherwise>
     </c:choose>
-    <a href="${returnPage}" class="button radius secondary">Cancel</a>
+    <a href="${returnPage}" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
   </div>
 </form>
 <c:if test="${!empty reusabilityWarning}">
@@ -167,7 +169,7 @@
   <script nonce="${cspNonce}">
     (function () {
       var reusabilityWarning = '${js:escape(reusabilityWarning)}';
-      var publishButton = document.querySelector('input[type="submit"][name="save"][value="Publish Immediately"]');
+      var publishButton = document.querySelector('[type="submit"][name="save"][value="Publish Immediately"]');
       var form = publishButton ? publishButton.form : null;
       if (!form || !publishButton) {
         return;

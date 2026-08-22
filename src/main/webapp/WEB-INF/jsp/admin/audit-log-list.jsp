@@ -23,6 +23,7 @@
 <jsp:useBean id="categoryList" class="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
 <jsp:useBean id="recordPagingUri" class="java.lang.String" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -76,19 +77,19 @@
 <%-- Quick range presets: finer-grained (hour precision) than the date-only filter below. Picking one
      clears the explicit date range server-side (see AuditLogListWidget#buildSpecification). --%>
 <div class="button-group tiny">
-  <a href="${widgetContext.uri}?range=1h" class="button ${range eq '1h' ? 'primary' : 'secondary'}">Last hour</a>
-  <a href="${widgetContext.uri}?range=24h" class="button ${range eq '24h' ? 'primary' : 'secondary'}">Last 24 hours</a>
-  <a href="${widgetContext.uri}?range=7d" class="button ${range eq '7d' ? 'primary' : 'secondary'}">Last 7 days</a>
-  <a href="${widgetContext.uri}?range=30d" class="button ${range eq '30d' ? 'primary' : 'secondary'}">Last 30 days</a>
-  <c:if test="${!empty range}"><a href="${widgetContext.uri}" class="button secondary">Clear</a></c:if>
+  <a href="${widgetContext.uri}?range=1h" class="button ${range eq '1h' ? 'primary' : 'secondary'}"><fmt:message key="audit.lastHour" bundle="${adminMessages}" /></a>
+  <a href="${widgetContext.uri}?range=24h" class="button ${range eq '24h' ? 'primary' : 'secondary'}"><fmt:message key="audit.last24Hours" bundle="${adminMessages}" /></a>
+  <a href="${widgetContext.uri}?range=7d" class="button ${range eq '7d' ? 'primary' : 'secondary'}"><fmt:message key="audit.last7Days" bundle="${adminMessages}" /></a>
+  <a href="${widgetContext.uri}?range=30d" class="button ${range eq '30d' ? 'primary' : 'secondary'}"><fmt:message key="audit.last30Days" bundle="${adminMessages}" /></a>
+  <c:if test="${!empty range}"><a href="${widgetContext.uri}" class="button secondary"><fmt:message key="common.clear" bundle="${adminMessages}" /></a></c:if>
 </div>
 <%-- Filters (GET so the criteria live in the URL and paging preserves them) --%>
 <form method="get" autocomplete="off" class="margin-bottom-10">
   <div class="grid-x grid-margin-x">
     <div class="cell medium-3">
-      <label>Category
+      <label><fmt:message key="files.category" bundle="${adminMessages}" />
         <select name="category">
-          <option value="">Any category</option>
+          <option value=""><fmt:message key="audit.anyCategory" bundle="${adminMessages}" /></option>
           <c:forEach items="${categoryList}" var="cat">
             <option value="<c:out value='${cat}'/>"<c:if test="${category eq cat}"> selected</c:if>><c:out value="${cat}"/></option>
           </c:forEach>
@@ -96,53 +97,53 @@
       </label>
     </div>
     <div class="cell medium-3">
-      <label>Event type
+      <label><fmt:message key="audit.eventType" bundle="${adminMessages}" />
         <input type="text" name="eventType" placeholder="e.g. user.disable" value="<c:out value='${eventType}'/>">
       </label>
     </div>
     <div class="cell medium-2">
-      <label>Outcome
+      <label><fmt:message key="audit.outcome" bundle="${adminMessages}" />
         <select name="outcome">
-          <option value="">Any outcome</option>
-          <option value="success"<c:if test="${outcome eq 'success'}"> selected</c:if>>Success</option>
-          <option value="failure"<c:if test="${outcome eq 'failure'}"> selected</c:if>>Failure</option>
+          <option value=""><fmt:message key="audit.anyOutcome" bundle="${adminMessages}" /></option>
+          <option value="success"<c:if test="${outcome eq 'success'}"> selected</c:if>><fmt:message key="audit.success" bundle="${adminMessages}" /></option>
+          <option value="failure"<c:if test="${outcome eq 'failure'}"> selected</c:if>><fmt:message key="audit.failure" bundle="${adminMessages}" /></option>
         </select>
       </label>
     </div>
     <div class="cell medium-4">
-      <label>Actor (email contains)
+      <label><fmt:message key="audit.actorFilter" bundle="${adminMessages}" />
         <input type="text" name="actor" placeholder="username or email" value="<c:out value='${actor}'/>">
       </label>
     </div>
     <div class="cell medium-3">
-      <label>Source IP
+      <label><fmt:message key="audit.sourceIp" bundle="${adminMessages}" />
         <input type="text" name="sourceIp" placeholder="e.g. 203.0.113.4" value="<c:out value='${sourceIp}'/>">
       </label>
     </div>
     <div class="cell medium-3">
-      <label>Target type
+      <label><fmt:message key="audit.targetType" bundle="${adminMessages}" />
         <input type="text" name="targetType" placeholder="e.g. user" value="<c:out value='${targetType}'/>">
       </label>
     </div>
     <div class="cell medium-3">
-      <label>Target label
+      <label><fmt:message key="audit.targetLabel" bundle="${adminMessages}" />
         <input type="text" name="targetLabel" placeholder="e.g. an IP address" value="<c:out value='${targetLabel}'/>">
       </label>
     </div>
     <div class="cell medium-3">
-      <label>From date
+      <label><fmt:message key="common.from" bundle="${adminMessages}" />
         <input type="date" name="fromDate" value="<c:out value='${fromDate}'/>">
       </label>
     </div>
     <div class="cell medium-3">
-      <label>To date
+      <label><fmt:message key="common.to" bundle="${adminMessages}" />
         <input type="date" name="toDate" value="<c:out value='${toDate}'/>">
       </label>
     </div>
     <div class="cell medium-6">
       <label>&nbsp;</label>
-      <button type="submit" class="button small primary radius"><i class="fa fa-filter"></i> Filter</button>
-      <a href="${widgetContext.uri}" class="button small secondary radius">Clear</a>
+      <button type="submit" class="button small primary radius"><i class="fa fa-filter"></i> <fmt:message key="common.filter" bundle="${adminMessages}" /></button>
+      <a href="${widgetContext.uri}" class="button small secondary radius"><fmt:message key="common.clear" bundle="${adminMessages}" /></a>
     </div>
   </div>
 </form>
@@ -160,20 +161,20 @@
   <input type="hidden" name="range" value="<c:out value='${range}'/>"/>
   <input type="hidden" name="fromDate" value="<c:out value='${fromDate}'/>"/>
   <input type="hidden" name="toDate" value="<c:out value='${toDate}'/>"/>
-  <button type="submit" name="command" value="downloadCSVFile" class="button small secondary radius"><i class="fa fa-download"></i> Export CSV</button>
-  <button type="submit" name="command" value="downloadJSONFile" class="button small secondary radius"><i class="fa fa-download"></i> Export JSON</button>
+  <button type="submit" name="command" value="downloadCSVFile" class="button small secondary radius"><i class="fa fa-download"></i> <fmt:message key="audit.exportCsv" bundle="${adminMessages}" /></button>
+  <button type="submit" name="command" value="downloadJSONFile" class="button small secondary radius"><i class="fa fa-download"></i> <fmt:message key="audit.exportJson" bundle="${adminMessages}" /></button>
 </form>
 <table class="unstriped hover">
   <thead>
     <tr>
-      <th width="150">When</th>
-      <th>Event</th>
-      <th width="70">Outcome</th>
-      <th>Actor</th>
-      <th width="120">Source IP</th>
-      <th>Target</th>
-      <th width="90">Session</th>
-      <th>Details</th>
+      <th width="150"><fmt:message key="audit.when" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="audit.event" bundle="${adminMessages}" /></th>
+      <th width="70"><fmt:message key="audit.outcome" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="audit.actor" bundle="${adminMessages}" /></th>
+      <th width="120"><fmt:message key="audit.sourceIp" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="audit.target" bundle="${adminMessages}" /></th>
+      <th width="90"><fmt:message key="audit.session" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="audit.details" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -188,8 +189,8 @@
       </td>
       <td nowrap>
         <c:choose>
-          <c:when test="${record.outcome eq 'success'}"><span class="label success radius">success</span></c:when>
-          <c:when test="${record.outcome eq 'failure'}"><span class="label alert radius">failure</span></c:when>
+          <c:when test="${record.outcome eq 'success'}"><span class="label success radius"><fmt:message key="audit.success" bundle="${adminMessages}" /></span></c:when>
+          <c:when test="${record.outcome eq 'failure'}"><span class="label alert radius"><fmt:message key="audit.failure" bundle="${adminMessages}" /></span></c:when>
           <c:otherwise><span class="label secondary radius"><c:out value="${record.outcome}"/></span></c:otherwise>
         </c:choose>
       </td>
@@ -229,7 +230,7 @@
     </c:forEach>
     <c:if test="${empty auditLogList}">
       <tr>
-        <td colspan="8">No audit records were found</td>
+        <td colspan="8"><fmt:message key="audit.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>
@@ -239,7 +240,7 @@
   <button class="close-button" data-close aria-label="Close modal" type="button">
     <span aria-hidden="true">&times;</span>
   </button>
-  <h4 id="auditDetailsTitle">Event Details</h4>
+  <h4 id="auditDetailsTitle"><fmt:message key="audit.eventDetails" bundle="${adminMessages}" /></h4>
   <pre id="auditDetailsContent" class="break-word" style="white-space:pre-wrap"></pre>
 </div>
 <script nonce="${cspNonce}">

@@ -22,6 +22,9 @@
 <jsp:useBean id="versionList" class="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="userMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="content.compare" bundle="${adminMessages}" var="compareLabel" />
+<fmt:message key="content.restoreToDraft" bundle="${adminMessages}" var="restoreToDraftLabel" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -36,7 +39,7 @@
     <input type="hidden" name="uniqueId" value="<c:out value="${content.uniqueId}"/>" />
     <div class="grid-x grid-margin-x align-bottom">
       <div class="cell medium-4">
-        <label>Compare version
+        <label><fmt:message key="content.compareVersion" bundle="${adminMessages}" />
           <select name="compareFrom">
             <c:forEach items="${versionList}" var="version">
               <option value="${version.id}"<c:if test="${compareFromId eq version.id}"> selected</c:if>>
@@ -47,7 +50,7 @@
         </label>
       </div>
       <div class="cell medium-4">
-        <label>...against version
+        <label><fmt:message key="content.againstVersion" bundle="${adminMessages}" />
           <select name="compareTo">
             <c:forEach items="${versionList}" var="version">
               <option value="${version.id}"<c:if test="${compareToId eq version.id}"> selected</c:if>>
@@ -58,14 +61,14 @@
         </label>
       </div>
       <div class="cell medium-4">
-        <input type="submit" class="button radius secondary" value="Compare" />
+        <input type="submit" class="button radius secondary" value="${compareLabel}" />
       </div>
     </div>
   </form>
 </c:if>
 <c:if test="${!empty diffResult}">
   <div class="callout">
-    <h6>Word-level diff</h6>
+    <h6><fmt:message key="content.wordLevelDiff" bundle="${adminMessages}" /></h6>
     <c:choose>
       <c:when test="${diffResult.truncated}">
         <p>This comparison is too large to diff word-by-word and was not shown.</p>
@@ -79,10 +82,10 @@
 <table class="unstriped">
   <thead>
     <tr>
-      <th>Published</th>
-      <th>Approved By</th>
-      <th>Release Reference</th>
-      <th width="100" class="text-center">Action</th>
+      <th><fmt:message key="status.published" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="content.approvedBy" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="content.releaseReference" bundle="${adminMessages}" /></th>
+      <th width="100" class="text-center"><fmt:message key="common.action" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -109,14 +112,14 @@
             <input type="hidden" name="action" value="restore" />
             <input type="hidden" name="uniqueId" value="<c:out value="${content.uniqueId}"/>" />
             <input type="hidden" name="contentVersionId" value="${version.id}" />
-            <button type="submit" class="button tiny radius secondary" title="Restore to draft"><i class="fa fa-undo"></i></button>
+            <button type="submit" class="button tiny radius secondary" title="${restoreToDraftLabel}"><i class="fa fa-undo"></i></button>
           </form>
         </td>
       </tr>
     </c:forEach>
     <c:if test="${empty versionList}">
       <tr>
-        <td colspan="4">No prior versions yet -- one is recorded each time this content is published over an existing draft.</td>
+        <td colspan="4"><fmt:message key="content.noPriorVersions" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>
