@@ -21,6 +21,7 @@
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="customerList" class="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -29,12 +30,12 @@
 <table class="unstriped stack">
   <thead>
     <tr>
-      <th width="200" nowrap>Customer #</th>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Location</th>
+      <th width="200" nowrap><fmt:message key="customers.number" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.name" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.email" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.location" bundle="${adminMessages}" /></th>
 <%--      <th width="60">Orders</th>--%>
-      <th width="120">Created</th>
+      <th width="120"><fmt:message key="common.created" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -64,7 +65,7 @@
     </c:forEach>
     <c:if test="${empty customerList}">
       <tr>
-        <td colspan="5">No customers were found</td>
+        <td colspan="5"><fmt:message key="customers.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>

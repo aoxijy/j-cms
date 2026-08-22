@@ -22,6 +22,7 @@
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="orderList" class="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -33,7 +34,7 @@
   <input type="hidden" name="token" value="${userSession.formToken}"/>
   <%-- Form --%>
   <input type="hidden" name="command" value="downloadCSVFile" />
-  <button class="button small secondary radius float-left"><i class="fa fa-download"></i> Download CSV File</button>
+  <button class="button small secondary radius float-left"><i class="fa fa-download"></i> <fmt:message key="common.downloadCsvFile" bundle="${adminMessages}" /></button>
 </form>
 <form method="post" action="${ctx}/admin/orders">
   <%-- Required by controller --%>
@@ -41,18 +42,18 @@
   <input type="hidden" name="token" value="${userSession.formToken}"/>
   <%-- Form --%>
   <input type="hidden" name="command" value="downloadTaxJarCSVFile" />
-  <button class="button small secondary radius float-left margin-left-10"><i class="fa fa-download"></i> Download TaxJar CSV File</button>
+  <button class="button small secondary radius float-left margin-left-10"><i class="fa fa-download"></i> <fmt:message key="orders.downloadTaxJarCsv" bundle="${adminMessages}" /></button>
 </form>
 <table class="unstriped stack">
   <thead>
     <tr>
 <%--      <th>Date</th>--%>
-      <th width="200" nowrap>Order #</th>
-      <th width="100" class="text-center">Amount</th>
-      <th width="75" class="text-center">Items</th>
-      <th>Location</th>
-      <th>Status</th>
-      <th>Date</th>
+      <th width="200" nowrap><fmt:message key="orders.number" bundle="${adminMessages}" /></th>
+      <th width="100" class="text-center"><fmt:message key="orders.amount" bundle="${adminMessages}" /></th>
+      <th width="75" class="text-center"><fmt:message key="orders.items" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.location" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.status" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.date" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -61,7 +62,7 @@
 <%--      <td><fmt:formatDate pattern="yyyy-MM-dd" value="${order.created}" /></td>--%>
       <td nowrap>
         <a href="${ctx}/admin/order-details?order-number=<c:out value="${order.uniqueId}" />"><c:out value="${order.uniqueId}" /></a>
-        <c:if test="${!order.live}"><span class="label warning">TEST MODE</span></c:if>
+        <c:if test="${!order.live}"><span class="label warning"><fmt:message key="orders.testMode" bundle="${adminMessages}" /></span></c:if>
       </td>
       <td nowrap class="text-center"><fmt:formatNumber type="currency" currencyCode="USD" value="${order.totalAmount}"/></td>
       <td class="text-center"><fmt:formatNumber value="${order.totalItems}" /></td>
@@ -75,13 +76,28 @@
         <c:out value="${order.shippingAddress.city}" />
         <c:out value="${order.shippingAddress.state}" />
       </td>
-      <td nowrap><c:out value="${order:currentStatus(order.statusId)}"/></td>
+      <c:set var="orderStatus" value="${order:currentStatus(order.statusId)}" />
+      <td nowrap><c:choose>
+        <c:when test="${orderStatus eq 'New order'}"><fmt:message key="orderStatus.created" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Paid'}"><fmt:message key="orderStatus.paid" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Preparing'}"><fmt:message key="orderStatus.preparing" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Partially Prepared'}"><fmt:message key="orderStatus.partiallyPrepared" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Fulfilled'}"><fmt:message key="orderStatus.fulfilled" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Shipped'}"><fmt:message key="orderStatus.shipped" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Partially Shipped'}"><fmt:message key="orderStatus.partiallyShipped" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Completed'}"><fmt:message key="orderStatus.completed" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'On Hold'}"><fmt:message key="orderStatus.onHold" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Canceled'}"><fmt:message key="orderStatus.canceled" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Returned'}"><fmt:message key="orderStatus.returned" bundle="${adminMessages}" /></c:when>
+        <c:when test="${orderStatus eq 'Refunded'}"><fmt:message key="orderStatus.refunded" bundle="${adminMessages}" /></c:when>
+        <c:otherwise><c:out value="${orderStatus}" /></c:otherwise>
+      </c:choose></td>
       <td nowrap><fmt:formatDate pattern="yyyy-MM-dd" value="${order.created}" /></td>
     </tr>
     </c:forEach>
     <c:if test="${empty orderList}">
       <tr>
-        <td colspan="6">No orders were found</td>
+        <td colspan="6"><fmt:message key="orders.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>

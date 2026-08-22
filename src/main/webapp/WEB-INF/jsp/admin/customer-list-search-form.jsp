@@ -15,6 +15,7 @@
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="searchCustomerNumber" class="java.lang.String" scope="request"/>
@@ -22,6 +23,9 @@
 <jsp:useBean id="searchEmail" class="java.lang.String" scope="request"/>
 <jsp:useBean id="searchPhone" class="java.lang.String" scope="request"/>
 <jsp:useBean id="searchName" class="java.lang.String" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.search" bundle="${adminMessages}" var="searchLabel" />
+<fmt:message key="common.reset" bundle="${adminMessages}" var="resetLabel" />
 <form id="searchForm" method="post" autocomplete="off">
   <%-- Required by controller --%>
   <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
@@ -33,24 +37,24 @@
   </c:if>
   <%@include file="../page_messages.jspf" %>
   <%-- Form Content --%>
-  <label>Customer Number
+  <label><fmt:message key="customers.number" bundle="${adminMessages}" />
     <input type="text" placeholder="Search by customer number..." id="customerNumber" name="customerNumber" value="<c:if test="${!empty searchCustomerNumber}"><c:out value="${searchCustomerNumber}" /></c:if>" autocomplete="off">
   </label>
-  <label>Order Number
+  <label><fmt:message key="orders.number" bundle="${adminMessages}" />
     <input type="text" placeholder="Search by order number..." id="orderNumber" name="orderNumber" value="<c:if test="${!empty searchOrderNumber}"><c:out value="${searchOrderNumber}" /></c:if>" autocomplete="off">
   </label>
-  <label>Email
+  <label><fmt:message key="common.email" bundle="${adminMessages}" />
     <input type="text" placeholder="Search by email..." id="email" name="email" value="<c:if test="${!empty searchEmail}"><c:out value="${searchEmail}" /></c:if>" autocomplete="off">
   </label>
-  <label>Phone Number
+  <label><fmt:message key="common.phoneNumber" bundle="${adminMessages}" />
     <input type="text" placeholder="Search by phone..." id="phone" name="phone" value="<c:if test="${!empty searchPhone}"><c:out value="${searchPhone}" /></c:if>" autocomplete="off">
   </label>
-  <label>Name
+  <label><fmt:message key="common.name" bundle="${adminMessages}" />
     <input type="text" placeholder="Search by name..." id="name" name="name" value="<c:if test="${!empty searchName}"><c:out value="${searchName}" /></c:if>" autocomplete="off">
   </label>
   <div class="button-container">
-    <input type="submit" class="button radius primary expanded" value="Search"/>
-    <input id="resetButton" type="reset" class="button radius secondary expanded" value="Reset"/>
+    <input type="submit" class="button radius primary expanded" value="${searchLabel}"/>
+    <input id="resetButton" type="reset" class="button radius secondary expanded" value="${resetLabel}"/>
   </div>
 </form>
 <script nonce="${cspNonce}">

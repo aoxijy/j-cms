@@ -21,6 +21,8 @@
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="dataset" class="com.jcms.platform.domain.model.datasets.Dataset" scope="request"/>
 <jsp:useBean id="columnConfiguration" class="java.lang.String" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -39,17 +41,17 @@
     <c:out value="${dataset.fileType}" />
   </p>
   <c:if test="${fn:contains(dataset.fileType, 'json')}">
-    <label>JSON Records Path
+    <label><fmt:message key="datasets.jsonRecordsPath" bundle="${adminMessages}" />
       <input type="text" placeholder="/" name="recordsPath" value="<c:out value="${dataset.recordsPath}"/>">
     </label>
-    <label>JSON Paging URL Path
+    <label><fmt:message key="datasets.jsonPagingUrlPath" bundle="${adminMessages}" />
       <input type="text" placeholder="/next" name="pagingUrlPath" value="<c:out value="${dataset.pagingUrlPath}"/>">
     </label>
-    <label>JSON Columns Configuration
+    <label><fmt:message key="datasets.jsonColumnsConfiguration" bundle="${adminMessages}" />
       <textarea name="columnConfiguration" rows="12"><c:out value="${columnConfiguration}"/></textarea>
     </label>
     <div class="button-container">
-      <input type="submit" class="button radius success" name="process" value="Save"/>
+      <input type="submit" class="button radius success" name="process" value="${saveLabel}"/>
     </div>
   </c:if>
 </form>

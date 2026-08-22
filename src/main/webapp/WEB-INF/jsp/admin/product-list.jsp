@@ -22,18 +22,19 @@
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="productList" class="java.util.ArrayList" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
 <%@include file="../page_messages.jspf" %>
-<a class="button small radius primary float-left" href="${ctx}/admin/product?returnPage=/admin/products">Add a Product <i class="fa fa-arrow-circle-right"></i></a>
+<a class="button small radius primary float-left" href="${ctx}/admin/product?returnPage=/admin/products"><fmt:message key="products.add" bundle="${adminMessages}" /> <i class="fa fa-arrow-circle-right"></i></a>
 <form method="post" action="${ctx}/admin/products">
   <%-- Required by controller --%>
   <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
   <input type="hidden" name="token" value="${userSession.formToken}"/>
   <%-- Form --%>
   <input type="hidden" name="command" value="syncProducts" />
-  <button class="button small secondary radius float-left margin-left-10"><i class="fa fa-sync-alt"></i> Sync Products</button>
+  <button class="button small secondary radius float-left margin-left-10"><i class="fa fa-sync-alt"></i> <fmt:message key="products.sync" bundle="${adminMessages}" /></button>
 </form>
 <form method="post" action="${ctx}/admin/products">
   <%-- Required by controller --%>
@@ -41,18 +42,18 @@
   <input type="hidden" name="token" value="${userSession.formToken}"/>
   <%-- Form --%>
   <input type="hidden" name="command" value="downloadCSVFile" />
-  <button class="button small secondary radius float-left margin-left-10"><i class="fa fa-download"></i> Download CSV File</button>
+  <button class="button small secondary radius float-left margin-left-10"><i class="fa fa-download"></i> <fmt:message key="common.downloadCsvFile" bundle="${adminMessages}" /></button>
 </form>
 <table class="stack">
   <thead>
     <tr>
-      <th>Image</th>
-      <th>Name</th>
-      <th>Price</th>
-      <th width="100">Type</th>
-      <th width="170">Inventory</th>
-      <th>Status</th>
-      <th class="text-center">Action</th>
+      <th><fmt:message key="common.image" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.name" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="products.price" bundle="${adminMessages}" /></th>
+      <th width="100"><fmt:message key="common.type" bundle="${adminMessages}" /></th>
+      <th width="170"><fmt:message key="products.inventory" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.status" bundle="${adminMessages}" /></th>
+      <th class="text-center"><fmt:message key="common.action" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -68,11 +69,11 @@
         </td>
         <td>
           <a href="${ctx}/admin/product?productId=${product.id}&returnPage=/admin/products"><c:out value="${product.nameWithCaption}" /></a>
-          <c:if test="${!product.enabled}"><span class="label warning">archived</span></c:if>
+          <c:if test="${!product.enabled}"><span class="label warning"><fmt:message key="status.archived" bundle="${adminMessages}" /></span></c:if>
           <span class="subheader">(<c:out value="${product.uniqueId}" />)</span><br />
           <c:choose>
             <c:when test="${empty product.products}">
-              <span class="subheader">none</span>
+              <span class="subheader"><fmt:message key="common.none" bundle="${adminMessages}" /></span>
             </c:when>
             <c:otherwise>
               <c:forEach items="${product.nativeProductSKUs}" var="thisProduct" varStatus="status">
@@ -86,10 +87,10 @@
         </td>
         <td>
           <c:choose>
-            <c:when test="${product.isGood}"><span class="label round secondary">Good</span></c:when>
-            <c:when test="${product.isService}"><span class="label round secondary">Service</span></c:when>
-            <c:when test="${product.isVirtual}"><span class="label round secondary">Virtual</span></c:when>
-            <c:when test="${product.isDownload}"><span class="label round secondary">Download</span></c:when>
+            <c:when test="${product.isGood}"><span class="label round secondary"><fmt:message key="products.type.physical" bundle="${adminMessages}" /></span></c:when>
+            <c:when test="${product.isService}"><span class="label round secondary"><fmt:message key="products.type.service" bundle="${adminMessages}" /></span></c:when>
+            <c:when test="${product.isVirtual}"><span class="label round secondary"><fmt:message key="products.type.virtual" bundle="${adminMessages}" /></span></c:when>
+            <c:when test="${product.isDownload}"><span class="label round secondary"><fmt:message key="products.type.download" bundle="${adminMessages}" /></span></c:when>
           </c:choose>
         </td>
         <td>
@@ -98,7 +99,7 @@
         <td>
           <c:choose>
             <c:when test="${product:isActive(product)}">
-              <span class="label success"><c:out value="${product:status(product)}" /></span>
+              <span class="label success"><fmt:message key="status.active" bundle="${adminMessages}" /></span>
               <c:if test="${!empty product.deactivateOnDate}">
                 <small><br />until <fmt:formatDate pattern="yyyy-MM-dd hh:mm a" value="${product.deactivateOnDate}" /></small>
               </c:if>
@@ -106,13 +107,16 @@
             <c:otherwise>
               <c:choose>
                 <c:when test="${empty product.products}">
-                  <span class="label primary">Incomplete</span>
+                  <span class="label primary"><fmt:message key="status.incomplete" bundle="${adminMessages}" /></span>
                 </c:when>
                 <c:when test="${product:isPending(product)}">
-                  <span class="label warning"><c:out value="${product:status(product)}" /></span>
+                  <span class="label warning"><fmt:message key="status.pending" bundle="${adminMessages}" /></span>
                 </c:when>
                 <c:otherwise>
-                  <span class="label alert"><c:out value="${product:status(product)}" /></span>
+                  <c:choose>
+                    <c:when test="${product:status(product) eq 'Deactivated'}"><span class="label alert"><fmt:message key="status.deactivated" bundle="${adminMessages}" /></span></c:when>
+                    <c:otherwise><span class="label alert"><fmt:message key="status.notActive" bundle="${adminMessages}" /></span></c:otherwise>
+                  </c:choose>
                 </c:otherwise>
               </c:choose>
               <c:if test="${!empty product.activeDate}">
@@ -125,10 +129,10 @@
           </c:choose>
           <c:choose>
             <c:when test="${!empty product.squareCatalogId}">
-              <span class="label success">Sync'd</span>
+              <span class="label success"><fmt:message key="status.synced" bundle="${adminMessages}" /></span>
             </c:when>
             <c:otherwise>
-              <span class="label warning" style="white-space: nowrap">Not Sync'd</span>
+              <span class="label warning" style="white-space: nowrap"><fmt:message key="status.notSynced" bundle="${adminMessages}" /></span>
             </c:otherwise>
           </c:choose>
         </td>
@@ -145,7 +149,7 @@
     </c:forEach>
     <c:if test="${empty productList}">
       <tr>
-        <td colspan="7">No products were found</td>
+        <td colspan="7"><fmt:message key="products.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>

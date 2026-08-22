@@ -23,6 +23,8 @@
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="product" class="com.jcms.platform.domain.model.ecommerce.Product" scope="request"/>
 <jsp:useBean id="fulfillmentOptionList" class="java.util.ArrayList" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
 <script src="${ctx}/javascript/tinymce-7.9.3/tinymce.min.js"></script>
 <script nonce="${cspNonce}">
   tinymce.init({
@@ -64,21 +66,21 @@
   }
 </script>
 <c:choose>
-  <c:when test="${product.id eq -1}"><h4>New Product</h4></c:when>
+  <c:when test="${product.id eq -1}"><h4><fmt:message key="products.new" bundle="${adminMessages}" /></h4></c:when>
   <c:otherwise>
-    <h4>Update Product</h4>
+    <h4><fmt:message key="products.update" bundle="${adminMessages}" /></h4>
     <c:choose>
       <c:when test="${empty product.products}">
-        <span class="label primary">Incomplete</span>
+        <span class="label primary"><fmt:message key="status.incomplete" bundle="${adminMessages}" /></span>
       </c:when>
       <c:when test="${product:isActive(product)}">
-        <span class="label success"><c:out value="${product:status(product)}" /></span>
+        <span class="label success"><fmt:message key="status.active" bundle="${adminMessages}" /></span>
       </c:when>
       <c:when test="${product:isPending(product)}">
-        <span class="label warning"><c:out value="${product:status(product)}" /></span>
+        <span class="label warning"><fmt:message key="status.pending" bundle="${adminMessages}" /></span>
       </c:when>
       <c:otherwise>
-        <span class="label alert"><c:out value="${product:status(product)}" /></span>
+        <c:choose><c:when test="${product:status(product) eq 'Deactivated'}"><span class="label alert"><fmt:message key="status.deactivated" bundle="${adminMessages}" /></span></c:when><c:otherwise><span class="label alert"><fmt:message key="status.notActive" bundle="${adminMessages}" /></span></c:otherwise></c:choose>
       </c:otherwise>
     </c:choose>
   </c:otherwise>
@@ -101,32 +103,32 @@
   <div class="grid-x grid-margin-x">
     <div class="small-12 medium-6 cell">
       <fieldset class="fieldset">
-        <legend>Product</legend>
-        <label>Name <span class="required">*</span>
+        <legend><fmt:message key="products.product" bundle="${adminMessages}" /></legend>
+        <label><fmt:message key="common.name" bundle="${adminMessages}" /> <span class="required">*</span>
           <input type="text" placeholder="Give it a name..." name="name" value="<c:out value="${product.name}"/>">
         </label>
-        <label>Caption
+        <label><fmt:message key="products.caption" bundle="${adminMessages}" />
           <input type="text" placeholder="Provide an optional caption..." name="caption" value="<c:out value="${product.caption}"/>">
         </label>
-        <label>Unique Id <span class="required">*</span>
+        <label><fmt:message key="content.uniqueId" bundle="${adminMessages}" /> <span class="required">*</span>
           <input type="text" placeholder="Internal Reference Id..." name="uniqueId" aria-describedby="uniqueIdHelpText" value="<c:out value="${product.uniqueId}"/>">
         </label>
         <p class="help-text" id="uniqueIdHelpText">Leave blank to auto-generate; this value does not usually change! No spaces, use lowercase, a-z, 0-9, dashes</p>
-        <label>Website URL
+        <label><fmt:message key="products.websiteUrl" bundle="${adminMessages}" />
           <input type="text" placeholder="/example-product" name="productUrl" value="<c:out value="${product.productUrl}"/>">
         </label>
       </fieldset>
     </div>
     <div class="small-12 medium-6 cell">
       <fieldset class="fieldset">
-        <legend>Product Image</legend>
+        <legend><fmt:message key="products.image" bundle="${adminMessages}" /></legend>
         <div class="grid-x grid-margin-x">
           <div class="small-8 cell">
             <div class="input-group">
               <input class="input-group-field" type="text" placeholder="Local Image URL" id="imageUrl" name="imageUrl" value="<c:out value="${product.imageUrl}"/>">
-              <span class="input-group-label" style="padding: 0;"><a class="button small primary expanded no-gap" data-open="imageBrowserReveal">Browse Images</a></span>
+              <span class="input-group-label" style="padding: 0;"><a class="button small primary expanded no-gap" data-open="imageBrowserReveal"><fmt:message key="products.browseImages" bundle="${adminMessages}" /></a></span>
             </div>
-            <label for="imageFile" class="button">Upload Image File...</label>
+            <label for="imageFile" class="button"><fmt:message key="products.uploadImage" bundle="${adminMessages}" />...</label>
             <input type="file" id="imageFile" class="show-for-sr" onchange="SavePhoto(this)">
           </div>
           <div class="small-4 cell">
@@ -140,13 +142,13 @@
     </div>
   </div>
   <fieldset class="fieldset">
-    <legend>Product Type</legend>
-    <input type="radio" name="type" id="typeGood" value="good"<c:if test="${product.isGood || !product.hasType}"> checked</c:if> required/><label for="typeGood">Good</label>
-    <input type="radio" name="type" id="typeService" value="service"<c:if test="${product.isService}"> checked</c:if> required/><label for="typeService">Service</label>
-    <input type="radio" name="type" id="typeVirtual" value="virtual"<c:if test="${product.isVirtual}"> checked</c:if> required/><label for="typeVirtual">Virtual</label>
-    <input type="radio" name="type" id="typeDownload" value="download"<c:if test="${product.isDownload}"> checked</c:if> required/><label for="typeDownload">Download</label>
+    <legend><fmt:message key="products.productType" bundle="${adminMessages}" /></legend>
+    <input type="radio" name="type" id="typeGood" value="good"<c:if test="${product.isGood || !product.hasType}"> checked</c:if> required/><label for="typeGood"><fmt:message key="products.type.physical" bundle="${adminMessages}" /></label>
+    <input type="radio" name="type" id="typeService" value="service"<c:if test="${product.isService}"> checked</c:if> required/><label for="typeService"><fmt:message key="products.type.service" bundle="${adminMessages}" /></label>
+    <input type="radio" name="type" id="typeVirtual" value="virtual"<c:if test="${product.isVirtual}"> checked</c:if> required/><label for="typeVirtual"><fmt:message key="products.type.virtual" bundle="${adminMessages}" /></label>
+    <input type="radio" name="type" id="typeDownload" value="download"<c:if test="${product.isDownload}"> checked</c:if> required/><label for="typeDownload"><fmt:message key="products.type.download" bundle="${adminMessages}" /></label>
     <c:if test="${!empty fulfillmentOptionList}">
-      <label>Fulfillment <span class="required">*</span>
+      <label><fmt:message key="products.fulfillment" bundle="${adminMessages}" /> <span class="required">*</span>
         <select name="fulfillmentId">
           <option value="-1"></option>
           <c:forEach items="${fulfillmentOptionList}" var="fulfillmentOption"><option value="${fulfillmentOption.id}"<c:if test="${fulfillmentOption.id eq product.fulfillmentId}"> selected</c:if>><c:out value="${fulfillmentOption.title}" /></option></c:forEach>
@@ -367,14 +369,14 @@
     <textarea name="description"><c:out value="${product.description}"/></textarea>
   </p>
   <fieldset class="fieldset">
-    <legend>Tax Information</legend>
+    <legend><fmt:message key="products.taxInformation" bundle="${adminMessages}" /></legend>
     <div class="full-container">
       <div class="grid-x grid-margin-x align-middle">
         <div class="small-6 medium-3 cell">
-          <input type="checkbox" id="taxable" name="taxable" value="true" <c:if test="${product.taxable}">checked</c:if>/><label for="taxable">Taxable?</label>
+          <input type="checkbox" id="taxable" name="taxable" value="true" <c:if test="${product.taxable}">checked</c:if>/><label for="taxable"><fmt:message key="products.taxableQuestion" bundle="${adminMessages}" /></label>
         </div>
         <div class="small-6 medium-3 cell">
-          <label>Tax Code
+          <label><fmt:message key="products.taxCode" bundle="${adminMessages}" />
             <a target="_blank" href="https://taxcode.avatax.avalara.com"><i class="fa fa-info-circle"></i></a>
             <a target="_blank" href="https://developers.taxjar.com/api/reference/#get-list-tax-categories"><i class="fa fa-info-circle"></i></a>
             <input type="text" name="taxCode" value="<c:out value="${product.taxCode}"/>" />
@@ -384,7 +386,7 @@
     </div>
   </fieldset>
   <fieldset class="fieldset">
-    <legend>Package Details</legend>
+    <legend><fmt:message key="products.packageDetails" bundle="${adminMessages}" /></legend>
     <div class="full-container">
       <div class="grid-x grid-margin-x align-middle">
         <div class="small-6 medium-3 cell">
@@ -457,11 +459,11 @@
   <div class="button-container">
     <c:choose>
       <c:when test="${!empty returnPage}">
-        <input type="submit" class="button radius success" value="Save"/>
-        <a href="${returnPage}" class="button radius secondary">Cancel</a>
+        <input type="submit" class="button radius success" value="${saveLabel}"/>
+        <a href="${returnPage}" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
       </c:when>
       <c:otherwise>
-        <input type="submit" class="button radius success" value="Save" />
+        <input type="submit" class="button radius success" value="${saveLabel}" />
       </c:otherwise>
     </c:choose>
   </div>
