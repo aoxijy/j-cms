@@ -19,6 +19,9 @@
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="webPage" class="com.jcms.platform.domain.model.cms.WebPage" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
+<fmt:message key="common.saving" bundle="${adminMessages}" var="savingLabel" />
 <%-- Handle image uploads --%>
 <script nonce="${cspNonce}">
     function SavePhoto(e) {
@@ -65,22 +68,22 @@
   <%-- Form Content --%>
   <div class="grid-x grid-padding-x">
     <div class="small-12 medium-6 cell">
-      <label>Link <span class="required">*</span>
+      <label><fmt:message key="webPages.link" bundle="${adminMessages}" /> <span class="required">*</span>
         <input type="text" placeholder="/example" name="link" value="<c:out value="${webPage.link}"/>" required>
       </label>
-      <label>Redirect
+      <label><fmt:message key="webPages.redirect" bundle="${adminMessages}" />
         <input type="text" placeholder="/other/page" name="redirectUrl" value="<c:out value="${webPage.redirectUrl}"/>">
       </label>
-      <label>Title
+      <label><fmt:message key="webPages.title" bundle="${adminMessages}" />
         <input type="text" placeholder="Give it a title..." name="title" value="<c:out value="${webPage.title}"/>">
       </label>
-      <label>Keywords
+      <label><fmt:message key="webPages.keywords" bundle="${adminMessages}" />
         <input type="text" placeholder="Comma-separated keywords..." name="keywords" value="<c:out value="${webPage.keywords}"/>">
       </label>
-      <label>Description
+      <label><fmt:message key="webPages.description" bundle="${adminMessages}" />
         <input type="text" placeholder="Describe it..." name="description" value="<c:out value="${webPage.description}"/>">
       </label>
-      <label>Solution Type
+      <label><fmt:message key="webPages.solutionType" bundle="${adminMessages}" />
         <select name="solutionType">
           <option value=""></option>
           <c:forEach items="${solutionTypeMap}" var="option">
@@ -90,49 +93,49 @@
       </label>
     </div>
     <div class="small-12 medium-6 cell">
-      <label>Publish?
+      <label><fmt:message key="webPages.publishQuestion" bundle="${adminMessages}" />
         <div class="switch large">
           <input class="switch-input" id="publish-yes-no" type="checkbox" name="publish" value="true"<c:if test="${!webPage.draft}"> checked</c:if>>
           <label class="switch-paddle" for="publish-yes-no">
-            <span class="switch-active" aria-hidden="true">Yes</span>
-            <span class="switch-inactive" aria-hidden="true">No</span>
+            <span class="switch-active" aria-hidden="true"><fmt:message key="common.yes" bundle="${adminMessages}" /></span>
+            <span class="switch-inactive" aria-hidden="true"><fmt:message key="common.no" bundle="${adminMessages}" /></span>
           </label>
         </div>
       </label>
       <div class="grid-x grid-padding-x">
         <div class="small-12 medium-6 cell">
           <c:set var="publishAtFormatted"><c:if test="${!empty webPage.publishAt}"><fmt:formatDate pattern="yyyy-MM-dd'T'HH:mm" value="${webPage.publishAt}"/></c:if></c:set>
-          <label>Go live at (optional)
+          <label><fmt:message key="webPages.goLiveAt" bundle="${adminMessages}" />
             <input type="datetime-local" name="publishAt" value="${publishAtFormatted}">
           </label>
         </div>
         <div class="small-12 medium-6 cell">
           <c:set var="expiresAtFormatted"><c:if test="${!empty webPage.expiresAt}"><fmt:formatDate pattern="yyyy-MM-dd'T'HH:mm" value="${webPage.expiresAt}"/></c:if></c:set>
-          <label>Expire at (optional)
+          <label><fmt:message key="webPages.expireAt" bundle="${adminMessages}" />
             <input type="datetime-local" name="expiresAt" value="${expiresAtFormatted}">
           </label>
         </div>
       </div>
       <div class="grid-x grid-padding-x">
         <div class="small-12 medium-3 cell">
-          <label>Show in Sitemap.xml?
+          <label><fmt:message key="webPages.showInSitemap" bundle="${adminMessages}" />
             <div class="switch large">
               <input class="switch-input" id="sitemap-yes-no" type="checkbox" name="showInSitemap" value="true"<c:if
                 test="${webPage.showInSitemap}"> checked</c:if>>
               <label class="switch-paddle" for="sitemap-yes-no">
-                <span class="switch-active" aria-hidden="true">Yes</span>
-                <span class="switch-inactive" aria-hidden="true">No</span>
+                <span class="switch-active" aria-hidden="true"><fmt:message key="common.yes" bundle="${adminMessages}" /></span>
+                <span class="switch-inactive" aria-hidden="true"><fmt:message key="common.no" bundle="${adminMessages}" /></span>
               </label>
             </div>
           </label>
         </div>
         <div class="small-12 medium-3 cell">
-          <label>Priority (0.0-1.0)
+          <label><fmt:message key="webPages.priority" bundle="${adminMessages}" />
             <input type="text" name="sitemapPriority" value="<fmt:formatNumber value="${webPage.sitemapPriority}" />" />
           </label>
         </div>
         <div class="small-12 medium-3 cell">
-          <label>Change Frequency
+          <label><fmt:message key="webPages.changeFrequency" bundle="${adminMessages}" />
             <select name="sitemapChangeFrequency">
               <option value=""></option>
               <c:forEach items="${sitemapChangeFrequencyMap}" var="option">
@@ -142,12 +145,12 @@
           </label>
         </div>
       </div>
-      <label>Searchable?
+      <label><fmt:message key="webPages.searchableQuestion" bundle="${adminMessages}" />
         <div class="switch large">
           <input class="switch-input" id="searchable-yes-no" type="checkbox" name="searchable" value="true"<c:if test="${webPage.searchable}"> checked</c:if>>
           <label class="switch-paddle" for="searchable-yes-no">
-            <span class="switch-active" aria-hidden="true">Yes</span>
-            <span class="switch-inactive" aria-hidden="true">No</span>
+            <span class="switch-active" aria-hidden="true"><fmt:message key="common.yes" bundle="${adminMessages}" /></span>
+            <span class="switch-inactive" aria-hidden="true"><fmt:message key="common.no" bundle="${adminMessages}" /></span>
           </label>
         </div>
       </label>
@@ -162,23 +165,23 @@
     </div>
   </div>
   <div class="button-container">
-    <input type="submit" class="button radius success" value="Save" data-disable-on-submit="Saving..." />
+    <input type="submit" class="button radius success" value="${saveLabel}" data-disable-on-submit="${savingLabel}..." />
     <c:choose>
       <c:when test="${!empty returnPage}">
-        <a href="${returnPage}" class="button radius secondary">Cancel</a>
+        <a href="${returnPage}" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
       </c:when>
       <c:when test="${!empty webPage.link}">
-        <a href="${ctx}${webPage.link}" class="button radius secondary">Cancel</a>
+        <a href="${ctx}${webPage.link}" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
       </c:when>
       <c:otherwise>
 
       </c:otherwise>
     </c:choose>
     <c:if test="${userSession.hasRole('admin')}">
-      <button type="button" class="button radius alert" onclick="deletePage()"><i class="fa fa-trash-o"></i> Delete Page</button>
+      <button type="button" class="button radius alert" onclick="deletePage()"><i class="fa fa-trash-o"></i> <fmt:message key="webPages.delete" bundle="${adminMessages}" /></button>
     </c:if>
     <c:if test="${webPage.id > -1}">
-      <a href="${ctx}/admin/web-page-versions?webPageId=${webPage.id}" class="button radius secondary"><i class="fa fa-history"></i> Version History</a>
+      <a href="${ctx}/admin/web-page-versions?webPageId=${webPage.id}" class="button radius secondary"><i class="fa fa-history"></i> <fmt:message key="webPages.versionHistory" bundle="${adminMessages}" /></a>
     </c:if>
   </div>
 </form>

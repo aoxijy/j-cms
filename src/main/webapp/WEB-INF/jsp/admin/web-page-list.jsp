@@ -23,6 +23,8 @@
 <jsp:useBean id="webPageList" class="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="webPageMap" class="java.util.HashMap" scope="request"/>
 <jsp:useBean id="standardPages" class="java.util.HashMap" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.filter" bundle="${adminMessages}" var="filterLabel" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -271,28 +273,28 @@
     <td colspan="9">
       <form method="get" autocomplete="off" class="grid-x grid-margin-x align-bottom">
         <div class="cell medium-5">
-          <label>Search
+          <label><fmt:message key="common.search" bundle="${adminMessages}" />
             <input type="text" name="q" value="<c:out value='${q}'/>" placeholder="Title, link, or keywords" />
           </label>
         </div>
         <div class="cell medium-4">
-          <label>Status
+          <label><fmt:message key="common.status" bundle="${adminMessages}" />
             <select name="status">
-              <option value="" ${empty status ? 'selected' : ''}>All</option>
-              <option value="draft" ${status eq 'draft' ? 'selected' : ''}>Draft</option>
-              <option value="redirect" ${status eq 'redirect' ? 'selected' : ''}>Redirect (301)</option>
-              <option value="broken" ${status eq 'broken' ? 'selected' : ''}>Broken (no content)</option>
-              <option value="live" ${status eq 'live' ? 'selected' : ''}>Live</option>
+              <option value="" ${empty status ? 'selected' : ''}><fmt:message key="common.all" bundle="${adminMessages}" /></option>
+              <option value="draft" ${status eq 'draft' ? 'selected' : ''}><fmt:message key="status.draft" bundle="${adminMessages}" /></option>
+              <option value="redirect" ${status eq 'redirect' ? 'selected' : ''}><fmt:message key="status.redirect" bundle="${adminMessages}" /></option>
+              <option value="broken" ${status eq 'broken' ? 'selected' : ''}><fmt:message key="status.broken" bundle="${adminMessages}" /></option>
+              <option value="live" ${status eq 'live' ? 'selected' : ''}><fmt:message key="status.live" bundle="${adminMessages}" /></option>
               <%-- Archived pages are excluded from every other option above by default (issue #427);
                    this is the only way to see them in the admin list. --%>
-              <option value="archived" ${status eq 'archived' ? 'selected' : ''}>Archived</option>
+              <option value="archived" ${status eq 'archived' ? 'selected' : ''}><fmt:message key="status.archived" bundle="${adminMessages}" /></option>
             </select>
           </label>
         </div>
         <div class="cell medium-3">
-          <input type="submit" class="button radius" value="Filter" />
+          <input type="submit" class="button radius" value="${filterLabel}" />
           <c:if test="${!empty q || !empty status}">
-            <a href="${widgetContext.uri}" class="button radius secondary">Clear</a>
+            <a href="${widgetContext.uri}" class="button radius secondary"><fmt:message key="common.clear" bundle="${adminMessages}" /></a>
           </c:if>
         </div>
       </form>
@@ -302,9 +304,9 @@
     <td colspan="9" style="padding:0;">
       <div id="bulkActionsBar" class="callout radius" style="display:none;padding:10px 15px;margin:0;">
         <span id="bulkSelectedCount"></span>
-        <button type="button" class="button tiny radius" id="bulkPublishBtn">Publish</button>
-        <button type="button" class="button tiny radius" id="bulkUnpublishBtn">Unpublish</button>
-        <button type="button" class="button tiny radius" id="bulkArchiveBtn">Archive</button>
+        <button type="button" class="button tiny success radius" id="bulkPublishBtn"><fmt:message key="common.publish" bundle="${adminMessages}" /></button>
+        <button type="button" class="button tiny warning radius" id="bulkUnpublishBtn"><fmt:message key="common.unpublish" bundle="${adminMessages}" /></button>
+        <button type="button" class="button tiny secondary radius" id="bulkArchiveBtn"><fmt:message key="common.archive" bundle="${adminMessages}" /></button>
         <%-- No Unarchive action exists here or anywhere else on these pages -- once archived a page can
              only be brought back by editing the database directly. This matches Calendar Events and
              Blog Posts' identical bulk-archive precedent, not something unique to this page. --%>
@@ -312,7 +314,7 @@
              as the single-item "Delete Page" button on web-page-form.jsp -- a content-manager must
              never even see this affordance, not just have it silently rejected on click. --%>
         <c:if test="${userSession.hasRole('admin')}">
-          <button type="button" class="button tiny alert radius" id="bulkDeleteBtn">Delete</button>
+          <button type="button" class="button tiny alert radius" id="bulkDeleteBtn"><fmt:message key="common.delete" bundle="${adminMessages}" /></button>
         </c:if>
       </div>
     </td>
@@ -329,21 +331,21 @@
       </td>
       <td>
         <c:choose>
-          <c:when test="${!empty webPage.archived}"><span class="label secondary radius">archived</span></c:when>
-          <c:when test="${webPage.draft}"><span class="warning label">draft</span></c:when>
+          <c:when test="${!empty webPage.archived}"><span class="label secondary radius"><fmt:message key="status.archived" bundle="${adminMessages}" /></span></c:when>
+          <c:when test="${webPage.draft}"><span class="warning label"><fmt:message key="status.draft" bundle="${adminMessages}" /></span></c:when>
           <c:when test="${!empty webPage.redirectUrl}"><span class="primary label">301</span></c:when>
           <c:when test="${fn:contains(standardPages, webPage.link)}">
-            <span class="success label">live</span>
+            <span class="success label"><fmt:message key="status.live" bundle="${adminMessages}" /></span>
           </c:when>
-          <c:when test="${fn:startsWith(webPage.link, '/directory/')}"><span class="success label">live</span></c:when>
+          <c:when test="${fn:startsWith(webPage.link, '/directory/')}"><span class="success label"><fmt:message key="status.live" bundle="${adminMessages}" /></span></c:when>
           <c:when test="${empty webPage.pageXml}"><span class="alert label">404</span></c:when>
-          <c:otherwise><span class="success label">live</span></c:otherwise>
+          <c:otherwise><span class="success label"><fmt:message key="status.live" bundle="${adminMessages}" /></span></c:otherwise>
         </c:choose>
         <c:if test="${webPage.scheduled}">
-          <br /><span class="secondary label"><i class="fa fa-clock"></i> scheduled</span>
+          <br /><span class="secondary label"><i class="fa fa-clock"></i> <fmt:message key="status.scheduled" bundle="${adminMessages}" /></span>
         </c:if>
         <c:if test="${webPage.expiringSoon}">
-          <br /><span class="secondary label"><i class="fa fa-hourglass-end"></i> expiring</span>
+          <br /><span class="secondary label"><i class="fa fa-hourglass-end"></i> <fmt:message key="status.expiring" bundle="${adminMessages}" /></span>
         </c:if>
         <c:if test="${!empty webPageReviewStatusMap[webPage.id]}">
           <br /><span class="secondary label"><i class="fa fa-clipboard-check"></i> <c:out value="${webPageReviewStatusMap[webPage.id]}" /></span>
@@ -385,12 +387,12 @@
   </c:forEach>
   <c:if test="${empty webPageList}">
       <tr>
-        <td colspan="9">No web pages were found</td>
+        <td colspan="9"><fmt:message key="webPages.noneFound" bundle="${adminMessages}" /></td>
       </tr>
   </c:if>
   </tbody>
 </table>
-<a class="button radius primary" href="${ctx}/admin/web-page?returnPage=/admin/web-pages">Add a Web Page <i class="fa fa-arrow-circle-right"></i></a>
+<a class="button radius primary" href="${ctx}/admin/web-page?returnPage=/admin/web-pages"><fmt:message key="webPages.add" bundle="${adminMessages}" /> <i class="fa fa-arrow-circle-right"></i></a>
 <h5>Common problems and how to fix them</h5>
 <ul>
   <li><strong><i class="fa fa-edit"></i> vs <i class="fa fa-code"></i> -- which one do I want?</strong>

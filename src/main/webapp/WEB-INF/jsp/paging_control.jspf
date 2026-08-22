@@ -14,19 +14,26 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="paging.previousPage" bundle="${adminMessages}" var="previousPageLabel" />
+<fmt:message key="paging.nextPage" bundle="${adminMessages}" var="nextPageLabel" />
+<fmt:message key="paging.pagination" bundle="${adminMessages}" var="paginationLabel" />
+<fmt:message key="paging.currentPage" bundle="${adminMessages}" var="currentPageLabel" />
+<fmt:message key="paging.page" bundle="${adminMessages}" var="pageLabel" />
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:if test="${(empty showPaging || showPaging eq 'true') && (!empty recordPaging && recordPaging.maxPageNumber gt 1)}">
   <c:if test="${!empty recordPagingParams && fn:startsWith(recordPagingParams, '&')}">
     <c:set var="recordPagingParams" scope="request">${fn:substringAfter(recordPagingParams, '&')}</c:set>
   </c:if>
-  <nav aria-label="Pagination">
+  <nav aria-label="${paginationLabel}">
     <ul class="pagination text-center">
       <c:choose>
         <c:when test="${recordPaging.pageNumber eq 1}">
 
         </c:when>
         <c:otherwise>
-          <li class="pagination-previous"><a href="?<c:if test="${!empty recordPagingParams}">${recordPagingParams}&</c:if>page=${recordPaging.pageNumber - 1}" aria-label="Previous page">Previous <span class="show-for-sr">page</span></a></li>
+          <li class="pagination-previous"><a href="?<c:if test="${!empty recordPagingParams}">${recordPagingParams}&</c:if>page=${recordPaging.pageNumber - 1}" aria-label="${previousPageLabel}"><fmt:message key="paging.previous" bundle="${adminMessages}" /> <span class="show-for-sr"><fmt:message key="paging.page" bundle="${adminMessages}" /></span></a></li>
         </c:otherwise>
       </c:choose>
       <c:forEach items="${recordPaging.pageList}" var="pageValue">
@@ -35,10 +42,10 @@
             <li class="ellipsis" aria-hidden="true"></li>
           </c:when>
           <c:when test="${pageValue eq recordPaging.pageNumberAsString}">
-            <li class="page current"><span class="show-for-sr">You're on page</span> ${pageValue}</li>
+            <li class="page current"><span class="show-for-sr">${currentPageLabel}</span> ${pageValue}</li>
           </c:when>
           <c:otherwise>
-            <li class="page"><a href="?<c:if test="${!empty recordPagingParams}">${recordPagingParams}&</c:if>page=${pageValue}" aria-label="Page ${pageValue}">${pageValue}</a></li>
+            <li class="page"><a href="?<c:if test="${!empty recordPagingParams}">${recordPagingParams}&</c:if>page=${pageValue}" aria-label="${pageLabel} ${pageValue}">${pageValue}</a></li>
           </c:otherwise>
         </c:choose>
       </c:forEach>
@@ -47,7 +54,7 @@
 
         </c:when>
         <c:otherwise>
-          <li class="pagination-next"><a href="?<c:if test="${!empty recordPagingParams}">${recordPagingParams}&</c:if>page=${recordPaging.pageNumber + 1}" aria-label="Next page">Next <span class="show-for-sr">page</span></a></li>
+          <li class="pagination-next"><a href="?<c:if test="${!empty recordPagingParams}">${recordPagingParams}&</c:if>page=${recordPaging.pageNumber + 1}" aria-label="${nextPageLabel}"><fmt:message key="paging.next" bundle="${adminMessages}" /> <span class="show-for-sr"><fmt:message key="paging.page" bundle="${adminMessages}" /></span></a></li>
         </c:otherwise>
       </c:choose>
     </ul>

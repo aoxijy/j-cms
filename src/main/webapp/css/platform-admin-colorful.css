@@ -94,3 +94,22 @@
 :root[data-admin-theme="colorful"] body .callout.success { border-left: .3rem solid var(--admin-green); }
 :root[data-admin-theme="colorful"] body .callout.warning { border-left: .3rem solid var(--admin-orange); }
 :root[data-admin-theme="colorful"] body .callout.alert { border-left: .3rem solid var(--admin-red); }
+:root[data-admin-theme="colorful"] body table thead {
+  background: linear-gradient(180deg, #f8fafc, #eef2ff);
+  border-bottom: 2px solid #c7d2fe;
+}
+:root[data-admin-theme="colorful"] body table tbody tr:hover {
+  background: #f8fafc;
+}
+:root[data-admin-theme="colorful"] body .label.success { background: var(--admin-green); }
+:root[data-admin-theme="colorful"] body .label.warning { background: var(--admin-orange); color: #fff; }
+:root[data-admin-theme="colorful"] body .label.alert { background: var(--admin-red); }
+:root[data-admin-theme="colorful"] body .label.primary { background: var(--admin-blue); }
+:root[data-admin-theme="colorful"] body .pagination .current {
+  background: var(--admin-purple);
+  border-radius: .3rem;
+}
+:root[data-admin-theme="colorful"] body .pagination a:hover {
+  background: #ede9fe;
+  border-radius: .3rem;
+}

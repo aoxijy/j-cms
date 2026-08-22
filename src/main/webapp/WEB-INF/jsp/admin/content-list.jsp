@@ -26,6 +26,7 @@
 <jsp:useBean id="sharedUniqueIds" class="java.util.LinkedHashSet" scope="request"/>
 <jsp:useBean id="templatedContentLocations" class="java.util.LinkedHashMap" scope="request"/>
 <jsp:useBean id="recordPaging" class="com.jcms.platform.infrastructure.database.DataConstraints" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
@@ -55,22 +56,22 @@
 <form method="get" autocomplete="off" class="margin-bottom-10">
   <div class="grid-x grid-margin-x">
     <div class="cell medium-3">
-      <label>Search
+      <label><fmt:message key="common.search" bundle="${adminMessages}" />
         <input type="text" name="q" placeholder="unique id or content text" value="<c:out value='${q}'/>">
       </label>
     </div>
     <div class="cell medium-2">
-      <label>Modified from
+      <label><fmt:message key="content.modifiedFrom" bundle="${adminMessages}" />
         <input type="date" name="fromDate" value="<c:out value='${fromDate}'/>">
       </label>
     </div>
     <div class="cell medium-2">
-      <label>Modified to
+      <label><fmt:message key="content.modifiedTo" bundle="${adminMessages}" />
         <input type="date" name="toDate" value="<c:out value='${toDate}'/>">
       </label>
     </div>
     <div class="cell medium-2">
-      <label>Characters
+      <label><fmt:message key="content.characters" bundle="${adminMessages}" />
         <div class="input-group">
           <input type="number" min="0" name="minLength" placeholder="min" class="input-group-field" value="<c:out value='${minLength}'/>">
           <span class="input-group-label">&ndash;</span>
@@ -80,20 +81,20 @@
     </div>
     <div class="cell medium-2">
       <%-- Option values must match ContentReviewCommand.LIST_STATUS_* exactly (see ContentReviewCommand.listStatusLabel / ContentRepository#addStatusFilter) --%>
-      <label>Status
+      <label><fmt:message key="common.status" bundle="${adminMessages}" />
         <select name="status">
-          <option value="">All</option>
-          <option value="Draft" <c:if test="${status == 'Draft'}">selected</c:if>>Draft</option>
-          <option value="Pending Review" <c:if test="${status == 'Pending Review'}">selected</c:if>>Pending Review</option>
-          <option value="Approved" <c:if test="${status == 'Approved'}">selected</c:if>>Approved</option>
-          <option value="Live" <c:if test="${status == 'Live'}">selected</c:if>>Live</option>
+          <option value=""><fmt:message key="common.all" bundle="${adminMessages}" /></option>
+          <option value="Draft" <c:if test="${status == 'Draft'}">selected</c:if>><fmt:message key="status.draft" bundle="${adminMessages}" /></option>
+          <option value="Pending Review" <c:if test="${status == 'Pending Review'}">selected</c:if>><fmt:message key="status.pendingReview" bundle="${adminMessages}" /></option>
+          <option value="Approved" <c:if test="${status == 'Approved'}">selected</c:if>><fmt:message key="status.approved" bundle="${adminMessages}" /></option>
+          <option value="Live" <c:if test="${status == 'Live'}">selected</c:if>><fmt:message key="status.live" bundle="${adminMessages}" /></option>
         </select>
       </label>
     </div>
     <div class="cell medium-1">
       <label>&nbsp;</label>
-      <button type="submit" class="button small primary radius"><i class="fa fa-filter"></i> Filter</button>
-      <a href="${widgetContext.uri}" class="button small secondary radius">Clear</a>
+      <button type="submit" class="button small primary radius"><i class="fa fa-filter"></i> <fmt:message key="common.filter" bundle="${adminMessages}" /></button>
+      <a href="${widgetContext.uri}" class="button small secondary radius"><fmt:message key="common.clear" bundle="${adminMessages}" /></a>
     </div>
   </div>
 </form>
@@ -101,25 +102,25 @@
   <thead>
     <tr>
       <th>
-        Unique Id
+        <fmt:message key="content.uniqueId" bundle="${adminMessages}" />
       </th>
       <th width="130" class="text-center">
-        Status
+        <fmt:message key="common.status" bundle="${adminMessages}" />
       </th>
       <th>
-        Sample
+        <fmt:message key="content.sample" bundle="${adminMessages}" />
       </th>
       <th width="100" class="text-center">
-        # of characters
+        <fmt:message key="content.characterCount" bundle="${adminMessages}" />
       </th>
       <th width="200" class="text-center">
-        Last Modified
+        <fmt:message key="content.lastModified" bundle="${adminMessages}" />
       </th>
       <th>
-        Usage
+        <fmt:message key="content.usage" bundle="${adminMessages}" />
       </th>
       <th width="60" class="text-center">
-        Action
+        <fmt:message key="common.action" bundle="${adminMessages}" />
       </th>
     </tr>
   </thead>
@@ -137,16 +138,16 @@
         <%-- Read-only surfacing of the governed publish workflow's existing state (ContentReviewCommand); no submit/approve/reject actions here, those stay in the content editor --%>
         <c:choose>
           <c:when test="${contentStatus == 'Live'}">
-            <span class="label success radius"><c:out value="${contentStatus}" /></span>
+            <span class="label success radius"><fmt:message key="status.live" bundle="${adminMessages}" /></span>
           </c:when>
           <c:when test="${contentStatus == 'Approved'}">
-            <span class="label primary radius"><c:out value="${contentStatus}" /></span>
+            <span class="label primary radius"><fmt:message key="status.approved" bundle="${adminMessages}" /></span>
           </c:when>
           <c:when test="${contentStatus == 'Pending Review'}">
-            <span class="label warning radius"><c:out value="${contentStatus}" /></span>
+            <span class="label warning radius"><fmt:message key="status.pendingReview" bundle="${adminMessages}" /></span>
           </c:when>
           <c:otherwise>
-            <span class="label radius"><c:out value="${contentStatus}" /></span>
+            <span class="label radius"><fmt:message key="status.draft" bundle="${adminMessages}" /></span>
           </c:otherwise>
         </c:choose>
       </td>
@@ -156,7 +157,7 @@
       <td>
         <c:choose>
           <c:when test="${!empty usageList}">
-            <c:if test="${sharedUniqueIds.contains(content.uniqueId)}"><span class="label secondary radius">Shared</span> </c:if>
+            <c:if test="${sharedUniqueIds.contains(content.uniqueId)}"><span class="label secondary radius"><fmt:message key="content.shared" bundle="${adminMessages}" /></span> </c:if>
             <small class="subheader">Used on:
               <c:forEach items="${usageList}" var="location" varStatus="locStatus"><c:out value="${location}" /><c:if test="${!locStatus.last}">, </c:if></c:forEach>
             </small>
@@ -168,7 +169,7 @@
             </small>
           </c:when>
           <c:otherwise>
-            <span class="label alert radius">Orphaned</span>
+            <span class="label alert radius"><fmt:message key="content.orphaned" bundle="${adminMessages}" /></span>
           </c:otherwise>
         </c:choose>
       </td>
@@ -187,7 +188,7 @@
     </c:forEach>
     <c:if test="${empty contentList}">
       <tr>
-        <td colspan="7">No content records were found</td>
+        <td colspan="7"><fmt:message key="content.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>

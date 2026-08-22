@@ -27,6 +27,9 @@
 <jsp:useBean id="statusFilter" class="java.lang.String" scope="request"/>
 <jsp:useBean id="mfaFilter" class="java.lang.String" scope="request"/>
 <jsp:useBean id="agingPasswordFilter" class="java.lang.String" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.search" bundle="${adminMessages}" var="searchLabel" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
 <c:if test="${!empty title}">
   <h1><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h1>
 </c:if>
@@ -49,14 +52,14 @@
     </a>
   </div>
 </c:if>
-<button class="button small primary radius float-left" data-open="formReveal"><i class="fa fa-plus"></i> New User</button>
+<button class="button small primary radius float-left" data-open="formReveal"><i class="fa fa-plus"></i> <fmt:message key="users.newUser" bundle="${adminMessages}" /></button>
 <form id="fileForm" method="post" enctype="multipart/form-data" class="float-left">
   <%-- Required by controller --%>
   <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
   <input type="hidden" name="token" value="${userSession.formToken}"/>
   <%-- Form --%>
   <input type="hidden" name="command" value="uploadCSVFile" />
-  <label for="file" class="button small secondary radius margin-left-10"><i class="fa fa-upload"></i> Upload CSV File</label>
+  <label for="file" class="button small secondary radius margin-left-10"><i class="fa fa-upload"></i> <fmt:message key="users.uploadCsv" bundle="${adminMessages}" /></label>
   <input type="file" id="file" name="file" accept="text/csv" class="show-for-sr">
 </form>
 <script nonce="${cspNonce}">
@@ -73,31 +76,31 @@
   <input type="hidden" name="statusFilter" value="<c:out value='${statusFilter}'/>"/>
   <input type="hidden" name="mfaFilter" value="<c:out value='${mfaFilter}'/>"/>
   <input type="hidden" name="agingPasswordFilter" value="<c:out value='${agingPasswordFilter}'/>"/>
-  <button type="submit" class="button small secondary radius margin-left-10"><i class="fa fa-download"></i> Download CSV</button>
+  <button type="submit" class="button small secondary radius margin-left-10"><i class="fa fa-download"></i> <fmt:message key="users.downloadCsv" bundle="${adminMessages}" /></button>
 </form>
 <form id="tableOptionsForm" method="get" autocomplete="off" class="float-right">
-  <label for="statusFilter" class="show-for-sr">Status</label>
+  <label for="statusFilter" class="show-for-sr"><fmt:message key="common.status" bundle="${adminMessages}" /></label>
   <select id="statusFilter" name="statusFilter" class="float-left width-auto margin-right-10">
-    <option value="any"<c:if test="${statusFilter eq 'any'}"> selected</c:if>>Any Status</option>
-    <option value="active"<c:if test="${statusFilter eq 'active'}"> selected</c:if>>Active</option>
-    <option value="suspended"<c:if test="${statusFilter eq 'suspended'}"> selected</c:if>>Suspended</option>
-    <option value="locked"<c:if test="${statusFilter eq 'locked'}"> selected</c:if>>Locked</option>
-    <option value="inactive"<c:if test="${statusFilter eq 'inactive'}"> selected</c:if>>Inactive (not yet verified)</option>
+    <option value="any"<c:if test="${statusFilter eq 'any'}"> selected</c:if>><fmt:message key="status.any" bundle="${adminMessages}" /></option>
+    <option value="active"<c:if test="${statusFilter eq 'active'}"> selected</c:if>><fmt:message key="status.active" bundle="${adminMessages}" /></option>
+    <option value="suspended"<c:if test="${statusFilter eq 'suspended'}"> selected</c:if>><fmt:message key="status.suspended" bundle="${adminMessages}" /></option>
+    <option value="locked"<c:if test="${statusFilter eq 'locked'}"> selected</c:if>><fmt:message key="status.locked" bundle="${adminMessages}" /></option>
+    <option value="inactive"<c:if test="${statusFilter eq 'inactive'}"> selected</c:if>><fmt:message key="status.inactiveUnverified" bundle="${adminMessages}" /></option>
   </select>
   <label for="mfaFilter" class="show-for-sr">MFA</label>
   <select id="mfaFilter" name="mfaFilter" class="float-left width-auto margin-right-10">
-    <option value="any"<c:if test="${mfaFilter eq 'any'}"> selected</c:if>>Any MFA</option>
-    <option value="enabled"<c:if test="${mfaFilter eq 'enabled'}"> selected</c:if>>MFA Enabled</option>
-    <option value="disabled"<c:if test="${mfaFilter eq 'disabled'}"> selected</c:if>>MFA Not Enabled</option>
+    <option value="any"<c:if test="${mfaFilter eq 'any'}"> selected</c:if>><fmt:message key="users.mfa.any" bundle="${adminMessages}" /></option>
+    <option value="enabled"<c:if test="${mfaFilter eq 'enabled'}"> selected</c:if>><fmt:message key="users.mfa.enabled" bundle="${adminMessages}" /></option>
+    <option value="disabled"<c:if test="${mfaFilter eq 'disabled'}"> selected</c:if>><fmt:message key="users.mfa.disabled" bundle="${adminMessages}" /></option>
   </select>
   <label class="float-left width-auto margin-right-10" style="line-height: 2.4375rem;">
     <input id="agingPasswordFilter" type="checkbox" name="agingPasswordFilter" value="1"<c:if test="${agingPasswordFilter eq '1'}"> checked</c:if> />
-    Aging passwords
+    <fmt:message key="users.agingPasswords" bundle="${adminMessages}" />
   </label>
   <div class="input-group no-gap width-auto">
-    <input class="input-group-field" type="search" name="query" aria-label="Search users" placeholder="<c:if test="${empty query}">Search...</c:if>"<c:if test="${!empty query}"> value="<c:out value="${query}"/>"</c:if> autocomplete="off">
+    <input class="input-group-field" type="search" name="query" aria-label="${searchLabel}" placeholder="<c:if test="${empty query}">${searchLabel}...</c:if>"<c:if test="${!empty query}"> value="<c:out value="${query}"/>"</c:if> autocomplete="off">
     <div class="input-group-button">
-      <button type="submit" class="button search" aria-label="Search"><i class="fa fa-search" aria-hidden="true"></i></button>
+      <button type="submit" class="button search" aria-label="${searchLabel}"><i class="fa fa-search" aria-hidden="true"></i></button>
     </div>
   </div>
 </form>
@@ -114,21 +117,21 @@
 </script>
 <div id="bulkActionsBar" class="callout radius" style="display:none;padding:10px 15px;margin-bottom:10px;">
   <span id="bulkSelectedCount"></span>
-  <button type="button" class="button tiny radius" id="bulkAssignRolesBtn">Assign Roles</button>
-  <button type="button" class="button tiny radius" id="bulkResetPasswordBtn">Reset Password</button>
-  <button type="button" class="button tiny alert radius" id="bulkSuspendBtn">Suspend</button>
-  <button type="button" class="button tiny radius" id="bulkUnsuspendBtn">Unsuspend</button>
+  <button type="button" class="button tiny radius" id="bulkAssignRolesBtn"><fmt:message key="users.assignRoles" bundle="${adminMessages}" /></button>
+  <button type="button" class="button tiny warning radius" id="bulkResetPasswordBtn"><fmt:message key="users.resetPassword" bundle="${adminMessages}" /></button>
+  <button type="button" class="button tiny alert radius" id="bulkSuspendBtn"><fmt:message key="users.suspend" bundle="${adminMessages}" /></button>
+  <button type="button" class="button tiny success radius" id="bulkUnsuspendBtn"><fmt:message key="users.unsuspend" bundle="${adminMessages}" /></button>
 </div>
 <table class="unstriped">
   <thead>
     <tr>
       <th width="24"><input type="checkbox" id="selectAllUsers" aria-label="Select all users on this page"></th>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Role</th>
-      <th width="90">Status</th>
+      <th><fmt:message key="common.name" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.email" bundle="${adminMessages}" /></th>
+      <th><fmt:message key="common.role" bundle="${adminMessages}" /></th>
+      <th width="90"><fmt:message key="common.status" bundle="${adminMessages}" /></th>
       <th width="50">MFA</th>
-      <th width="200">Last Login</th>
+      <th width="200"><fmt:message key="users.lastLogin" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -149,10 +152,10 @@
       </td>
       <td class="text-center">
         <c:choose>
-          <c:when test="${user.accountStatus eq 'suspended'}"><span class="label alert" title="${fn:escapeXml(user.suspensionReason)}">Suspended</span></c:when>
-          <c:when test="${user.accountStatus eq 'locked'}"><span class="label warning">Locked</span></c:when>
-          <c:when test="${user.accountStatus eq 'inactive'}"><span class="label secondary">Inactive</span></c:when>
-          <c:otherwise><span class="label success">Active</span></c:otherwise>
+          <c:when test="${user.accountStatus eq 'suspended'}"><span class="label alert" title="${fn:escapeXml(user.suspensionReason)}"><fmt:message key="status.suspended" bundle="${adminMessages}" /></span></c:when>
+          <c:when test="${user.accountStatus eq 'locked'}"><span class="label warning"><fmt:message key="status.locked" bundle="${adminMessages}" /></span></c:when>
+          <c:when test="${user.accountStatus eq 'inactive'}"><span class="label secondary"><fmt:message key="status.inactive" bundle="${adminMessages}" /></span></c:when>
+          <c:otherwise><span class="label success"><fmt:message key="status.active" bundle="${adminMessages}" /></span></c:otherwise>
         </c:choose>
       </td>
       <td class="text-center">
@@ -168,7 +171,7 @@
     </c:forEach>
     <c:if test="${empty userList}">
       <tr>
-        <td colspan="7">No users were found</td>
+        <td colspan="7"><fmt:message key="users.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>
@@ -343,7 +346,7 @@
   <button class="close-button" data-close aria-label="Close modal" type="button">
     <span aria-hidden="true">&times;</span>
   </button>
-  <h4 id="userFormRevealTitle">New User</h4>
+  <h4 id="userFormRevealTitle"><fmt:message key="users.newUser" bundle="${adminMessages}" /></h4>
   <form id="userForm" method="post" autocomplete="off">
     <%-- Required by controller --%>
     <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
@@ -351,38 +354,38 @@
     <%-- Form --%>
     <div class="grid-x grid-margin-x">
       <fieldset class="medium-5 cell">
-        <label>First Name <span class="required">*</span>
-          <input type="text" placeholder="First Name" name="firstName" value="" autofocus required>
+        <label><fmt:message key="users.firstName" bundle="${adminMessages}" /> <span class="required">*</span>
+          <input type="text" name="firstName" value="" autofocus required>
         </label>
       </fieldset>
       <fieldset class="medium-7 cell">
-        <label>Last Name <span class="required">*</span>
-          <input type="text" placeholder="Last Name" name="lastName" value="" required>
+        <label><fmt:message key="users.lastName" bundle="${adminMessages}" /> <span class="required">*</span>
+          <input type="text" name="lastName" value="" required>
         </label>
       </fieldset>
     </div>
-    <label>Email <span class="required">*</span>
+    <label><fmt:message key="common.email" bundle="${adminMessages}" /> <span class="required">*</span>
       <input type="email" placeholder="Email Address" name="email" value="" required>
     </label>
-    <label>Organization
+    <label><fmt:message key="users.organization" bundle="${adminMessages}" />
       <input type="text" placeholder="Organization" name="organization" value="">
     </label>
     <div class="grid-x grid-margin-x">
       <fieldset class="medium-6 cell">
-        <label>Community Nickname
+        <label><fmt:message key="users.communityNickname" bundle="${adminMessages}" />
           <input type="text" placeholder="Nickname" name="nickname" value="">
         </label>
         <p class="help-text" id="nicknameHelpText">Optional name to be shown instead of first/last name</p>
       </fieldset>
       <fieldset class="medium-6 cell">
-        <label>Username
+        <label><fmt:message key="users.username" bundle="${adminMessages}" />
           <input type="text" placeholder="Username" name="username" value="">
         </label>
         <p class="help-text" id="usernameHelpText">Optional, system uses email address when this is empty</p>
       </fieldset>
     </div>
     <c:if test="${!empty roleList}">
-      <legend>Roles</legend>
+      <legend><fmt:message key="users.roles" bundle="${adminMessages}" /></legend>
       <c:forEach items="${roleList}" var="role">
         <c:choose>
           <c:when test="${role.level > actingRoleLevel}"><%-- --%></c:when>
@@ -393,7 +396,7 @@
       </c:forEach>
     </c:if>
     <c:if test="${!empty groupList}">
-      <legend>Groups</legend>
+      <legend><fmt:message key="users.groups" bundle="${adminMessages}" /></legend>
       <c:forEach items="${groupList}" var="group">
         <c:choose>
           <c:when test="${group.name eq 'All Guests'}">
@@ -406,7 +409,7 @@
       </c:forEach>
     </c:if>
     <div class="button-container">
-      <input type="submit" class="button radius expanded" value="Save" />
+      <input type="submit" class="button radius expanded success" value="${saveLabel}" />
     </div>
   </form>
 </div>

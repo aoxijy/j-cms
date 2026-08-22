@@ -26,6 +26,8 @@
 <jsp:useBean id="roleList" class="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="groupList" class="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="userLogin" class="com.jcms.platform.domain.model.login.UserLogin" scope="request"/>
+<fmt:setBundle basename="i18n.admin" var="adminMessages" />
+<fmt:message key="common.save" bundle="${adminMessages}" var="saveLabel" />
 <form method="post" autocomplete="off">
   <%-- Required by controller --%>
   <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
@@ -35,8 +37,8 @@
     <div id="sticky-item" data-sticky style="width:100%" data-top-anchor="1" data-sticky-on="small">
       <div style="padding-top:16px;background-color:<c:out value="${themePropertyMap['theme.body.backgroundColor']}" />;">
         <div class="button-container float-right">
-            <input type="submit" class="button small radius success" value="Save"/>
-            <a class="button small radius secondary" href="${ctx}/admin/user-details?userId=${user.id}">Cancel</a>
+            <input type="submit" class="button small radius success" value="${saveLabel}"/>
+            <a class="button small radius secondary" href="${ctx}/admin/user-details?userId=${user.id}"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
         </div>
         <h3><c:out value="${user.fullName}" /></h3>
         <c:if test="${!empty user.title || !empty user.city || !empty user.state}">
@@ -65,7 +67,7 @@
       <fieldset>
         <div class="grid-x grid-padding-x">
           <div class="small-4 cell">
-            <label for="firstName" class="text-right middle">First Name <span class="required">*</span></label>
+            <label for="firstName" class="text-right middle"><fmt:message key="users.firstName" bundle="${adminMessages}" /> <span class="required">*</span></label>
           </div>
           <div class="small-8 align-self-middle cell">
             <input type="text" id="firstName" name="firstName" value="<c:out value="${user.firstName}" />" required />
@@ -73,7 +75,7 @@
         </div>
         <div class="grid-x grid-padding-x">
           <div class="small-4 cell">
-            <label for="lastName" class="text-right middle">Last Name <span class="required">*</span></label>
+            <label for="lastName" class="text-right middle"><fmt:message key="users.lastName" bundle="${adminMessages}" /> <span class="required">*</span></label>
           </div>
           <div class="small-8 align-self-middle cell">
             <input type="text" id="lastName" name="lastName" value="<c:out value="${user.lastName}" />" required />
