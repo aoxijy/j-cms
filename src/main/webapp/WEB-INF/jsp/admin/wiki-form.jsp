@@ -14,13 +14,14 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="wiki" class="com.jcms.platform.domain.model.cms.Wiki" scope="request"/>
 <c:choose>
-  <c:when test="${wiki.id eq -1}"><h4>New Wiki</h4></c:when>
-  <c:otherwise><h4>Update Wiki</h4></c:otherwise>
+  <c:when test="${wiki.id eq -1}"><h4><fmt:message key="wiki.new" bundle="${adminMessages}" /></h4></c:when>
+  <c:otherwise><h4><fmt:message key="wiki.update" bundle="${adminMessages}" /></h4></c:otherwise>
 </c:choose>
 <form method="post">
   <%-- Required by controller --%>
@@ -37,24 +38,22 @@
   </c:if>
   <%@include file="../page_messages.jspf" %>
   <%-- Form Content --%>
-  <label>Name <span class="required">*</span>
-    <input type="text" placeholder="Documentation, Sales, Technical" name="name" aria-describedby="wikiNameHelpText" value="<c:out value="${wiki.name}"/>" required>
+  <label><fmt:message key="common.name" bundle="${adminMessages}" /> <span class="required">*</span>
+    <input type="text" placeholder="<fmt:message key="wiki.namePlaceholder" bundle="${adminMessages}" />" name="name" aria-describedby="wikiNameHelpText" value="<c:out value="${wiki.name}"/>" required>
   </label>
-  <p class="help-text" id="wikiNameHelpText">Renaming a wiki changes only its display name here in
-    the admin -- its public URL prefix and every existing page link keep working, because the
-    internal identifier they're built from does not change when just the name is edited.</p>
-  <label>Description
-    <input type="text" placeholder="Describe it..." name="description" value="<c:out value="${wiki.description}"/>">
+  <p class="help-text" id="wikiNameHelpText"><fmt:message key="wiki.nameHelp" bundle="${adminMessages}" /></p>
+  <label><fmt:message key="wiki.description" bundle="${adminMessages}" />
+    <input type="text" placeholder="<fmt:message key="wiki.descriptionPlaceholder" bundle="${adminMessages}" />" name="description" value="<c:out value="${wiki.description}"/>">
   </label>
-  <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${wiki.id == -1 || wiki.enabled}">checked</c:if>/><label for="enabled">Online?</label>
+  <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${wiki.id == -1 || wiki.enabled}">checked</c:if>/><label for="enabled"><fmt:message key="common.onlineQuestion" bundle="${adminMessages}" /></label>
   <div class="button-container">
     <c:choose>
       <c:when test="${!empty returnPage}">
-        <input type="submit" class="button radius success" value="Save"/>
-        <a href="${returnPage}" class="button radius secondary">Cancel</a>
+        <input type="submit" class="button radius success" value="<fmt:message key="common.save" bundle="${adminMessages}" />"/>
+        <a href="${returnPage}" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
       </c:when>
       <c:otherwise>
-        <input type="submit" class="button radius success expanded" value="Save"/>
+        <input type="submit" class="button radius success expanded" value="<fmt:message key="common.save" bundle="${adminMessages}" />"/>
       </c:otherwise>
     </c:choose>
   </div>

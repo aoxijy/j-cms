@@ -24,7 +24,7 @@
 <c:if test="${userSession.hasRole('admin')}">
 <script nonce="${cspNonce}">
   function deleteWiki(wikiId) {
-    if (!confirm("Are you sure you want to delete this wiki and all of its pages?")) {
+    if (!confirm("<fmt:message key="wiki.deleteConfirm" bundle="${adminMessages}" />")) {
       return;
     }
     postAction('${widgetContext.uri}?command=delete&widget=${widgetContext.uniqueId}&token=${userSession.formToken}&id=' + wikiId);
@@ -34,16 +34,16 @@
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
-<a class="button small radius primary" href="${ctx}/admin/wiki?returnPage=/admin/wikis">Add a Wiki <i class="fa fa-arrow-circle-right"></i></a>
+<a class="button small radius primary" href="${ctx}/admin/wiki?returnPage=/admin/wikis"><fmt:message key="wiki.add" bundle="${adminMessages}" /> <i class="fa fa-arrow-circle-right"></i></a>
 <%@include file="../page_messages.jspf" %>
-<p class="help-text">A wiki is a flat collection of markdown pages with a built-in search and a server-rendered live preview in the editor -- there's no parent/child page hierarchy, each wiki is just a named set of pages with one designated starting page. You can create as many separate wikis as you need (e.g. one per department or topic); each is added to the site as its own set of pages, and which users can reach them is controlled the same way as any other page (via the page's own role/group restrictions), not a per-wiki setting here.</p>
+<p class="help-text"><fmt:message key="wiki.listHelp" bundle="${adminMessages}" /></p>
 <table class="unstriped">
   <thead>
     <tr>
-      <th width="75%">Name</th>
-      <th width="25%">Unique Id</th>
-      <th width="100" class="text-center"># of pages</th>
-      <th width="100" class="text-center">Action</th>
+      <th width="75%"><fmt:message key="common.name" bundle="${adminMessages}" /></th>
+      <th width="25%"><fmt:message key="wiki.uniqueId" bundle="${adminMessages}" /></th>
+      <th width="100" class="text-center"><fmt:message key="wiki.pageCount" bundle="${adminMessages}" /></th>
+      <th width="100" class="text-center"><fmt:message key="common.action" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -51,7 +51,7 @@
       <tr>
         <td>
           <c:out value="${wiki.name}" />
-          <c:if test="${!wiki.enabled}"><span class="label warning">offline</span></c:if>
+          <c:if test="${!wiki.enabled}"><span class="label warning"><fmt:message key="wiki.offline" bundle="${adminMessages}" /></span></c:if>
           <c:if test="${!empty wiki.description}">
             <br /><small class="subheader"><c:out value="${wiki.description}" /></small>
           </c:if>
@@ -72,7 +72,7 @@
     </c:forEach>
     <c:if test="${empty wikiList}">
       <tr>
-        <td colspan="4">No wikis were found</td>
+        <td colspan="4"><fmt:message key="wiki.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>

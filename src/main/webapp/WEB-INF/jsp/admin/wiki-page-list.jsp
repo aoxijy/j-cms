@@ -14,6 +14,7 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="date" uri="/WEB-INF/tlds/date-functions.tld" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
@@ -21,7 +22,7 @@
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="pageListWiki" class="com.jcms.platform.domain.model.cms.Wiki" scope="request"/>
 <jsp:useBean id="wikiPageList" class="java.util.ArrayList" scope="request"/>
-<h5>Pages</h5>
+<h5><fmt:message key="wiki.pages" bundle="${adminMessages}" /></h5>
 <%--
   "New Page" no longer pre-computes a client-side slug or supplies a pageUniqueId -- the editor
   opens in a real blank/new state with just the typed title carried over, and the server alone
@@ -45,27 +46,25 @@
   function deleteWikiPage(wikiPageId, title) {
     var returnPage = encodeURIComponent("${widgetContext.uri}?wikiId=${pageListWiki.id}");
     return confirmPostAction(
-      "Are you sure you want to DELETE \"" + title + "\"? This cannot be undone.",
+      "<fmt:message key="wiki.deletePagePrefix" bundle="${adminMessages}" />" + title + "<fmt:message key="wiki.deletePageSuffix" bundle="${adminMessages}" />",
       "${widgetContext.uri}?action=deletePage&widget=${widgetContext.uniqueId}&token=${userSession.formToken}&wikiPageId=" + wikiPageId + "&returnPage=" + returnPage);
   }
 </script>
 <form onsubmit="return createWikiPage();" class="margin-bottom-10">
   <div class="input-group">
-    <input id="newWikiPageTitle" class="input-group-field" type="text" placeholder="New page title&#8230;" required>
+    <input id="newWikiPageTitle" class="input-group-field" type="text" placeholder="<fmt:message key="wiki.newPageTitle" bundle="${adminMessages}" />" required>
     <div class="input-group-button">
-      <button type="submit" class="button radius">New Page <i class="fa fa-plus"></i></button>
+      <button type="submit" class="button radius"><fmt:message key="wiki.newPage" bundle="${adminMessages}" /> <i class="fa fa-plus"></i></button>
     </div>
   </div>
-  <p class="help-text">If the title matches an existing page in this wiki, the new page is still
-    created as a separate page -- a numbered suffix (e.g. "-2") is added to its URL so it can
-    never silently open or overwrite the existing one.</p>
+  <p class="help-text"><fmt:message key="wiki.newPageHelp" bundle="${adminMessages}" /></p>
 </form>
 <table class="unstriped">
   <thead>
     <tr>
-      <th width="55%">Title</th>
-      <th width="20%">Modified</th>
-      <th width="25%" class="text-center">Action</th>
+      <th width="55%"><fmt:message key="common.title" bundle="${adminMessages}" /></th>
+      <th width="20%"><fmt:message key="wiki.modified" bundle="${adminMessages}" /></th>
+      <th width="25%" class="text-center"><fmt:message key="common.action" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -81,15 +80,15 @@
           </c:if>
         </td>
         <td class="text-center">
-          <a href="${ctx}/${pageListWiki.uniqueId}/${wikiPage.uniqueId}" title="View"><i class="fa fa-eye"></i></a>
-          <a href="${ctx}/wiki-editor?wikiUniqueId=${pageListWiki.uniqueId}&pageUniqueId=${wikiPage.uniqueId}&returnPage=${widgetContext.uri}%3FwikiId%3D${pageListWiki.id}" title="Edit"><i class="fa fa-edit"></i></a>
-          <a href="#" title="Delete" onclick="return deleteWikiPage(${wikiPage.id}, '<c:out value="${js:escape(wikiPage.title)}" />');"><i class="fa fa-remove"></i></a>
+          <a href="${ctx}/${pageListWiki.uniqueId}/${wikiPage.uniqueId}" title="<fmt:message key="wiki.view" bundle="${adminMessages}" />"><i class="fa fa-eye"></i></a>
+          <a href="${ctx}/wiki-editor?wikiUniqueId=${pageListWiki.uniqueId}&pageUniqueId=${wikiPage.uniqueId}&returnPage=${widgetContext.uri}%3FwikiId%3D${pageListWiki.id}" title="<fmt:message key="wiki.edit" bundle="${adminMessages}" />"><i class="fa fa-edit"></i></a>
+          <a href="#" title="<fmt:message key="common.delete" bundle="${adminMessages}" />" onclick="return deleteWikiPage(${wikiPage.id}, '<c:out value="${js:escape(wikiPage.title)}" />');"><i class="fa fa-remove"></i></a>
         </td>
       </tr>
     </c:forEach>
     <c:if test="${empty wikiPageList}">
       <tr>
-        <td colspan="3">No pages yet -- create the first one above.</td>
+        <td colspan="3"><fmt:message key="wiki.noPages" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>
