@@ -14,6 +14,7 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="js" uri="/WEB-INF/tlds/javascript-escape.tld" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
@@ -27,9 +28,9 @@
   <thead>
     <tr>
       <th width="30"></th>
-      <th>Platform</th>
+      <th><fmt:message key="social.platform" bundle="${adminMessages}" /></th>
       <th>URL</th>
-      <th width="60">Order</th>
+      <th width="60"><fmt:message key="social.order" bundle="${adminMessages}" /></th>
       <th width="60"></th>
     </tr>
   </thead>
@@ -42,15 +43,15 @@
       <td><c:out value="${record.linkOrder}" /></td>
       <td nowrap="true">
         <a href="${ctx}/admin/social-media-settings?socialMediaLinkId=${record.id}"><i class="fa fa-pencil"></i></a>
-        <a href="#" onclick="return confirmPostAction('Are you sure you want to remove <c:out value="${js:escape(record.platformName)}" />?', '${widgetContext.uri}?command=delete&widget=${widgetContext.uniqueId}&token=${userSession.formToken}&socialMediaLinkId=${record.id}');"><i class="fa fa-remove"></i></a>
+        <a href="#" onclick="return confirmPostAction('<fmt:message key="social.removeConfirm" bundle="${adminMessages}"><fmt:param><c:out value="${js:escape(record.platformName)}" /></fmt:param></fmt:message>', '${widgetContext.uri}?command=delete&widget=${widgetContext.uniqueId}&token=${userSession.formToken}&socialMediaLinkId=${record.id}');"><i class="fa fa-remove"></i></a>
       </td>
     </tr>
     </c:forEach>
     <c:if test="${empty socialMediaLinkList}">
       <tr>
-        <td colspan="5">No social media links have been added yet</td>
+        <td colspan="5"><fmt:message key="social.noneFound" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>
 </table>
-<p class="help-text">These links show as icons in the site footer, in the order set above; the icon for each is picked automatically from the platform name.</p>
+<p class="help-text"><fmt:message key="social.listHelp" bundle="${adminMessages}" /></p>

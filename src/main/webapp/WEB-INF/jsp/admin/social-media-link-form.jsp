@@ -14,6 +14,7 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
@@ -31,20 +32,23 @@
   </c:if>
   <%@include file="../page_messages.jspf" %>
   <%-- Form Content --%>
-  <label>Platform Name <span class="required">*</span>
-    <input type="text" placeholder="e.g. Instagram, Mastodon, Discord..." name="platformName" value="<c:out value="${socialMediaLink.platformName}"/>" required>
+  <label><fmt:message key="social.platformName" bundle="${adminMessages}" /> <span class="required">*</span>
+    <input type="text" placeholder="<fmt:message key="social.platformPlaceholder" bundle="${adminMessages}" />" name="platformName" value="<c:out value="${socialMediaLink.platformName}"/>" required>
   </label>
   <label>URL <span class="required">*</span>
     <input type="text" placeholder="https://..." name="url" value="<c:out value="${socialMediaLink.url}"/>" required>
   </label>
-  <label>Order
+  <label><fmt:message key="social.order" bundle="${adminMessages}" />
     <input type="number" name="linkOrder" value="<c:out value="${socialMediaLink.linkOrder}"/>">
   </label>
-  <p class="help-text">Add any platform -- the name is used to look up an icon for known platforms (Facebook, Instagram, LinkedIn, X/Twitter, Flickr, YouTube, Mastodon, TikTok, Discord, GitHub); anything else shows a generic link icon. Order controls where the icon falls in the footer's row (lowest first); links that share a value fall back to alphabetical order.</p>
+  <p class="help-text"><fmt:message key="social.help" bundle="${adminMessages}" /></p>
   <div class="button-container">
-    <input type="submit" class="button radius success expanded" value="${socialMediaLink.id > -1 ? 'Save Changes' : 'Add Platform'}"/>
+    <c:choose>
+      <c:when test="${socialMediaLink.id > -1}"><input type="submit" class="button radius success expanded" value="<fmt:message key="social.saveChanges" bundle="${adminMessages}" />"/></c:when>
+      <c:otherwise><input type="submit" class="button radius success expanded" value="<fmt:message key="social.addPlatform" bundle="${adminMessages}" />"/></c:otherwise>
+    </c:choose>
     <c:if test="${socialMediaLink.id > -1}">
-      <a href="${ctx}/admin/social-media-settings" class="button radius secondary expanded">Cancel</a>
+      <a href="${ctx}/admin/social-media-settings" class="button radius secondary expanded"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
     </c:if>
   </div>
 </form>
