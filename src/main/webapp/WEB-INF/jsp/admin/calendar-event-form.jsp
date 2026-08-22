@@ -14,11 +14,13 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="calendarEvent" class="com.jcms.platform.domain.model.cms.CalendarEvent" scope="request"/>
 <jsp:useBean id="tagsListValue" class="java.lang.String" scope="request"/>
+<c:set var="calendarDatepickerLanguage" value="${adminLocale eq 'zh-CN' ? 'zh-CN' : 'en'}" />
 <form method="post">
   <%-- Required by controller --%>
   <input type="hidden" name="widget" value="${widgetContext.uniqueId}"/>
@@ -35,42 +37,40 @@
   </c:if>
   <%@include file="../page_messages.jspf" %>
   <p class="help-text">
-    <i class="fa fa-info-circle"></i> <strong>No recurring events.</strong> This is a single,
-    independent event -- there's no way to make it repeat weekly/monthly automatically. A calendar's
-    own full page view offers a "Duplicate" button, but that only creates one more standalone copy,
-    not a linked series.
+    <i class="fa fa-info-circle"></i> <strong><fmt:message key="calendar.noRecurringTitle" bundle="${adminMessages}" /></strong> <fmt:message key="calendar.singleEventHelp" bundle="${adminMessages}" />
   </p>
   <%-- Form Content --%>
-  <label>Name
-    <input type="text" placeholder="Name of event" name="title" value="<c:out value="${calendarEvent.title}"/>">
+  <label><fmt:message key="common.name" bundle="${adminMessages}" />
+    <input type="text" placeholder="<fmt:message key="calendar.eventNamePlaceholder" bundle="${adminMessages}" />" name="title" value="<c:out value="${calendarEvent.title}"/>">
   </label>
-  <label>Description
-    <input type="text" placeholder="Describe it..." name="summary" value="<c:out value="${calendarEvent.summary}"/>">
+  <label><fmt:message key="calendar.description" bundle="${adminMessages}" />
+    <input type="text" placeholder="<fmt:message key="calendar.descriptionPlaceholder" bundle="${adminMessages}" />" name="summary" value="<c:out value="${calendarEvent.summary}"/>">
   </label>
-  <label>All day?
+  <label><fmt:message key="calendar.allDay" bundle="${adminMessages}" />
     <div class="switch large">
       <input class="switch-input" id="allDay-yes-no" type="checkbox" name="allDay" value="true"<c:if test="${calendarEvent.allDay}"> checked</c:if>>
       <label class="switch-paddle" for="allDay-yes-no">
-        <span class="switch-active" aria-hidden="true">Yes</span>
-        <span class="switch-inactive" aria-hidden="true">No</span>
+        <span class="switch-active" aria-hidden="true"><fmt:message key="common.yes" bundle="${adminMessages}" /></span>
+        <span class="switch-inactive" aria-hidden="true"><fmt:message key="common.no" bundle="${adminMessages}" /></span>
       </label>
     </div>
   </label>
   <div class="grid-x grid-margin-x">
     <div class="small-12 medium-6 cell">
-      <label for="startDate">Start Date/Time
+      <label for="startDate"><fmt:message key="calendar.startDateTime" bundle="${adminMessages}" />
         <div class="input-group">
-          <input type="text" placeholder="Click to select..." id="startDate" name="startDate" value="<c:out value="${calendarEvent.startDate}"/>" readonly aria-label="Select event start date and time" />
+          <input type="text" placeholder="<fmt:message key="calendar.selectDateTime" bundle="${adminMessages}" />" id="startDate" name="startDate" value="<c:out value="${calendarEvent.startDate}"/>" readonly aria-label="<fmt:message key="calendar.startAria" bundle="${adminMessages}" />" />
           <span class="input-group-addon">
             <i class="fa fa-calendar"></i>
           </span>
         </div>
       </label>
-      <small class="help-text"><i class="fa fa-info-circle"></i> Format: mm-dd-yyyy hh:ii (e.g., 07-26-2026 14:30)</small>
+      <small class="help-text"><i class="fa fa-info-circle"></i> <fmt:message key="calendar.dateFormatHelp" bundle="${adminMessages}" /></small>
       <script nonce="${cspNonce}">
         $(function () {
           $('#startDate').fdatepicker({
             format: 'mm-dd-yyyy hh:ii',
+            language: '${calendarDatepickerLanguage}',
             disableDblClickSelection: true,
             pickTime: true
           });
@@ -78,19 +78,20 @@
       </script>
     </div>
     <div class="small-12 medium-6 cell">
-      <label for="endDate">End Date/Time
+      <label for="endDate"><fmt:message key="calendar.endDateTime" bundle="${adminMessages}" />
         <div class="input-group">
-          <input type="text" placeholder="Click to select..." id="endDate" name="endDate" value="<c:out value="${calendarEvent.endDate}"/>" readonly aria-label="Select event end date and time" />
+          <input type="text" placeholder="<fmt:message key="calendar.selectDateTime" bundle="${adminMessages}" />" id="endDate" name="endDate" value="<c:out value="${calendarEvent.endDate}"/>" readonly aria-label="<fmt:message key="calendar.endAria" bundle="${adminMessages}" />" />
           <span class="input-group-addon">
             <i class="fa fa-calendar"></i>
           </span>
         </div>
       </label>
-      <small class="help-text"><i class="fa fa-info-circle"></i> Must be after start time</small>
+      <small class="help-text"><i class="fa fa-info-circle"></i> <fmt:message key="calendar.endAfterStart" bundle="${adminMessages}" /></small>
       <script nonce="${cspNonce}">
         $(function () {
           $('#endDate').fdatepicker({
             format: 'mm-dd-yyyy hh:ii',
+            language: '${calendarDatepickerLanguage}',
             disableDblClickSelection: true,
             pickTime: true
           });
@@ -100,42 +101,45 @@
   </div>
   <link rel="stylesheet" href="${ctx}/javascript/foundation-datepicker-20180424/foundation-datepicker.css" />
   <script src="${ctx}/javascript/foundation-datepicker-20180424/foundation-datepicker.js"></script>
-  <label>Location
-    <input type="text" placeholder="Name of Location" name="location" value="<c:out value="${calendarEvent.location}"/>">
+  <c:if test="${adminLocale eq 'zh-CN'}">
+    <script src="${ctx}/javascript/foundation-datepicker-20180424/locales/foundation-datepicker.zh-CN.js"></script>
+  </c:if>
+  <label><fmt:message key="common.location" bundle="${adminMessages}" />
+    <input type="text" placeholder="<fmt:message key="calendar.locationPlaceholder" bundle="${adminMessages}" />" name="location" value="<c:out value="${calendarEvent.location}"/>">
   </label>
-  <small class="help-text"><i class="fa fa-info-circle"></i> A free-text label only (e.g. "Main Auditorium" or "Zoom"), not a lookup -- there's no address/map field on this form.</small>
+  <small class="help-text"><i class="fa fa-info-circle"></i> <fmt:message key="calendar.locationHelp" bundle="${adminMessages}" /></small>
   <div class="grid-x grid-margin-x">
     <div class="small-12 medium-6 cell">
-      <label>URL for more information
-        <input type="text" placeholder="Details Url" name="detailsUrl" value="<c:out value="${calendarEvent.detailsUrl}"/>">
+      <label><fmt:message key="calendar.detailsUrl" bundle="${adminMessages}" />
+        <input type="text" placeholder="<fmt:message key="calendar.detailsUrlPlaceholder" bundle="${adminMessages}" />" name="detailsUrl" value="<c:out value="${calendarEvent.detailsUrl}"/>">
       </label>
     </div>
     <div class="small-12 medium-6 cell">
-      <label>URL to sign up
-        <input type="text" placeholder="Sign Up Url" name="signUpUrl" value="<c:out value="${calendarEvent.signUpUrl}"/>">
+      <label><fmt:message key="calendar.signUpUrl" bundle="${adminMessages}" />
+        <input type="text" placeholder="<fmt:message key="calendar.signUpUrlPlaceholder" bundle="${adminMessages}" />" name="signUpUrl" value="<c:out value="${calendarEvent.signUpUrl}"/>">
       </label>
     </div>
   </div>
-  <label>Video / Meeting Link
+  <label><fmt:message key="calendar.videoUrl" bundle="${adminMessages}" />
     <input type="text" placeholder="https://..." name="videoUrl" value="<c:out value="${calendarEvent.videoUrl}"/>">
   </label>
-  <small class="help-text"><i class="fa fa-info-circle"></i> Paste a link to a video or live meeting (Teams, Zoom, Google Meet, a YouTube stream, etc). Shown as a "Join" button on the event's page.</small>
-  <label>Tags
-    <input type="text" placeholder="conference, quarterly, all-hands" name="tagsList" value="<c:out value="${tagsListValue}"/>" maxlength="255">
+  <small class="help-text"><i class="fa fa-info-circle"></i> <fmt:message key="calendar.videoHelp" bundle="${adminMessages}" /></small>
+  <label><fmt:message key="blog.tags" bundle="${adminMessages}" />
+    <input type="text" placeholder="<fmt:message key="calendar.tagsPlaceholder" bundle="${adminMessages}" />" name="tagsList" value="<c:out value="${tagsListValue}"/>" maxlength="255">
   </label>
-  <small class="help-text"><i class="fa fa-info-circle"></i> Comma-separated list of tags for this event (e.g. "conference, quarterly, all-hands"). Limited to 255 characters total.</small>
+  <small class="help-text"><i class="fa fa-info-circle"></i> <fmt:message key="calendar.tagsHelp" bundle="${adminMessages}" /></small>
   <p>
-    <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${!empty calendarEvent.published}">checked</c:if>/><label for="enabled">Publish it?</label>
-    <br/><small class="help-text"><i class="fa fa-info-circle"></i> Unchecked saves this event as a draft, hidden from the public calendar.</small>
+    <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${!empty calendarEvent.published}">checked</c:if>/><label for="enabled"><fmt:message key="calendar.publishQuestion" bundle="${adminMessages}" /></label>
+    <br/><small class="help-text"><i class="fa fa-info-circle"></i> <fmt:message key="calendar.draftHelp" bundle="${adminMessages}" /></small>
   </p>
   <div class="button-container">
     <c:choose>
       <c:when test="${!empty returnPage}">
-        <input type="submit" class="button radius primary" value="Save"/>
-        <a href="${returnPage}" class="button radius secondary">Cancel</a>
+        <input type="submit" class="button radius primary" value="<fmt:message key="common.save" bundle="${adminMessages}" />"/>
+        <a href="${returnPage}" class="button radius secondary"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
       </c:when>
       <c:otherwise>
-        <input type="submit" class="button radius primary expanded" value="Save"/>
+        <input type="submit" class="button radius primary expanded" value="<fmt:message key="common.save" bundle="${adminMessages}" />"/>
       </c:otherwise>
     </c:choose>
   </div>

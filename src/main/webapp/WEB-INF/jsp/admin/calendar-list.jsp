@@ -25,7 +25,7 @@
 <c:if test="${userSession.hasRole('admin')}">
 <script nonce="${cspNonce}">
   function deleteCalendar(calendarId) {
-    if (!confirm("Are you sure you want to delete this calendar and all of its events?")) {
+    if (!confirm("<fmt:message key="calendar.deleteConfirm" bundle="${adminMessages}" />")) {
       return;
     }
     postAction('${widgetContext.uri}?command=delete&widget=${widgetContext.uniqueId}&token=${userSession.formToken}&id=' + calendarId);
@@ -35,59 +35,30 @@
 <c:if test="${!empty title}">
   <h4><c:if test="${!empty icon}"><i class="fa ${fn:escapeXml(icon)}"></i> </c:if><c:out value="${title}" /></h4>
 </c:if>
-<a class="button small radius primary" href="${ctx}/admin/calendar?returnPage=/admin/calendars">Add a Calendar <i class="fa fa-arrow-circle-right"></i></a>
+<a class="button small radius primary" href="${ctx}/admin/calendar?returnPage=/admin/calendars"><fmt:message key="calendar.add" bundle="${adminMessages}" /> <i class="fa fa-arrow-circle-right"></i></a>
 <%@include file="../page_messages.jspf" %>
-<p>
-  A <strong>Calendar</strong> is a named, colored container for events -- purely an internal
-  organizing concept, the same way a Blog groups posts. There's no public page listing every
-  calendar; instead, a page author wires one specific calendar into a page by its
-  <strong>Unique Id</strong> (below), set as the <code>calendarUniqueId</code> preference on a
-  <code>calendar</code>, <code>upcomingCalendarEvents</code>, or <code>calendarSearchResults</code>
-  widget.
-</p>
+<p><fmt:message key="calendar.containerHelp" bundle="${adminMessages}" /></p>
 <p class="help-text">
-  <i class="fa fa-info-circle"></i> <strong>No recurring events.</strong> Every event is a single,
-  independent record -- there's no built-in way to schedule something like "every Monday"
-  automatically on any calendar. If you need that, you'll be creating and maintaining each
-  occurrence by hand.
+  <i class="fa fa-info-circle"></i> <strong><fmt:message key="calendar.noRecurringTitle" bundle="${adminMessages}" /></strong> <fmt:message key="calendar.noRecurringHelp" bundle="${adminMessages}" />
 </p>
-<h5>Two ways to view and edit events</h5>
-<p>
-  This page shows a compact list-and-small-calendar view. A calendar can also be placed on a live
-  page using the site's full interactive calendar widget, which adds a click-to-create/edit modal
-  directly on the calendar grid. Both are safe to edit from interchangeably -- editing an event here
-  or through that modal now saves the same complete set of fields either way.
-</p>
-<h5>Troubleshooting</h5>
+<h5><fmt:message key="calendar.viewEditTitle" bundle="${adminMessages}" /></h5>
+<p><fmt:message key="calendar.viewEditHelp" bundle="${adminMessages}" /></p>
+<h5><fmt:message key="calendar.troubleshooting" bundle="${adminMessages}" /></h5>
 <ul>
-  <li><strong>Events aren't showing up on a public page.</strong> The most common cause is a
-    mismatched <code>calendarUniqueId</code> -- the value on the page's widget preference must
-    exactly match a calendar's Unique Id below, character for character.</li>
-  <li><strong># of events shows 0.</strong> Normal for a freshly-created calendar, or one whose
-    events were all deleted or moved elsewhere -- not an error.</li>
+  <li><strong><fmt:message key="calendar.publicMissingTitle" bundle="${adminMessages}" /></strong> <fmt:message key="calendar.publicMissingHelp" bundle="${adminMessages}" /></li>
+  <li><strong><fmt:message key="calendar.zeroEventsTitle" bundle="${adminMessages}" /></strong> <fmt:message key="calendar.zeroEventsHelp" bundle="${adminMessages}" /></li>
 </ul>
-<h5>Timezone</h5>
-<p>
-  Event dates and times display in the site's configured timezone (<strong>Site Properties &gt;
-  site.timezone</strong>), not your browser's or the server's local time.
-</p>
-<h5>As this grows</h5>
-<p>
-  Calendars themselves are typically few -- one per audience or purpose (events, holidays, etc.) --
-  so this table rarely grows large. Individual <strong>events</strong> are where volume shows up;
-  see the Events list below for search, filtering, pagination, and archiving as an individual
-  calendar's event count grows. Calendar and event data lives in the same PostgreSQL database as the
-  rest of the site, so deploying to a new environment needs no special provisioning beyond normal
-  database backup/restore. The interactive calendar UI (FullCalendar) is a vendored JavaScript
-  library bundled with the site, not a separate runtime dependency.
-</p>
+<h5><fmt:message key="calendar.timezone" bundle="${adminMessages}" /></h5>
+<p><fmt:message key="calendar.timezoneHelp" bundle="${adminMessages}" /></p>
+<h5><fmt:message key="calendar.scalingTitle" bundle="${adminMessages}" /></h5>
+<p><fmt:message key="calendar.scalingHelp" bundle="${adminMessages}" /></p>
 <table class="unstriped">
   <thead>
     <tr>
-      <th width="75%">Name</th>
-      <th width="25%">Unique Id</th>
-      <th width="100" class="text-center"># of events</th>
-      <th width="100" class="text-center">Action</th>
+      <th width="75%"><fmt:message key="common.name" bundle="${adminMessages}" /></th>
+      <th width="25%"><fmt:message key="calendar.uniqueId" bundle="${adminMessages}" /></th>
+      <th width="100" class="text-center"><fmt:message key="calendar.eventCount" bundle="${adminMessages}" /></th>
+      <th width="100" class="text-center"><fmt:message key="common.action" bundle="${adminMessages}" /></th>
     </tr>
   </thead>
   <tbody>
@@ -96,7 +67,7 @@
         <td>
           <c:if test="${!empty calendar.color}"><small style="padding-right: 10px;border:1px solid #000;background-color:<c:out value="${calendar.color}" />">&nbsp;</small></c:if>
           <c:out value="${calendar.name}" />
-          <c:if test="${!calendar.enabled}"><span class="label warning">offline</span></c:if>
+          <c:if test="${!calendar.enabled}"><span class="label warning"><fmt:message key="calendar.offline" bundle="${adminMessages}" /></span></c:if>
           <c:if test="${!empty calendar.description}">
             <br /><small class="subheader"><c:out value="${calendar.description}" /></small>
           </c:if>
@@ -119,7 +90,7 @@
     </c:forEach>
     <c:if test="${empty calendarList}">
       <tr>
-        <td colspan="4">No calendars were found</td>
+        <td colspan="4"><fmt:message key="calendar.noCalendars" bundle="${adminMessages}" /></td>
       </tr>
     </c:if>
   </tbody>
