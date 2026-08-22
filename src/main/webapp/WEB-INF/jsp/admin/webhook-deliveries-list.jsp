@@ -17,25 +17,25 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="webhookDeliveryList" class="java.util.ArrayList" scope="request"/>
-<h4>Delivery Log</h4>
+<h4><fmt:message key="webhook.deliveryLog" bundle="${adminMessages}" /></h4>
 <%@include file="../page_messages.jspf" %>
 <c:choose>
   <c:when test="${empty webhookSubscription}">
-    <p>The webhook subscription was not found.</p>
+    <p><fmt:message key="webhook.subscriptionNotFound" bundle="${adminMessages}" /></p>
   </c:when>
   <c:otherwise>
-    <p class="help-text">Deliveries for <code><c:out value="${webhookSubscription.url}" /></code>. Test sends are never recorded here -- only genuine deliveries triggered by a real event.</p>
-    <p class="help-text"><strong>Pending</strong> is waiting on its first attempt. <strong>Failed (retrying)</strong> means every attempt so far got no successful response, but retries remain -- automatic, roughly 10 minutes, 1 hour, 4 hours, then 24 hours after the first attempt. <strong>Exhausted</strong> means all 5 attempts failed and this delivery will not be retried again; check the Response Code/Snippet columns for why (a non-2xx status, a timeout, or an unreachable/blocked URL), fix the receiving endpoint, and use Send a Test Delivery on the subscription to confirm it's fixed -- there is no way to manually re-trigger the original exhausted delivery itself.</p>
-    <a class="button small radius secondary float-left" href="${ctx}/admin/webhook-subscription?webhookSubscriptionId=${webhookSubscription.id}">Back to Subscription</a>
+    <p class="help-text"><fmt:message key="webhook.deliveriesFor" bundle="${adminMessages}"><fmt:param><code><c:out value="${webhookSubscription.url}" /></code></fmt:param></fmt:message></p>
+    <p class="help-text"><fmt:message key="webhook.deliveryStatusHelp" bundle="${adminMessages}" /></p>
+    <a class="button small radius secondary float-left" href="${ctx}/admin/webhook-subscription?webhookSubscriptionId=${webhookSubscription.id}"><fmt:message key="webhook.backToSubscription" bundle="${adminMessages}" /></a>
     <table class="unstriped">
       <thead>
         <tr>
-          <th>Created</th>
-          <th>Event Type</th>
-          <th>Status</th>
-          <th>Attempts</th>
-          <th>Response Code</th>
-          <th>Response Snippet</th>
+          <th><fmt:message key="common.created" bundle="${adminMessages}" /></th>
+          <th><fmt:message key="webhook.eventType" bundle="${adminMessages}" /></th>
+          <th><fmt:message key="common.status" bundle="${adminMessages}" /></th>
+          <th><fmt:message key="webhook.attempts" bundle="${adminMessages}" /></th>
+          <th><fmt:message key="webhook.responseCode" bundle="${adminMessages}" /></th>
+          <th><fmt:message key="webhook.responseSnippet" bundle="${adminMessages}" /></th>
         </tr>
       </thead>
       <tbody>
@@ -45,10 +45,10 @@
             <td><c:out value="${webhookDelivery.eventType}" /></td>
             <td>
               <c:choose>
-                <c:when test="${webhookDelivery.status eq 'delivered'}"><span class="label success">Delivered</span></c:when>
-                <c:when test="${webhookDelivery.status eq 'exhausted'}"><span class="label alert">Exhausted</span></c:when>
-                <c:when test="${webhookDelivery.status eq 'failed'}"><span class="label warning">Failed (retrying)</span></c:when>
-                <c:otherwise><span class="label">Pending</span></c:otherwise>
+                <c:when test="${webhookDelivery.status eq 'delivered'}"><span class="label success"><fmt:message key="webhook.status.delivered" bundle="${adminMessages}" /></span></c:when>
+                <c:when test="${webhookDelivery.status eq 'exhausted'}"><span class="label alert"><fmt:message key="webhook.status.exhausted" bundle="${adminMessages}" /></span></c:when>
+                <c:when test="${webhookDelivery.status eq 'failed'}"><span class="label warning"><fmt:message key="webhook.status.failedRetrying" bundle="${adminMessages}" /></span></c:when>
+                <c:otherwise><span class="label"><fmt:message key="webhook.status.pending" bundle="${adminMessages}" /></span></c:otherwise>
               </c:choose>
             </td>
             <td><c:out value="${webhookDelivery.attemptCount}" /></td>
@@ -62,7 +62,7 @@
         </c:forEach>
         <c:if test="${empty webhookDeliveryList}">
           <tr>
-            <td colspan="6">No deliveries yet</td>
+            <td colspan="6"><fmt:message key="webhook.noDeliveries" bundle="${adminMessages}" /></td>
           </tr>
         </c:if>
       </tbody>
