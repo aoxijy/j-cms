@@ -446,16 +446,16 @@
           </div>
           <nav aria-label="Admin navigation">
           <%-- Admin Link --%>
-          <ul class="vertical menu">
-            <li class="section-title">Admin</li>
-            <li<c:if test="${pageRenderInfo.name eq '/admin'}"> class="is-active"</c:if>><a href="${ctx}/admin"><i class="${font:far()} fa-home fa-fw"></i> <span>Welcome</span></a></li>
-            <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/documentation')}"> class="is-active"</c:if>><a href="${ctx}/admin/documentation/wiki/Home"><i class="${font:far()} fa-book fa-fw"></i> <span>Documentation</span></a></li>
-            <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/activity')}"> class="is-active"</c:if>><a href="${ctx}/admin/activity"><i class="${font:far()} fa-exchange-alt fa-fw"></i> <span>Activity</span></a></li>
+          <ul class="vertical menu admin-nav-group admin-nav-admin">
+            <li class="section-title"><fmt:message key="nav.section.admin" bundle="${adminMessages}" /></li>
+            <li<c:if test="${pageRenderInfo.name eq '/admin'}"> class="is-active"</c:if>><a href="${ctx}/admin"><i class="${font:far()} fa-home fa-fw"></i> <span><fmt:message key="nav.welcome" bundle="${adminMessages}" /></span></a></li>
+            <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/documentation')}"> class="is-active"</c:if>><a href="${ctx}/admin/documentation/wiki/Home"><i class="${font:far()} fa-book fa-fw"></i> <span><fmt:message key="nav.documentation" bundle="${adminMessages}" /></span></a></li>
+            <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/activity')}"> class="is-active"</c:if>><a href="${ctx}/admin/activity"><i class="${font:far()} fa-exchange-alt fa-fw"></i> <span><fmt:message key="nav.activity" bundle="${adminMessages}" /></span></a></li>
             <c:if test="${userSession.hasRole('admin')}">
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/health-dashboard')}"> class="is-active"</c:if>><a href="${ctx}/admin/health-dashboard"><i class="${font:far()} fa-heart-pulse fa-fw"></i> <span>System Health</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/job-queue-dashboard')}"> class="is-active"</c:if>><a href="${ctx}/admin/job-queue-dashboard"><i class="${font:far()} fa-list-check fa-fw"></i> <span>Job Queue</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/database-maintenance')}"> class="is-active"</c:if>><a href="${ctx}/admin/database-maintenance"><i class="${font:far()} fa-database fa-fw"></i> <span>Database Maintenance</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/cache-management')}"> class="is-active"</c:if>><a href="${ctx}/admin/cache-management"><i class="${font:far()} fa-bolt fa-fw"></i> <span>Cache Management</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/health-dashboard')}"> class="is-active"</c:if>><a href="${ctx}/admin/health-dashboard"><i class="${font:far()} fa-heart-pulse fa-fw"></i> <span><fmt:message key="nav.systemHealth" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/job-queue-dashboard')}"> class="is-active"</c:if>><a href="${ctx}/admin/job-queue-dashboard"><i class="${font:far()} fa-list-check fa-fw"></i> <span><fmt:message key="nav.jobQueue" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/database-maintenance')}"> class="is-active"</c:if>><a href="${ctx}/admin/database-maintenance"><i class="${font:far()} fa-database fa-fw"></i> <span><fmt:message key="nav.databaseMaintenance" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/cache-management')}"> class="is-active"</c:if>><a href="${ctx}/admin/cache-management"><i class="${font:far()} fa-bolt fa-fw"></i> <span><fmt:message key="nav.cacheManagement" bundle="${adminMessages}" /></span></a></li>
             </c:if>
           </ul>
           <%-- Community menu --%>
@@ -464,22 +464,22 @@
                their URLs directly. The rest of this section's links have nothing to do with
                users:manage, so they stay nested behind the original role-only check below. --%>
           <c:if test="${userSession.hasRole('admin') || userSession.hasRole('community-manager') || userSession.hasPermission('users:manage')}">
-            <ul class="vertical menu">
-              <li class="section-title">Community</li>
+            <ul class="vertical menu admin-nav-group admin-nav-community">
+              <li class="section-title"><fmt:message key="nav.section.community" bundle="${adminMessages}" /></li>
               <c:if test="${userSession.hasRole('admin') || userSession.hasRole('community-manager')}">
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/community/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/community/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/community/search-analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/community/search-analytics"><i class="${font:far()} fa-search fa-fw"></i> <span>Search Analytics</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/community/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/community/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span><fmt:message key="nav.analytics" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/community/search-analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/community/search-analytics"><i class="${font:far()} fa-search fa-fw"></i> <span><fmt:message key="nav.searchAnalytics" bundle="${adminMessages}" /></span></a></li>
                 <c:if test="${userSession.hasRole('admin')}">
-                  <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-vitals')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-vitals"><i class="${font:far()} fa-tachometer-alt fa-fw"></i> <span>Web Vitals</span></a></li>
+                  <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-vitals')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-vitals"><i class="${font:far()} fa-tachometer-alt fa-fw"></i> <span><fmt:message key="nav.webVitals" bundle="${adminMessages}" /></span></a></li>
                 </c:if>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/forms')}"> class="is-active"</c:if>><a href="${ctx}/admin/forms"><i class="${font:far()} fa-file-lines fa-fw"></i> <span>Form Builder</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/form-')}"> class="is-active"</c:if>><a href="${ctx}/admin/form-data"><i class="${font:far()} fa-list-alt fa-fw"></i> <span>Form Data</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mailing-list') && !fn:startsWith(pageRenderInfo.name, '/admin/mailing-list-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mailing-lists"><i class="${font:far()} fa-envelope fa-fw"></i> <span>Mailing Lists</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/newsletter-send')}"> class="is-active"</c:if>><a href="${ctx}/admin/newsletter-send"><i class="${font:far()} fa-paper-plane fa-fw"></i> <span>Send Newsletter</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/forms')}"> class="is-active"</c:if>><a href="${ctx}/admin/forms"><i class="${font:far()} fa-file-lines fa-fw"></i> <span><fmt:message key="nav.formBuilder" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/form-')}"> class="is-active"</c:if>><a href="${ctx}/admin/form-data"><i class="${font:far()} fa-list-alt fa-fw"></i> <span><fmt:message key="nav.formData" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mailing-list') && !fn:startsWith(pageRenderInfo.name, '/admin/mailing-list-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mailing-lists"><i class="${font:far()} fa-envelope fa-fw"></i> <span><fmt:message key="nav.mailingLists" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/newsletter-send')}"> class="is-active"</c:if>><a href="${ctx}/admin/newsletter-send"><i class="${font:far()} fa-paper-plane fa-fw"></i> <span><fmt:message key="nav.sendNewsletter" bundle="${adminMessages}" /></span></a></li>
               </c:if>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/user') || fn:startsWith(pageRenderInfo.name, '/admin/modify-user') || fn:startsWith(pageRenderInfo.name, '/admin/unsuspend-requests')}"> class="is-active"</c:if>><a href="${ctx}/admin/users"><i class="${font:far()} fa-user-circle fa-fw"></i> <span>Users</span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/user') || fn:startsWith(pageRenderInfo.name, '/admin/modify-user') || fn:startsWith(pageRenderInfo.name, '/admin/unsuspend-requests')}"> class="is-active"</c:if>><a href="${ctx}/admin/users"><i class="${font:far()} fa-user-circle fa-fw"></i> <span><fmt:message key="nav.users" bundle="${adminMessages}" /></span></a></li>
               <c:if test="${userSession.hasRole('admin') || userSession.hasPermission('users:manage')}">
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/group')}"> class="is-active"</c:if>><a href="${ctx}/admin/groups"><i class="${font:far()} fa-users fa-fw"></i> <span>User Groups</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/group')}"> class="is-active"</c:if>><a href="${ctx}/admin/groups"><i class="${font:far()} fa-users fa-fw"></i> <span><fmt:message key="nav.userGroups" bundle="${adminMessages}" /></span></a></li>
               </c:if>
               <%-- Editorial Calendar (issue #426) is authorized for community-manager too (see
                    EditorialCalendarAjax's role set and admin-layout.xml), but the Content menu
@@ -487,100 +487,100 @@
                    link here, guarded so admin/content-manager users -- who already see it in the
                    Content section -- don't see it twice. --%>
               <c:if test="${(userSession.hasRole('admin') || userSession.hasRole('community-manager')) && !userSession.hasRole('admin') && !userSession.hasRole('content-manager')}">
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/editorial-calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/editorial-calendar"><i class="${font:far()} fa-calendar-check fa-fw"></i> <span>Editorial Calendar</span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/editorial-calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/editorial-calendar"><i class="${font:far()} fa-calendar-check fa-fw"></i> <span><fmt:message key="nav.editorialCalendar" bundle="${adminMessages}" /></span></a></li>
               </c:if>
             </ul>
           </c:if>
           <%-- Content menu --%>
           <c:if test="${userSession.hasRole('admin') || userSession.hasRole('content-manager')}">
-            <ul class="vertical menu">
-              <li class="section-title">Content</li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/content/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/content/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sitemap')}"> class="is-active"</c:if>><a href="${ctx}/admin/sitemap"><i class="${font:far()} fa-sitemap fa-fw"></i> <span>Navigation Menu</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-page')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-pages"><i class="${font:far()} fa-sticky-note fa-fw"></i> <span>Web Pages</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-redirect')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-redirects"><i class="${font:far()} fa-exchange-alt fa-fw"></i> <span>Web Redirects</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/image')}"> class="is-active"</c:if>><a href="${ctx}/admin/images"><i class="${font:far()} fa-image fa-fw"></i> <span>Images</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/content-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/content-list"><i class="${font:far()} fa-th fa-fw"></i> <span>Content</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/blog')}"> class="is-active"</c:if>><a href="${ctx}/admin/blogs"><i class="${font:far()} fa-quote-right fa-fw"></i> <span>Blogs</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/calendars"><i class="${font:far()} fa-calendar fa-fw"></i> <span>Calendars</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/editorial-calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/editorial-calendar"><i class="${font:far()} fa-calendar-check fa-fw"></i> <span>Editorial Calendar</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/folder')}"> class="is-active"</c:if>><a href="${ctx}/admin/folders"><i class="${font:far()} fa-copy fa-fw"></i> <span>Files &amp; Folders</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/wiki')}"> class="is-active"</c:if>><a href="${ctx}/admin/wikis"><i class="${font:far()} fa-file fa-fw"></i> <span>Wikis</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/useful-links')}"> class="is-active"</c:if>><a href="${ctx}/admin/useful-links"><i class="${font:far()} fa-list-alt fa-fw"></i> <span>Useful Links</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sticky-footer-links')}"> class="is-active"</c:if>><a href="${ctx}/admin/sticky-footer-links"><i class="${font:far()} fa-flag fa-fw"></i> <span>Sticky Page Buttons</span></a></li>
+            <ul class="vertical menu admin-nav-group admin-nav-content">
+              <li class="section-title"><fmt:message key="nav.section.content" bundle="${adminMessages}" /></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/content/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/content/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span><fmt:message key="nav.analytics" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sitemap')}"> class="is-active"</c:if>><a href="${ctx}/admin/sitemap"><i class="${font:far()} fa-sitemap fa-fw"></i> <span><fmt:message key="nav.navigationMenu" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-page')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-pages"><i class="${font:far()} fa-sticky-note fa-fw"></i> <span><fmt:message key="nav.webPages" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/web-redirect')}"> class="is-active"</c:if>><a href="${ctx}/admin/web-redirects"><i class="${font:far()} fa-exchange-alt fa-fw"></i> <span><fmt:message key="nav.webRedirects" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/image')}"> class="is-active"</c:if>><a href="${ctx}/admin/images"><i class="${font:far()} fa-image fa-fw"></i> <span><fmt:message key="nav.images" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/content-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/content-list"><i class="${font:far()} fa-th fa-fw"></i> <span><fmt:message key="nav.section.content" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/blog')}"> class="is-active"</c:if>><a href="${ctx}/admin/blogs"><i class="${font:far()} fa-quote-right fa-fw"></i> <span><fmt:message key="nav.blogs" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/calendars"><i class="${font:far()} fa-calendar fa-fw"></i> <span><fmt:message key="nav.calendars" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/editorial-calendar')}"> class="is-active"</c:if>><a href="${ctx}/admin/editorial-calendar"><i class="${font:far()} fa-calendar-check fa-fw"></i> <span><fmt:message key="nav.editorialCalendar" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/folder')}"> class="is-active"</c:if>><a href="${ctx}/admin/folders"><i class="${font:far()} fa-copy fa-fw"></i> <span><fmt:message key="nav.filesFolders" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/wiki')}"> class="is-active"</c:if>><a href="${ctx}/admin/wikis"><i class="${font:far()} fa-file fa-fw"></i> <span><fmt:message key="nav.wikis" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/useful-links')}"> class="is-active"</c:if>><a href="${ctx}/admin/useful-links"><i class="${font:far()} fa-list-alt fa-fw"></i> <span><fmt:message key="nav.usefulLinks" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sticky-footer-links')}"> class="is-active"</c:if>><a href="${ctx}/admin/sticky-footer-links"><i class="${font:far()} fa-flag fa-fw"></i> <span><fmt:message key="nav.stickyPageButtons" bundle="${adminMessages}" /></span></a></li>
             </ul>
           </c:if>
           <%-- Data menu --%>
           <c:if test="${userSession.hasRole('admin') || userSession.hasRole('data-manager')}">
-            <ul class="vertical menu">
-              <li class="section-title">Data</li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/collection')}"> class="is-active"</c:if>><a href="${ctx}/admin/collections"><i class="${font:far()} fa-database fa-fw"></i> <span>Collections</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/dataset')}"> class="is-active"</c:if>><a href="${ctx}/admin/datasets"><i class="${font:far()} fa-table fa-fw"></i> <span>Datasets</span></a></li>
+            <ul class="vertical menu admin-nav-group admin-nav-data">
+              <li class="section-title"><fmt:message key="nav.section.data" bundle="${adminMessages}" /></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/collection')}"> class="is-active"</c:if>><a href="${ctx}/admin/collections"><i class="${font:far()} fa-database fa-fw"></i> <span><fmt:message key="nav.collections" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/dataset')}"> class="is-active"</c:if>><a href="${ctx}/admin/datasets"><i class="${font:far()} fa-table fa-fw"></i> <span><fmt:message key="nav.datasets" bundle="${adminMessages}" /></span></a></li>
             </ul>
           </c:if>
           <%-- E-Commerce menu (if enabled if settings) --%>
           <c:if test="${!empty ecommercePropertyMap['ecommerce.enabled'] && ecommercePropertyMap['ecommerce.enabled'] eq 'true'}">
             <c:if test="${userSession.hasRole('admin') || userSession.hasRole('ecommerce-manager')}">
-              <ul class="vertical menu">
-                <li class="section-title">E-Commerce</li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/e-commerce/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/e-commerce/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/order')}"> class="is-active"</c:if>><a href="${ctx}/admin/orders"><i class="${font:far()} fa-receipt fa-fw"></i> <span>Orders</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/customer')}"> class="is-active"</c:if>><a href="${ctx}/admin/customers"><i class="${font:far()} fa-address-book fa-fw"></i> <span>Customers</span></a></li>
-                <li<c:if test="${pageRenderInfo.name eq '/admin/products' || pageRenderInfo.name eq '/admin/product'}"> class="is-active"</c:if>><a href="${ctx}/admin/products"><i class="${font:far()} fa-dolly fa-fw"></i> <span>Products</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/product-categor')}"> class="is-active"</c:if>><a href="${ctx}/admin/product-categories"><i class="${font:far()} fa-border-all fa-fw"></i> <span>Categories</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/pricing-rule')}"> class="is-active"</c:if>><a href="${ctx}/admin/pricing-rules"><i class="${font:far()} fa-tags fa-fw"></i> <span>Pricing Rules</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sales-tax-nexus')}"> class="is-active"</c:if>><a href="${ctx}/admin/sales-tax-nexus"><i class="${font:far()} fa-balance-scale fa-fw"></i> <span>Sales Tax Nexus</span></a></li>
-                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/shipping-rates')}"> class="is-active"</c:if>><a href="${ctx}/admin/shipping-rates"><i class="${font:far()} fa-shipping-fast fa-fw"></i> <span>Shipping Rates</span></a></li>
+              <ul class="vertical menu admin-nav-group admin-nav-ecommerce">
+                <li class="section-title"><fmt:message key="nav.section.ecommerce" bundle="${adminMessages}" /></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/e-commerce/analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/e-commerce/analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span><fmt:message key="nav.analytics" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/order')}"> class="is-active"</c:if>><a href="${ctx}/admin/orders"><i class="${font:far()} fa-receipt fa-fw"></i> <span><fmt:message key="nav.orders" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/customer')}"> class="is-active"</c:if>><a href="${ctx}/admin/customers"><i class="${font:far()} fa-address-book fa-fw"></i> <span><fmt:message key="nav.customers" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${pageRenderInfo.name eq '/admin/products' || pageRenderInfo.name eq '/admin/product'}"> class="is-active"</c:if>><a href="${ctx}/admin/products"><i class="${font:far()} fa-dolly fa-fw"></i> <span><fmt:message key="nav.products" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/product-categor')}"> class="is-active"</c:if>><a href="${ctx}/admin/product-categories"><i class="${font:far()} fa-border-all fa-fw"></i> <span><fmt:message key="nav.categories" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/pricing-rule')}"> class="is-active"</c:if>><a href="${ctx}/admin/pricing-rules"><i class="${font:far()} fa-tags fa-fw"></i> <span><fmt:message key="nav.pricingRules" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/sales-tax-nexus')}"> class="is-active"</c:if>><a href="${ctx}/admin/sales-tax-nexus"><i class="${font:far()} fa-balance-scale fa-fw"></i> <span><fmt:message key="nav.salesTaxNexus" bundle="${adminMessages}" /></span></a></li>
+                <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/shipping-rates')}"> class="is-active"</c:if>><a href="${ctx}/admin/shipping-rates"><i class="${font:far()} fa-shipping-fast fa-fw"></i> <span><fmt:message key="nav.shippingRates" bundle="${adminMessages}" /></span></a></li>
               </ul>
             </c:if>
           </c:if>
           <%-- API, Apps, etc. --%>
           <c:if test="${userSession.hasRole('admin') || userSession.hasPermission('admin:manage')}">
-            <ul class="vertical menu">
-              <li class="section-title">Access</li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/api')}"> class="is-active"</c:if>><a href="${ctx}/admin/apis"><i class="${font:far()} fa-paper-plane fa-fw"></i> <span>APIs</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/app')}"> class="is-active"</c:if>><a href="${ctx}/admin/apps"><i class="${font:far()} fa-mobile fa-fw"></i> <span>Apps</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/blocked-ip-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/blocked-ip-list"><i class="${font:far()} fa-shield-halved fa-fw"></i> <span>Blocked IPs</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/allowed-ip-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/allowed-ip-list"><i class="${font:far()} fa-shield fa-fw"></i> <span>Allowed IPs</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/bot-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/bot-list"><i class="${font:far()} fa-robot fa-fw"></i> <span>Bot User Agents</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/role-capabilities')}"> class="is-active"</c:if>><a href="${ctx}/admin/role-capabilities"><i class="${font:far()} fa-user-lock fa-fw"></i> <span>Role Capabilities</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/audit-log')}"> class="is-active"</c:if>><a href="${ctx}/admin/audit-log"><i class="${font:far()} fa-clipboard-list fa-fw"></i> <span>Audit Log</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/analytics-retention')}"> class="is-active"</c:if>><a href="${ctx}/admin/analytics-retention"><i class="${font:far()} fa-trash-can fa-fw"></i> <span>Analytics Retention</span></a></li>
+            <ul class="vertical menu admin-nav-group admin-nav-access">
+              <li class="section-title"><fmt:message key="nav.section.access" bundle="${adminMessages}" /></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/api')}"> class="is-active"</c:if>><a href="${ctx}/admin/apis"><i class="${font:far()} fa-paper-plane fa-fw"></i> <span><fmt:message key="nav.apis" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/app')}"> class="is-active"</c:if>><a href="${ctx}/admin/apps"><i class="${font:far()} fa-mobile fa-fw"></i> <span><fmt:message key="nav.apps" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/blocked-ip-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/blocked-ip-list"><i class="${font:far()} fa-shield-halved fa-fw"></i> <span><fmt:message key="nav.blockedIps" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/allowed-ip-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/allowed-ip-list"><i class="${font:far()} fa-shield fa-fw"></i> <span><fmt:message key="nav.allowedIps" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/bot-list')}"> class="is-active"</c:if>><a href="${ctx}/admin/bot-list"><i class="${font:far()} fa-robot fa-fw"></i> <span><fmt:message key="nav.botUserAgents" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/role-capabilities')}"> class="is-active"</c:if>><a href="${ctx}/admin/role-capabilities"><i class="${font:far()} fa-user-lock fa-fw"></i> <span><fmt:message key="nav.roleCapabilities" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/audit-log')}"> class="is-active"</c:if>><a href="${ctx}/admin/audit-log"><i class="${font:far()} fa-clipboard-list fa-fw"></i> <span><fmt:message key="nav.auditLog" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/analytics-retention')}"> class="is-active"</c:if>><a href="${ctx}/admin/analytics-retention"><i class="${font:far()} fa-trash-can fa-fw"></i> <span><fmt:message key="nav.analyticsRetention" bundle="${adminMessages}" /></span></a></li>
             </ul>
           </c:if>
           <%-- SEO and AI Visibility menu --%>
           <c:if test="${userSession.hasRole('admin')}">
-            <ul class="vertical menu">
-              <li class="section-title">SEO &amp; AI</li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/seo-overview')}"> class="is-active"</c:if>><a href="${ctx}/admin/seo-overview"><i class="${font:far()} fa-magnifying-glass-chart fa-fw"></i> <span>SEO &amp; AI Visibility</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/seo-sitemap')}"> class="is-active"</c:if>><a href="${ctx}/admin/seo-sitemap"><i class="${font:far()} fa-map fa-fw"></i> <span>SEO Sitemap</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/llms')}"> class="is-active"</c:if>><a href="${ctx}/admin/llms-properties"><i class="${font:far()} fa-file-lines fa-fw"></i> <span>LLM/AI Visibility (llms.txt)</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/robots')}"> class="is-active"</c:if>><a href="${ctx}/admin/robots-properties"><i class="${font:far()} fa-robot fa-fw"></i> <span>Robots &amp; Crawlers</span></a></li>
+            <ul class="vertical menu admin-nav-group admin-nav-seo">
+              <li class="section-title"><fmt:message key="nav.section.seoAi" bundle="${adminMessages}" /></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/seo-overview')}"> class="is-active"</c:if>><a href="${ctx}/admin/seo-overview"><i class="${font:far()} fa-magnifying-glass-chart fa-fw"></i> <span><fmt:message key="nav.seoAiVisibility" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/seo-sitemap')}"> class="is-active"</c:if>><a href="${ctx}/admin/seo-sitemap"><i class="${font:far()} fa-map fa-fw"></i> <span><fmt:message key="nav.seoSitemap" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/llms')}"> class="is-active"</c:if>><a href="${ctx}/admin/llms-properties"><i class="${font:far()} fa-file-lines fa-fw"></i> <span><fmt:message key="nav.llmVisibility" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/robots')}"> class="is-active"</c:if>><a href="${ctx}/admin/robots-properties"><i class="${font:far()} fa-robot fa-fw"></i> <span><fmt:message key="nav.robotsCrawlers" bundle="${adminMessages}" /></span></a></li>
             </ul>
           </c:if>
           <%-- Settings menu --%>
           <c:if test="${userSession.hasRole('admin')}">
-            <ul class="vertical menu">
+            <ul class="vertical menu admin-nav-group admin-nav-settings">
               <li class="section-title"><fmt:message key="nav.section.settings" bundle="${adminMessages}" /></li>
               <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/ui-settings')}"> class="is-active"</c:if>><a href="${ctx}/admin/ui-settings"><i class="${font:far()} fa-language fa-fw"></i> <span><fmt:message key="nav.adminUiSettings" bundle="${adminMessages}" /></span></a></li>
               <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/theme')}"> class="is-active"</c:if>><a href="${ctx}/admin/theme-properties"><i class="${font:far()} fa-palette fa-fw"></i> <span><fmt:message key="nav.theme" bundle="${adminMessages}" /></span></a></li>
               <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/site-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/site-properties"><i class="${font:far()} fa-rocket fa-fw"></i> <span><fmt:message key="nav.siteSettings" bundle="${adminMessages}" /></span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mfa')}"> class="is-active"</c:if>><a href="${ctx}/admin/mfa-properties"><i class="${font:far()} fa-lock fa-fw"></i> <span>MFA Settings</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/social')}"> class="is-active"</c:if>><a href="${ctx}/admin/social-media-settings"><i class="${font:far()} fa-thumbs-up fa-fw"></i> <span>Social Media</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/configure-analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/configure-analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span>Analytics Settings</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/captcha')}"> class="is-active"</c:if>><a href="${ctx}/admin/captcha-properties"><i class="${font:far()} fa-key fa-fw"></i> <span>Captcha Settings</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/security-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/security-properties"><i class="${font:far()} fa-shield fa-fw"></i> <span>Security</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/feature-flags')}"> class="is-active"</c:if>><a href="${ctx}/admin/feature-flags"><i class="${font:far()} fa-flag fa-fw"></i> <span>Feature Flags</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/bi')}"> class="is-active"</c:if>><a href="${ctx}/admin/bi-properties"><i class="${font:far()} fa-table-columns fa-fw"></i> <span>BI Settings</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/webhook')}"> class="is-active"</c:if>><a href="${ctx}/admin/webhooks"><i class="${font:far()} fa-plug fa-fw"></i> <span>Webhooks</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/integrations')}"> class="is-active"</c:if>><a href="${ctx}/admin/integrations"><i class="${font:far()} fa-puzzle-piece fa-fw"></i> <span>Integrations</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/ecommerce')}"> class="is-active"</c:if>><a href="${ctx}/admin/ecommerce-properties"><i class="${font:far()} fa-shopping-cart fa-fw"></i> <span>E-commerce Settings</span></a></li>
-              <li<c:if test="${pageRenderInfo.name eq '/admin/elearning-properties'}"> class="is-active"</c:if>><a href="${ctx}/admin/elearning-properties"><i class="${font:far()} fa-chalkboard-teacher fa-fw"></i> <span>E-learning Settings</span></a></li>
-              <li<c:if test="${pageRenderInfo.name eq '/admin/elearning-statements'}"> class="is-active"</c:if>><a href="${ctx}/admin/elearning-statements"><i class="${font:far()} fa-list fa-fw"></i> <span>xAPI Statements</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mail-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mail-properties"><i class="${font:far()} fa-cogs fa-fw"></i> <span>Email Settings</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mailing-list-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mailing-list-properties"><i class="${font:far()} fa-envelope fa-fw"></i> <span>Mailing List Settings</span></a></li>
-              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/maps')}"> class="is-active"</c:if>><a href="${ctx}/admin/maps-properties"><i class="${font:far()} fa-map fa-fw"></i> <span>Maps Settings</span></a></li>
-              <%--<li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/email-templates')}"> class="is-active"</c:if>><a href="${ctx}/admin/email-templates"><i class="${font:far()} fa-file-text fa-fw"></i> <span>Email Templates</span></a></li>--%>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mfa')}"> class="is-active"</c:if>><a href="${ctx}/admin/mfa-properties"><i class="${font:far()} fa-lock fa-fw"></i> <span><fmt:message key="nav.mfaSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/social')}"> class="is-active"</c:if>><a href="${ctx}/admin/social-media-settings"><i class="${font:far()} fa-thumbs-up fa-fw"></i> <span><fmt:message key="nav.socialMedia" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/configure-analytics')}"> class="is-active"</c:if>><a href="${ctx}/admin/configure-analytics"><i class="${font:far()} fa-chart-line fa-fw"></i> <span><fmt:message key="nav.analyticsSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/captcha')}"> class="is-active"</c:if>><a href="${ctx}/admin/captcha-properties"><i class="${font:far()} fa-key fa-fw"></i> <span><fmt:message key="nav.captchaSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/security-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/security-properties"><i class="${font:far()} fa-shield fa-fw"></i> <span><fmt:message key="nav.security" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/feature-flags')}"> class="is-active"</c:if>><a href="${ctx}/admin/feature-flags"><i class="${font:far()} fa-flag fa-fw"></i> <span><fmt:message key="nav.featureFlags" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/bi')}"> class="is-active"</c:if>><a href="${ctx}/admin/bi-properties"><i class="${font:far()} fa-table-columns fa-fw"></i> <span><fmt:message key="nav.biSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/webhook')}"> class="is-active"</c:if>><a href="${ctx}/admin/webhooks"><i class="${font:far()} fa-plug fa-fw"></i> <span><fmt:message key="nav.webhooks" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/integrations')}"> class="is-active"</c:if>><a href="${ctx}/admin/integrations"><i class="${font:far()} fa-puzzle-piece fa-fw"></i> <span><fmt:message key="nav.integrations" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/ecommerce')}"> class="is-active"</c:if>><a href="${ctx}/admin/ecommerce-properties"><i class="${font:far()} fa-shopping-cart fa-fw"></i> <span><fmt:message key="nav.ecommerceSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${pageRenderInfo.name eq '/admin/elearning-properties'}"> class="is-active"</c:if>><a href="${ctx}/admin/elearning-properties"><i class="${font:far()} fa-chalkboard-teacher fa-fw"></i> <span><fmt:message key="nav.elearningSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${pageRenderInfo.name eq '/admin/elearning-statements'}"> class="is-active"</c:if>><a href="${ctx}/admin/elearning-statements"><i class="${font:far()} fa-list fa-fw"></i> <span><fmt:message key="nav.xapiStatements" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mail-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mail-properties"><i class="${font:far()} fa-cogs fa-fw"></i> <span><fmt:message key="nav.emailSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/mailing-list-properties')}"> class="is-active"</c:if>><a href="${ctx}/admin/mailing-list-properties"><i class="${font:far()} fa-envelope fa-fw"></i> <span><fmt:message key="nav.mailingListSettings" bundle="${adminMessages}" /></span></a></li>
+              <li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/maps')}"> class="is-active"</c:if>><a href="${ctx}/admin/maps-properties"><i class="${font:far()} fa-map fa-fw"></i> <span><fmt:message key="nav.mapsSettings" bundle="${adminMessages}" /></span></a></li>
+              <%--<li<c:if test="${fn:startsWith(pageRenderInfo.name, '/admin/email-templates')}"> class="is-active"</c:if>><a href="${ctx}/admin/email-templates"><i class="${font:far()} fa-file-text fa-fw"></i> <span><fmt:message key="nav.emailTemplates" bundle="${adminMessages}" /></span></a></li>--%>
             </ul>
           </c:if>
           </nav>

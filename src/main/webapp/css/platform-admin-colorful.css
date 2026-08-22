@@ -5,6 +5,58 @@
   --admin-orange: #ea580c;
   --admin-red: #dc2626;
   --admin-purple: #7c3aed;
+  --admin-cyan: #0891b2;
+  --admin-pink: #db2777;
+  --admin-sidebar: #111827;
+  --admin-nav-blue: #60a5fa;
+  --admin-nav-green: #4ade80;
+  --admin-nav-orange: #fb923c;
+  --admin-nav-red: #f87171;
+  --admin-nav-purple: #c084fc;
+  --admin-nav-cyan: #22d3ee;
+  --admin-nav-pink: #f472b6;
+}
+
+:root[data-admin-theme="colorful"] body .admin-menu {
+  background: var(--admin-sidebar);
+}
+:root[data-admin-theme="colorful"] body .admin-menu .app-title {
+  background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+}
+:root[data-admin-theme="colorful"] body .admin-menu .app-title small {
+  color: #dbeafe;
+}
+:root[data-admin-theme="colorful"] body .admin-menu .app-user {
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+}
+:root[data-admin-theme="colorful"] body .admin-menu .app-user i { color: #60a5fa; }
+
+:root[data-admin-theme="colorful"] body .admin-nav-admin { --admin-group-color: var(--admin-nav-blue); }
+:root[data-admin-theme="colorful"] body .admin-nav-community { --admin-group-color: var(--admin-nav-green); }
+:root[data-admin-theme="colorful"] body .admin-nav-content { --admin-group-color: var(--admin-nav-orange); }
+:root[data-admin-theme="colorful"] body .admin-nav-data { --admin-group-color: var(--admin-nav-purple); }
+:root[data-admin-theme="colorful"] body .admin-nav-ecommerce { --admin-group-color: var(--admin-nav-pink); }
+:root[data-admin-theme="colorful"] body .admin-nav-access { --admin-group-color: var(--admin-nav-red); }
+:root[data-admin-theme="colorful"] body .admin-nav-seo { --admin-group-color: var(--admin-nav-cyan); }
+:root[data-admin-theme="colorful"] body .admin-nav-settings { --admin-group-color: #d8b4fe; }
+
+:root[data-admin-theme="colorful"] body .admin-nav-group .section-title {
+  color: var(--admin-group-color);
+  border-left: 3px solid var(--admin-group-color);
+}
+:root[data-admin-theme="colorful"] body .admin-nav-group a i {
+  color: var(--admin-group-color);
+}
+:root[data-admin-theme="colorful"] body .admin-nav-group li:hover:not(.section-title) {
+  background: #1f2937;
+}
+:root[data-admin-theme="colorful"] body .admin-nav-group li.is-active > a {
+  background: #26334a;
+  box-shadow: inset 3px 0 0 var(--admin-group-color);
+}
+:root[data-admin-theme="colorful"] body .admin-nav-group li.is-active > a i {
+  color: var(--admin-group-color);
 }
 
 :root[data-admin-theme="colorful"] body .button.primary,
