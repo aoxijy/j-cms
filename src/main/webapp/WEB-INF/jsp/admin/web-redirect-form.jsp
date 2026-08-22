@@ -14,12 +14,13 @@
   ~ limitations under the License.
   --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <jsp:useBean id="userSession" class="com.jcms.platform.presentation.controller.UserSession" scope="session"/>
 <jsp:useBean id="widgetContext" class="com.jcms.platform.presentation.controller.WidgetContext" scope="request"/>
 <jsp:useBean id="webRedirect" class="com.jcms.platform.domain.model.cms.WebRedirect" scope="request"/>
 <c:choose>
-  <c:when test="${webRedirect.id eq -1}"><h4>New Web Redirect</h4></c:when>
-  <c:otherwise><h4>Edit Web Redirect</h4></c:otherwise>
+  <c:when test="${webRedirect.id eq -1}"><h4><fmt:message key="redirect.new" bundle="${adminMessages}" /></h4></c:when>
+  <c:otherwise><h4><fmt:message key="redirect.editTitle" bundle="${adminMessages}" /></h4></c:otherwise>
 </c:choose>
 <%@include file="../page_messages.jspf" %>
 
@@ -29,46 +30,43 @@
   <input type="hidden" name="id" value="${webRedirect.id}"/>
   <div class="grid-x grid-margin-x">
     <div class="small-12 medium-10 large-8 cell">
-      <label for="fromPath">From Path <span class="required">*</span>
+      <label for="fromPath"><fmt:message key="redirect.fromPath" bundle="${adminMessages}" /> <span class="required">*</span>
         <input type="text" id="fromPath" name="fromPath" maxlength="500" placeholder="/old-page" value="<c:out value="${webRedirect.fromPath}" />" <c:if test="${webRedirect.id eq -1}">autofocus="autofocus"</c:if> required>
       </label>
-      <p class="help-text" id="fromPathHelpText">The site-relative path to redirect from, starting with a /. Must be unique.</p>
+      <p class="help-text" id="fromPathHelpText"><fmt:message key="redirect.fromPathHelp" bundle="${adminMessages}" /></p>
     </div>
   </div>
   <div class="grid-x grid-margin-x">
     <div class="small-12 medium-10 large-8 cell">
-      <label for="toUrl">To URL <span class="required">*</span>
+      <label for="toUrl"><fmt:message key="redirect.toUrl" bundle="${adminMessages}" /> <span class="required">*</span>
         <input type="text" id="toUrl" name="toUrl" maxlength="2000" placeholder="/new-page or https://example.com/page" value="<c:out value="${webRedirect.toUrl}" />" required>
       </label>
-      <p class="help-text" id="toUrlHelpText">Prefer a site-relative path (e.g. <code>/new-page</code>). An absolute
-        http(s) URL sends visitors to an external site -- every visitor who hits the From Path above is bounced
-        there automatically, with no click and no warning that they left this site, so use one only when you mean
-        to. Administrators only; content managers can redirect to a path on this site.</p>
+      <p class="help-text" id="toUrlHelpText"><fmt:message key="redirect.toUrlHelp" bundle="${adminMessages}" /></p>
     </div>
   </div>
   <div class="grid-x grid-margin-x">
     <div class="small-12 medium-4 large-3 cell">
-      <label for="statusCode">Status Code
+      <label for="statusCode"><fmt:message key="redirect.statusCode" bundle="${adminMessages}" />
         <select id="statusCode" name="statusCode">
-          <option value="301" <c:if test="${webRedirect.statusCode eq 301}">selected</c:if>>301 - Permanent</option>
-          <option value="302" <c:if test="${webRedirect.statusCode eq 302}">selected</c:if>>302 - Temporary</option>
+          <option value="301" <c:if test="${webRedirect.statusCode eq 301}">selected</c:if>>301 - <fmt:message key="redirect.permanent" bundle="${adminMessages}" /></option>
+          <option value="302" <c:if test="${webRedirect.statusCode eq 302}">selected</c:if>>302 - <fmt:message key="redirect.temporary" bundle="${adminMessages}" /></option>
         </select>
       </label>
     </div>
   </div>
   <div class="grid-x grid-margin-x">
     <div class="small-12 medium-10 large-8 cell">
-      <label>Enabled
+      <label><fmt:message key="redirect.enabled" bundle="${adminMessages}" />
         <input id="enabled" type="checkbox" name="enabled" value="true" <c:if test="${webRedirect.id eq -1 || webRedirect.enabled}">checked</c:if>/>
       </label>
-      <p class="help-text">Disabled redirects are kept but never applied to incoming requests.</p>
+      <p class="help-text"><fmt:message key="redirect.disabledHelp" bundle="${adminMessages}" /></p>
     </div>
   </div>
   <div class="grid-x grid-margin-x">
     <div class="small-12 cell">
       <p>
-        <input type="submit" class="button radius success" value="Save"/>
-        <a class="button radius secondary" href="${ctx}/admin/web-redirects">Cancel</a>
+        <input type="submit" class="button radius success" value="<fmt:message key="common.save" bundle="${adminMessages}" />"/>
+        <a class="button radius secondary" href="${ctx}/admin/web-redirects"><fmt:message key="common.cancel" bundle="${adminMessages}" /></a>
       </p>
     </div>
   </div>
